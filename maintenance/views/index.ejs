@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= config.title %> — Shield Software</title>
+  <link rel="icon" type="image/png" href="/images/logo.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/line-waves.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #06070a;
+      --card-bg: rgba(10, 10, 15, 0.75);
+      --purple-primary: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.25);
+      --purple-border: rgba(168, 85, 247, 0.2);
+      --text-bright: #ffffff;
+      --text-sub: #94a3b8;
+    }
+
+    body {
+      background-color: var(--bg-dark) !important;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    /* Ultra Minimalist Glass Card */
+    .maintenance-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border: 1px solid var(--purple-border);
+      border-radius: 24px;
+      padding: 44px 36px;
+      text-align: center;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    /* Minimal Top Badges */
+    .badges-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .badge-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid var(--purple-border);
+      color: var(--purple-primary);
+    }
+
+    .badge-item .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--purple-primary);
+      box-shadow: 0 0 8px var(--purple-primary);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.8); }
+    }
+
+    /* Minimalist Icon */
+    .icon-wrapper {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: rgba(168, 85, 247, 0.08);
+      border: 1px solid var(--purple-border);
+      color: var(--purple-primary);
+      font-size: 30px;
+      margin-bottom: 24px;
+      box-shadow: 0 0 25px var(--purple-glow);
+    }
+
+    /* Minimalist Typography */
+    .main-title {
+      font-family: var(--font-display, 'Outfit', sans-serif);
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: var(--text-bright);
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+
+    .sub-title {
+      color: var(--text-sub);
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin-bottom: 28px;
+      font-weight: 400;
+    }
+
+    /* Countdown Block */
+    .countdown-block {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 28px;
+    }
+
+    .countdown-title {
+      font-size: 11px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .countdown-numbers {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .num-unit {
+      text-align: center;
+    }
+
+    .num-val {
+      font-family: var(--font-display, 'Outfit', sans-serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--purple-primary);
+      line-height: 1;
+    }
+
+    .num-lbl {
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Action Buttons */
+    .actions-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: var(--transition, all 0.2s ease);
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .btn-purple {
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid var(--purple-border);
+      color: #e9d5ff;
+    }
+
+    .btn-purple:hover {
+      background: rgba(168, 85, 247, 0.3);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .btn-dark {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-sub);
+    }
+
+    .btn-dark:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-bright);
+      transform: translateY(-1px);
+    }
+
+    /* Footer */
+    .minimal-footer {
+      margin-top: 28px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 11px;
+      color: rgba(148, 163, 184, 0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Minimalist Maintenance Card -->
+  <div class="maintenance-wrapper">
+    
+    <!-- Badges -->
+    <div class="badges-container">
+      <div class="badge-item">
+        <span class="pulse-dot"></span>
+        <span>Bakım Modu</span>
+      </div>
+      <div class="badge-item">
+        <i class="fa-solid fa-code-branch"></i>
+        <span><%= config.version %></span>
+      </div>
+    </div>
+
+    <!-- Icon -->
+    <div class="icon-wrapper">
+      <i class="fa-solid fa-screwdriver-wrench"></i>
+    </div>
+
+    <!-- Titles -->
+    <h1 class="main-title"><%= config.title %></h1>
+    <p class="sub-title"><%= config.subtitle %></p>
+
+    <!-- Countdown Timer -->
+    <div class="countdown-block">
+      <div class="countdown-title">
+        <i class="fa-regular fa-clock"></i> Tahmini Tamamlanma Süresi
+      </div>
+      <div class="countdown-numbers">
+        <div class="num-unit">
+          <div class="num-val" id="cd-hours">00</div>
+          <div class="num-lbl">Saat</div>
+        </div>
+        <div class="num-unit">
+          <div class="num-val" id="cd-minutes">00</div>
+          <div class="num-lbl">Dakika</div>
+        </div>
+        <div class="num-unit">
+          <div class="num-val" id="cd-seconds">00</div>
+          <div class="num-lbl">Saniye</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions-row">
+      <% if (config.discordUrl) { %>
+        <a href="<%= config.discordUrl %>" target="_blank" class="btn-action btn-purple">
+          <i class="fa-brands fa-discord"></i> Discord
+        </a>
+      <% } %>
+      <a href="/auth/login" class="btn-action btn-dark">
+        <i class="fa-solid fa-gauge-high"></i> Yönetici Girişi
+      </a>
+    </div>
+
+    <!-- Minimal Footer -->
+    <div class="minimal-footer">
+      <%= config.footer %>
+    </div>
+
+  </div>
+
+  <script>
+    const endTimeStr = "<%= config.endTime %>";
+    if (endTimeStr) {
+      const targetTime = new Date(endTimeStr).getTime();
+
+      function updateTimer() {
+        const now = new Date().getTime();
+        const diff = targetTime - now;
+
+        if (diff <= 0) {
+          document.getElementById("cd-hours").innerText = "00";
+          document.getElementById("cd-minutes").innerText = "00";
+          document.getElementById("cd-seconds").innerText = "00";
+          return;
+        }
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById("cd-hours").innerText = String(hours).padStart(2, "0");
+        document.getElementById("cd-minutes").innerText = String(minutes).padStart(2, "0");
+        document.getElementById("cd-seconds").innerText = String(seconds).padStart(2, "0");
+      }
+
+      updateTimer();
+      setInterval(updateTimer, 1000);
+    }
+  </script>
+
+</body>
+</html>

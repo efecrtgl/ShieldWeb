@@ -1,0 +1,510 @@
+<!-- Tailwind CSS Play CDN only scoped to this module -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          cyberdark: '#090a0d',
+          cyberbg: '#040507',
+          cyberprimary: '#0071e3',
+          cyberaccent: '#f59e0b',
+        }
+      }
+    }
+  }
+</script>
+
+<section id="logos-banners-section" class="admin-section-inner text-gray-100 p-6" style="animation: fadeIn 0.4s ease-out;">
+  <div class="mb-8 flex justify-between items-center flex-wrap gap-4">
+    <div>
+      <h2 class="text-2xl font-black tracking-tight text-white flex items-center gap-3">
+        <i class="fa-solid fa-compass-drafting text-blue-500"></i> EmpireV Logo & Banner Merkezi
+      </h2>
+      <p class="text-gray-400 text-xs mt-1">EmpireV ve FiveM topluluk temasına uygun olarak tasarlanmış özel vektörel logolar</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 text-xs px-4 py-2 rounded-full text-gray-300 font-mono">
+      isSuperuser Özel Sekmesi
+    </div>
+  </div>
+
+  <!-- Logos Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+    
+    <!-- Logo 1: Classic Roleplay Crest (V Shield) -->
+    <div class="bg-cyberdark border border-gray-800 rounded-xl p-5 flex flex-col justify-between" id="logo_classic_v">
+      <div>
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-xs font-bold text-blue-500 uppercase tracking-widest">01 / FiveM Crest</span>
+          <span class="text-xs bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">SVG Vector</span>
+        </div>
+        <div class="bg-black/40 rounded-lg p-6 flex items-center justify-center min-h-[160px] border border-gray-800/50 mb-4 overflow-hidden">
+          <svg width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-[0_0_15px_rgba(0,113,227,0.5)]">
+            <defs>
+              <linearGradient id="shieldGradV" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0071e3" />
+                <stop offset="100%" stop-color="#003566" />
+              </linearGradient>
+            </defs>
+            <polygon points="50,5 90,20 80,75 50,95 20,75 10,20" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2.5" />
+            <polygon points="50,10 84,23 75,70 50,88 25,70 16,23" fill="none" stroke="url(#shieldGradV)" stroke-width="4.5" stroke-linejoin="round" />
+            <path d="M 35 30 L 50 15 L 65 30 M 35 30 L 50 60 L 65 30" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" />
+            <path d="M 32 32 L 50 72 L 68 32" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M 40 32 L 50 54 L 60 32" fill="none" stroke="#0071e3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="50" cy="80" r="3" fill="#fff" />
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-sm">Classic Roleplay Crest</h3>
+        <p class="text-gray-400 text-xs mt-1 mb-4">FiveM sunucu temalarına uygun, agresif hatlı parlayan mavi V kalkanı.</p>
+      </div>
+      <div class="flex items-center gap-2 border-t border-gray-800/80 pt-4">
+        <select class="size-select bg-gray-900 border border-gray-700 text-xs px-2 py-1 rounded text-white flex-1">
+          <option value="128">128x128 px</option>
+          <option value="256">256x256 px</option>
+          <option value="512" selected>512x512 px</option>
+          <option value="1024">1024x1024 px</option>
+        </select>
+        <button onclick="downloadLogoAsset('logo_classic_v', 'png')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-bold transition">PNG</button>
+        <button onclick="downloadLogoAsset('logo_classic_v', 'svg')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1 rounded font-bold transition">SVG</button>
+      </div>
+    </div>
+
+    <!-- Logo 2: SV Hex Cyber (FiveM Tech) -->
+    <div class="bg-cyberdark border border-gray-800 rounded-xl p-5 flex flex-col justify-between" id="logo_sv_hex">
+      <div>
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-xs font-bold text-emerald-500 uppercase tracking-widest">02 / Cyber Grid</span>
+          <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">SVG Vector</span>
+        </div>
+        <div class="bg-black/40 rounded-lg p-6 flex items-center justify-center min-h-[160px] border border-gray-800/50 mb-4 overflow-hidden">
+          <svg width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+            <defs>
+              <linearGradient id="gradSVHex" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981" />
+                <stop offset="100%" stop-color="#059669" />
+              </linearGradient>
+            </defs>
+            <polygon points="50,5 90,28 90,72 50,95 10,72 10,28" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="2" />
+            <polygon points="50,10 85,30 85,70 50,90 15,70 15,30" fill="none" stroke="url(#gradSVHex)" stroke-width="4.5" stroke-linejoin="round" />
+            <path d="M50,10 L50,90 M15,30 L85,70 M15,70 L85,30" stroke="rgba(255,255,255,0.04)" stroke-width="1" />
+            
+            <circle cx="50" cy="50" r="22" fill="#090a0d" stroke="rgba(255,255,255,0.08)" stroke-width="2" />
+            
+            <!-- SV Monogram -->
+            <path d="M 38 43 C 38 38, 48 36, 48 42 C 48 48, 38 47, 38 53 C 38 59, 48 57, 48 53" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" />
+            <path d="M 52 40 L 59 55 L 66 40" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+
+            <circle cx="50" cy="10" r="3.5" fill="#10b981" />
+            <circle cx="85" cy="30" r="3.5" fill="#10b981" />
+            <circle cx="85" cy="70" r="3.5" fill="#10b981" />
+            <circle cx="50" cy="90" r="3.5" fill="#10b981" />
+            <circle cx="15" cy="70" r="3.5" fill="#10b981" />
+            <circle cx="15" cy="30" r="3.5" fill="#10b981" />
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-sm">SV Hex Cyber</h3>
+        <p class="text-gray-400 text-xs mt-1 mb-4">Glow efektli fütüristik altıgen matris şemalı SV monogram tasarımı.</p>
+      </div>
+      <div class="flex items-center gap-2 border-t border-gray-800/80 pt-4">
+        <select class="size-select bg-gray-900 border border-gray-700 text-xs px-2 py-1 rounded text-white flex-1">
+          <option value="128">128x128 px</option>
+          <option value="256">256x256 px</option>
+          <option value="512" selected>512x512 px</option>
+          <option value="1024">1024x1024 px</option>
+        </select>
+        <button onclick="downloadLogoAsset('logo_sv_hex', 'png')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-bold transition">PNG</button>
+        <button onclick="downloadLogoAsset('logo_sv_hex', 'svg')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1 rounded font-bold transition">SVG</button>
+      </div>
+    </div>
+
+    <!-- Logo 3: GTA V Styled V -->
+    <div class="bg-cyberdark border border-gray-800 rounded-xl p-5 flex flex-col justify-between" id="logo_gta_styled">
+      <div>
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-xs font-bold text-amber-500 uppercase tracking-widest">03 / GTA Inspired</span>
+          <span class="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20">SVG Vector</span>
+        </div>
+        <div class="bg-black/40 rounded-lg p-6 flex items-center justify-center min-h-[160px] border border-gray-800/50 mb-4 overflow-hidden">
+          <svg width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-[0_0_12px_rgba(245,158,11,0.5)]">
+            <defs>
+              <linearGradient id="gtaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#f59e0b" />
+                <stop offset="100%" stop-color="#b45309" />
+              </linearGradient>
+            </defs>
+            <!-- Heavy styled GTA V Letter -->
+            <g transform="skewX(-10)">
+              <!-- Back offset shadow -->
+              <path d="M 28 15 L 43 78 L 57 78 L 72 15 L 59 15 L 50 55 L 41 15 Z" fill="#000" />
+              <path d="M 28 15 L 43 78 L 57 78 L 72 15 L 59 15 L 50 55 L 41 15 Z" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" />
+              <path d="M 28 15 L 43 78 L 57 78 L 72 15 L 59 15 L 50 55 L 41 15 Z" fill="url(#gtaGrad)" />
+              
+              <!-- Ribbon Stripes inside V -->
+              <path d="M 33 25 L 35 30 L 45 30 L 42 25 Z" fill="rgba(255,255,255,0.25)" />
+              <path d="M 36 35 L 38 40 L 47 40 L 44 35 Z" fill="rgba(255,255,255,0.25)" />
+              
+              <path d="M 67 25 L 65 30 L 55 30 L 58 25 Z" fill="rgba(255,255,255,0.25)" />
+              <path d="M 64 35 L 62 40 L 53 40 L 56 35 Z" fill="rgba(255,255,255,0.25)" />
+            </g>
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-sm">GTA Styled V</h3>
+        <p class="text-gray-400 text-xs mt-1 mb-4">Klasik GTA V logolarından esinlenilmiş, kalın, eğik ve şeritli V harfi.</p>
+      </div>
+      <div class="flex items-center gap-2 border-t border-gray-800/80 pt-4">
+        <select class="size-select bg-gray-900 border border-gray-700 text-xs px-2 py-1 rounded text-white flex-1">
+          <option value="128">128x128 px</option>
+          <option value="256">256x256 px</option>
+          <option value="512" selected>512x512 px</option>
+          <option value="1024">1024x1024 px</option>
+        </select>
+        <button onclick="downloadLogoAsset('logo_gta_styled', 'png')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-bold transition">PNG</button>
+        <button onclick="downloadLogoAsset('logo_gta_styled', 'svg')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1 rounded font-bold transition">SVG</button>
+      </div>
+    </div>
+
+    <!-- Logo 4: Premium Crown Shield -->
+    <div class="bg-cyberdark border border-gray-800 rounded-xl p-5 flex flex-col justify-between" id="logo_crown_shield">
+      <div>
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-xs font-bold text-yellow-500 uppercase tracking-widest">04 / High Command</span>
+          <span class="text-xs bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded border border-yellow-500/20">SVG Vector</span>
+        </div>
+        <div class="bg-black/40 rounded-lg p-6 flex items-center justify-center min-h-[160px] border border-gray-800/50 mb-4 overflow-hidden">
+          <svg width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-[0_0_12px_rgba(251,191,36,0.35)]">
+            <defs>
+              <linearGradient id="goldSV" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#F59E0B" />
+                <stop offset="50%" stop-color="#FBBF24" />
+                <stop offset="100%" stop-color="#D97706" />
+              </linearGradient>
+            </defs>
+            <polygon points="50,15 78,35 78,70 50,90 22,70 22,35" fill="none" stroke="url(#goldSV)" stroke-width="2.5" />
+            
+            <!-- Luxury crown icon -->
+            <path d="M 38 40 L 42 32 L 50 37 L 58 32 L 62 40 Z" fill="url(#goldSV)" />
+            
+            <!-- Styled SV letters inside -->
+            <text x="50" y="72" font-family="'Outfit', sans-serif" font-weight="900" font-size="24" fill="url(#goldSV)" text-anchor="middle" letter-spacing="0.02em">SV</text>
+            
+            <line x1="32" y1="78" x2="68" y2="78" stroke="url(#goldSV)" stroke-width="1.5" />
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-sm">Premium Crown Shield</h3>
+        <p class="text-gray-400 text-xs mt-1 mb-4">Üst yönetim kadrosuna özel, altın gradyan taçlı ve SV kalkanlı arma.</p>
+      </div>
+      <div class="flex items-center gap-2 border-t border-gray-800/80 pt-4">
+        <select class="size-select bg-gray-900 border border-gray-700 text-xs px-2 py-1 rounded text-white flex-1">
+          <option value="128">128x128 px</option>
+          <option value="256">256x256 px</option>
+          <option value="512" selected>512x512 px</option>
+          <option value="1024">1024x1024 px</option>
+        </select>
+        <button onclick="downloadLogoAsset('logo_crown_shield', 'png')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-bold transition">PNG</button>
+        <button onclick="downloadLogoAsset('logo_crown_shield', 'svg')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1 rounded font-bold transition">SVG</button>
+      </div>
+    </div>
+
+    <!-- Logo 5: Cyberpunk Neon SV -->
+    <div class="bg-cyberdark border border-gray-800 rounded-xl p-5 flex flex-col justify-between" id="logo_neon_sv">
+      <div>
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-xs font-bold text-pink-500 uppercase tracking-widest">05 / Retro Wave</span>
+          <span class="text-xs bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded border border-pink-500/20">SVG Vector</span>
+        </div>
+        <div class="bg-black/40 rounded-lg p-6 flex items-center justify-center min-h-[160px] border border-gray-800/50 mb-4 overflow-hidden">
+          <svg width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-[0_0_15px_rgba(219,39,119,0.5)]">
+            <defs>
+              <linearGradient id="neonPink" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#d946ef" />
+                <stop offset="100%" stop-color="#db2777" />
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="4" />
+            <path d="M 12 40 A 38 38 0 0 1 88 40" fill="none" stroke="url(#neonPink)" stroke-width="5" stroke-linecap="round" />
+            <path d="M 12 60 A 38 38 0 0 0 88 60" fill="none" stroke="#00f2fe" stroke-width="3" stroke-linecap="round" />
+            
+            <text x="50" y="58" font-family="'Outfit', sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle" letter-spacing="0.05em">SV</text>
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-sm">Neon Orbit SV</h3>
+        <p class="text-gray-400 text-xs mt-1 mb-4">Pembe ve turkuaz çift neon halkalı siberpunk SV logosu.</p>
+      </div>
+      <div class="flex items-center gap-2 border-t border-gray-800/80 pt-4">
+        <select class="size-select bg-gray-900 border border-gray-700 text-xs px-2 py-1 rounded text-white flex-1">
+          <option value="128">128x128 px</option>
+          <option value="256">256x256 px</option>
+          <option value="512" selected>512x512 px</option>
+          <option value="1024">1024x1024 px</option>
+        </select>
+        <button onclick="downloadLogoAsset('logo_neon_sv', 'png')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-bold transition">PNG</button>
+        <button onclick="downloadLogoAsset('logo_neon_sv', 'svg')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1 rounded font-bold transition">SVG</button>
+      </div>
+    </div>
+
+    <!-- Logo 6: Horizon Branding (Shield text logo) -->
+    <div class="bg-cyberdark border border-gray-800 rounded-xl p-5 flex flex-col justify-between" id="logo_horizon_v">
+      <div>
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">06 / Horizon Brand</span>
+          <span class="text-xs bg-gray-500/10 text-gray-300 px-2 py-0.5 rounded border border-gray-500/20">SVG Vector</span>
+        </div>
+        <div class="bg-black/40 rounded-lg p-6 flex items-center justify-center min-h-[160px] border border-gray-800/50 mb-4 overflow-hidden">
+          <svg width="220" height="70" viewBox="0 0 220 70" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="horizonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="100%" stop-color="#a855f7" />
+              </linearGradient>
+            </defs>
+            <!-- Sleek V Icon on the left -->
+            <g transform="translate(10, 10)">
+              <polygon points="12,5 25,38 38,5 31,5 25,24 19,5" fill="#a855f7" />
+              <polygon points="5,5 25,48 45,5 38,5 25,36 12,5" fill="#ffffff" />
+              <circle cx="25" cy="48" r="2.5" fill="#a855f7" />
+            </g>
+            <!-- Brand text on the right -->
+            <text x="65" y="38" font-family="'Outfit', sans-serif" font-weight="900" font-size="23" fill="url(#horizonGrad)" letter-spacing="0.02em">EmpireV</text>
+            <text x="65" y="52" font-family="'Inter', sans-serif" font-weight="700" font-size="9" fill="#86868b" letter-spacing="0.12em">NEW GENERATION ROLEPLAY</text>
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-sm">Horizon Branding</h3>
+        <p class="text-gray-400 text-xs mt-1 mb-4">Geniş yatay formatta, web menüleri ve banner başlıkları için ideal yazılı logo.</p>
+      </div>
+      <div class="flex items-center gap-2 border-t border-gray-800/80 pt-4">
+        <select class="size-select bg-gray-900 border border-gray-700 text-xs px-2 py-1 rounded text-white flex-1">
+          <option value="256">256x80 px</option>
+          <option value="512">512x160 px</option>
+          <option value="1024" selected>1024x320 px</option>
+        </select>
+        <button onclick="downloadLogoAsset('logo_horizon_v', 'png')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-bold transition">PNG</button>
+        <button onclick="downloadLogoAsset('logo_horizon_v', 'svg')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1 rounded font-bold transition">SVG</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Banners Section (Widescreen) -->
+  <div class="mb-6">
+    <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+      <i class="fa-solid fa-image text-blue-500"></i> EmpireV Widescreen Banner Seti (1920x1080)
+    </h3>
+    
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      
+      <!-- Banner 1: Premium Dark Dashboard -->
+      <div class="bg-cyberdark border border-gray-800 rounded-xl p-5" id="banner_dark_premium">
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-xs font-bold text-blue-500 uppercase tracking-widest">Widescreen Banner 1</span>
+          <span class="text-xs bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">1920x1080 Style</span>
+        </div>
+        <div class="bg-black/50 border border-gray-800 rounded-lg p-2 mb-4 overflow-hidden">
+          <svg viewBox="0 0 800 450" width="100%" height="auto" class="rounded overflow-hidden bg-[#040507]">
+            <defs>
+              <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#090a0d" />
+                <stop offset="100%" stop-color="#020203" />
+              </linearGradient>
+              <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="100%" stop-color="#0071e3" />
+              </linearGradient>
+              <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.01)" stroke-width="1"/>
+              </pattern>
+            </defs>
+            <rect width="800" height="450" fill="url(#bgGrad)" />
+            <rect width="800" height="450" fill="url(#gridPattern)" />
+            
+            <circle cx="400" cy="225" r="160" fill="#0071e3" opacity="0.08" filter="blur(65px)" />
+            
+            <!-- Large V Shield on center background -->
+            <g transform="translate(360, 100)" opacity="0.15">
+              <path d="M 40 10 L 80 50 L 40 90 L 0 50 Z" fill="none" stroke="#ffffff" stroke-width="2" />
+              <path d="M 12 30 L 40 78 L 68 30" fill="none" stroke="#ffffff" stroke-width="8" stroke-linejoin="round" />
+            </g>
+
+            <!-- Central logo text -->
+            <text x="400" y="240" font-family="'Outfit', sans-serif" font-weight="900" font-size="48" fill="url(#textGrad)" text-anchor="middle" letter-spacing="0.08em" style="drop-shadow: 0 4px 12px rgba(0,0,0,0.5);">EmpireV</text>
+            <text x="400" y="275" font-family="'Inter', sans-serif" font-weight="700" font-size="11" fill="#86868b" text-anchor="middle" letter-spacing="0.25em">NEW GENERATION ROLEPLAY EXPERIENCE</text>
+            
+            <!-- Outer grid decoration -->
+            <line x1="250" y1="310" x2="550" y2="310" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" />
+            <circle cx="400" cy="310" r="3.5" fill="#0071e3" />
+          </svg>
+        </div>
+        <div class="flex items-center gap-3">
+          <select class="size-select bg-gray-900 border border-gray-700 text-xs px-3 py-1.5 rounded text-white flex-1">
+            <option value="1920">1920 x 1080 px</option>
+            <option value="1280">1280 x 720 px</option>
+            <option value="800">800 x 450 px</option>
+          </select>
+          <button onclick="downloadBannerAsset('banner_dark_premium', 'png')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1.5 rounded font-bold transition">PNG İndir</button>
+          <button onclick="downloadBannerAsset('banner_dark_premium', 'svg')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-1.5 rounded font-bold transition">SVG İndir</button>
+        </div>
+      </div>
+
+      <!-- Banner 2: Retro Vaporwave Widescreen -->
+      <div class="bg-cyberdark border border-gray-800 rounded-xl p-5" id="banner_vaporwave">
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-xs font-bold text-pink-500 uppercase tracking-widest">Widescreen Banner 2</span>
+          <span class="text-xs bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded border border-pink-500/20">Retro Sunset Style</span>
+        </div>
+        <div class="bg-black/50 border border-gray-800 rounded-lg p-2 mb-4 overflow-hidden">
+          <svg viewBox="0 0 800 450" width="100%" height="auto" class="rounded overflow-hidden bg-[#040507]">
+            <defs>
+              <linearGradient id="skyBGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#020005" />
+                <stop offset="60%" stop-color="#1b002c" />
+                <stop offset="100%" stop-color="#4a005c" />
+              </linearGradient>
+              <linearGradient id="sunGradB" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#ff007f" />
+                <stop offset="100%" stop-color="#ff9900" />
+              </linearGradient>
+              <linearGradient id="gridGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#00ffff" />
+                <stop offset="100%" stop-color="#d946ef" />
+              </linearGradient>
+            </defs>
+            <rect width="800" height="450" fill="url(#skyBGrad)" />
+            
+            <!-- Sun -->
+            <circle cx="400" cy="200" r="110" fill="url(#sunGradB)" />
+            <g fill="#020005">
+              <rect x="200" y="190" width="400" height="3" />
+              <rect x="200" y="202" width="400" height="4" />
+              <rect x="200" y="217" width="400" height="5" />
+              <rect x="200" y="235" width="400" height="7" />
+              <rect x="200" y="258" width="400" height="9" />
+              <rect x="200" y="285" width="400" height="12" />
+            </g>
+
+            <!-- Perspective Grid -->
+            <g stroke="url(#gridGrad)" stroke-width="1.5" opacity="0.45">
+              <line x1="0" y1="300" x2="800" y2="300" />
+              
+              <line x1="400" y1="300" x2="-200" y2="450" />
+              <line x1="400" y1="300" x2="0" y2="450" />
+              <line x1="400" y1="300" x2="150" y2="450" />
+              <line x1="400" y1="300" x2="300" y2="450" />
+              <line x1="400" y1="300" x2="400" y2="450" />
+              <line x1="400" y1="300" x2="500" y2="450" />
+              <line x1="400" y1="300" x2="650" y2="450" />
+              <line x1="400" y1="300" x2="800" y2="450" />
+              <line x1="400" y1="300" x2="1000" y2="450" />
+
+              <line x1="0" y1="310" x2="800" y2="310" />
+              <line x1="0" y1="325" x2="800" y2="325" />
+              <line x1="0" y1="345" x2="800" y2="345" />
+              <line x1="0" y1="370" x2="800" y2="370" />
+              <line x1="0" y1="405" x2="800" y2="405" />
+              <line x1="0" y1="450" x2="800" y2="450" />
+            </g>
+
+            <!-- Retro mountains silhouette -->
+            <polygon points="-50,300 100,240 250,300 450,220 600,300 750,250 900,300" fill="#0c0714" opacity="0.9" stroke="#ff007f" stroke-width="1" />
+
+            <!-- Large V Shape behind text -->
+            <path d="M 370 120 L 400 180 L 430 120" fill="none" stroke="#00ffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.7" />
+
+            <!-- Banner Text -->
+            <text x="400" y="240" font-family="'Outfit', sans-serif" font-weight="900" font-size="46" fill="#fff" text-anchor="middle" letter-spacing="0.18em" style="drop-shadow: 0 0 15px #ff007f;">EmpireV</text>
+            <text x="400" y="280" font-family="'Outfit', sans-serif" font-weight="700" font-size="11" fill="#00ffff" text-anchor="middle" letter-spacing="0.35em" style="drop-shadow: 0 0 8px #00ffff;">RETRO SYNTHWAVE EDITION</text>
+          </svg>
+        </div>
+        <div class="flex items-center gap-3">
+          <select class="size-select bg-gray-900 border border-gray-700 text-xs px-3 py-1.5 rounded text-white flex-1">
+            <option value="1920">1920 x 1080 px</option>
+            <option value="1280">1280 x 720 px</option>
+            <option value="800">800 x 450 px</option>
+          </select>
+          <button onclick="downloadBannerAsset('banner_vaporwave', 'png')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1.5 rounded font-bold transition">PNG İndir</button>
+          <button onclick="downloadBannerAsset('banner_vaporwave', 'svg')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-1.5 rounded font-bold transition">SVG İndir</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Client Side XMLSerializer SVG rendering engine -->
+<script>
+  function downloadLogoAsset(logoId, format) {
+    const card = document.getElementById(logoId);
+    if (!card) return;
+
+    const svgEl = card.querySelector("svg");
+    if (!svgEl) return;
+
+    const select = card.querySelector(".size-select");
+    const size = parseInt(select.value) || 512;
+
+    triggerVectorDownload(svgEl, logoId, format, size, size);
+  }
+
+  function downloadBannerAsset(bannerId, format) {
+    const card = document.getElementById(bannerId);
+    if (!card) return;
+
+    const svgEl = card.querySelector("svg");
+    if (!svgEl) return;
+
+    const select = card.querySelector(".size-select");
+    const width = parseInt(select.value) || 1920;
+    const height = Math.round((width / 16) * 9); // Preserve 16:9 ratio
+
+    triggerVectorDownload(svgEl, bannerId, format, width, height);
+  }
+
+  function triggerVectorDownload(svgEl, filename, format, width, height) {
+    const svgClone = svgEl.cloneNode(true);
+    svgClone.setAttribute("width", width);
+    svgClone.setAttribute("height", height);
+
+    const svgString = new XMLSerializer().serializeToString(svgClone);
+
+    if (format === 'svg') {
+      const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filename}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else if (format === 'png') {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      const img = new Image();
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      img.onload = () => {
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        const pngUrl = canvas.toDataURL('image/png');
+
+        const a = document.createElement('a');
+        a.href = pngUrl;
+        a.download = `${filename}_${width}x${height}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    }
+  }
+</script>
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>

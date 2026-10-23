@@ -1,0 +1,1981 @@
+<% if (userPermissions.viewTeams) { %>
+  <section id="team-list-content" class="admin-section-inner">
+    <style>
+      @keyframes pulse-green {
+        0% {
+          transform: scale(0.9);
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+
+        70% {
+          transform: scale(1.1);
+          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+        }
+
+        100% {
+          transform: scale(0.9);
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+      }
+
+      .pulse-dot {
+        animation: pulse-green 2s infinite;
+        display: inline-block;
+        border-radius: 50%;
+        background-color: #10b981;
+        width: 6px;
+        height: 6px;
+      }
+
+      .content-panel-2 {
+        background: var(--bg-panel, #12141a);
+        border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85);
+        width: 100%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        position: relative;
+        margin: auto;
+        box-sizing: border-box;
+      }
+    </style>
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+      <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-users-gear"></i> Ekip & Departman Listesi</h2>
+      <% if (userPermissions.createTeams || userPermissions.manageTeams || (typeof user !== 'undefined' && user.isSuperuser)) { %>
+        <button class="btn btn-primary" onclick="openAddTeamModal()"><i class="fa-solid fa-plus"></i> Yeni
+          Ekip/Departman Oluştur</button>
+        <% } else { %>
+          <button class="btn btn-locked" disabled
+            style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); font-weight: 600; padding: 10px 20px; border-radius: 8px; cursor: not-allowed; opacity: 0.5;"><i
+              class="fa-solid fa-lock"></i> Yeni Ekip Oluştur</button>
+          <% } %>
+    </div>
+
+    <!-- Ekip Arama Çubuğu -->
+    <div style="margin-bottom: 24px; position: relative;">
+      <i class="fa-solid fa-magnifying-glass"
+        style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; pointer-events: none;"></i>
+      <input type="text" id="team-search-input" class="form-input"
+        placeholder="Ekip / Departman adı veya Boss ID ile arayın..." oninput="filterTeams()"
+        style="padding-left: 44px; background: rgba(18, 20, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; height: 44px; width: 100%; font-size: 13px; color: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);">
+    </div>
+
+    <!-- 1. İllegal Ekip İstatistik Kartları -->
+    <% const currentIllegalTeams=teams.filter(t=> t.type === 'illegal'); %>
+      <div class="team-stats-banner illegal-stats-banner"
+        style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+        <!-- Toplam Ekip (İllegal) -->
+        <div class="team-stat-card"
+          style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <span id="stat-total-teams"
+              style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+              <%= currentIllegalTeams.length %>
+            </span>
+            <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam Ekip (İllegal)</span>
+          </div>
+          <div
+            style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        </div>
+
+        <!-- Toplam Ekip Üyesi (İllegal) -->
+        <div class="team-stat-card"
+          style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <span id="stat-total-members"
+              style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+              <%= (typeof teamStats !=='undefined' && teamStats.illegal) ? teamStats.illegal.totalMembers : 0 %>
+            </span>
+            <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam Ekip Üyesi</span>
+          </div>
+          <div
+            style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+            <i class="fa-solid fa-user"></i>
+          </div>
+        </div>
+
+        <!-- Toplam OG's -->
+        <div class="team-stat-card"
+          style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <span id="stat-total-ogs"
+              style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+              <%= currentIllegalTeams.filter(t=> t.bossId && t.bossId.trim()).length %>
+            </span>
+            <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam OG's</span>
+          </div>
+          <div
+            style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+            <i class="fa-solid fa-user-lock"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Legal Departman İstatistik Kartları (Sadece Legal Ekipler) -->
+      <% const currentLegalTeams=teams.filter(t=> t.type === 'legal'); %>
+        <div class="team-stats-banner legal-stats-banner"
+          style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
+          <!-- Toplam Legal Departman -->
+          <div class="team-stat-card"
+            style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span id="stat-legal-teams"
+                style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+                <%= currentLegalTeams.length %>
+              </span>
+              <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam Ekip (Legal)</span>
+            </div>
+            <div
+              style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+              <i class="fa-solid fa-building-shield"></i>
+            </div>
+          </div>
+
+          <!-- Toplam Legal Personel / Üye -->
+          <div class="team-stat-card"
+            style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span id="stat-legal-members"
+                style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+                <%= (typeof teamStats !=='undefined' && teamStats.legal) ? teamStats.legal.totalMembers : 0 %>
+              </span>
+              <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam Ekip Üyesi</span>
+            </div>
+            <div
+              style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+              <i class="fa-solid fa-user-shield"></i>
+            </div>
+          </div>
+
+          <!-- Toplam High Command (HC) -->
+          <div class="team-stat-card"
+            style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span id="stat-legal-hcs"
+                style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+                <%= currentLegalTeams.filter(t=> t.bossId && t.bossId.trim()).length %>
+              </span>
+              <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam High Command</span>
+            </div>
+            <div
+              style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+              <i class="fa-solid fa-id-card-clip"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="main-layout" style="gap: 30px;">
+
+          <div class="content-panel" style="grid-column: span 6; padding: 24px; min-height: 350px; overflow-x: auto;">
+            <h3
+              style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: var(--danger); display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-skull-crossbones"></i> İllegal Ekipler (Çeteler / Aileler)
+            </h3>
+
+            <table class="admin-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Ekip Adı</th>
+                  <th>Ekip Bossu ID</th>
+                  <th>Kişi Limiti</th>
+                  <th>İşlemler</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% const illegalTeams=teams.filter(t=> t.type === 'illegal'); %>
+                  <% if (illegalTeams.length> 0) { %>
+                    <% illegalTeams.forEach(t=> { %>
+                      <tr id="team-row-<%= t._id %>">
+                        <td style="font-weight: 600;">
+                          <%= t.name %>
+                        </td>
+                        <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">
+                          <%= t.bossId || 'Atanmadı' %>
+                        </td>
+                        <td style="white-space: nowrap;">
+                          <div
+                            style="display: inline-flex; align-items: center; gap: 7px; background: rgba(224, 169, 139, 0.08); border: 1px solid rgba(224, 169, 139, 0.25); border-radius: 8px; padding: 5px 9px;">
+                            <div
+                              style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: #ffffff; font-size: 12px;">
+                              <i class="fa-solid fa-users" style="font-size: 10px; opacity: 0.8; color: var(--primary-light);"></i>
+                              <span>
+                                <%= t.memberCount || 0 %> / <%= t.maxMembers !==undefined ? t.maxMembers : 50 %>
+                              </span>
+                            </div>
+                            <div style="width: 1px; height: 12px; background: rgba(255, 255, 255, 0.15);"></div>
+                            <div
+                              style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #4ade80; font-weight: 600;">
+                              <span
+                                style="width: 6px; height: 6px; border-radius: 50%; background-color: #22c55e; display: inline-block; box-shadow: 0 0 6px #22c55e;"></span>
+                              <span>
+                                <%= t.onlineCount || 0 %> Aktif
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td style="white-space: nowrap;">
+                          <div
+                            style="display: flex; flex-direction: row; align-items: center; gap: 6px; white-space: nowrap;">
+                            <!-- Üyeler -->
+                            <button type="button" class="btn" title="Üyeleri Görüntüle"
+                              style="background: rgba(224, 169, 139, 0.15); color: #ffffff; border: 1px solid rgba(224, 169, 139, 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+                              onclick="openTeamMembersModal('<%= t._id %>')">
+                              <i class="fa-solid fa-users"></i>
+                            </button>
+
+                            <!-- Düzenle -->
+                            <% if (userPermissions.createTeams) { %>
+                              <button type="button" class="btn" title="Ekibi Düzenle"
+                                style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+                                onclick="openEditTeamModal('<%= t._id %>', '<%= t.name.replace(/'/g, '\\\'') %>', '<%= t.color %>', '<%= t.bossId %>', '<%= t.type %>', '<%= t.maxMembers !== undefined ? t.maxMembers : 50 %>')">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                              </button>
+                              <% } else { %>
+                                <button type="button" class="btn btn-locked" disabled title="Ekibi Düzenle (Yetkisiz)"
+                                  style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: not-allowed; opacity: 0.4; display: inline-flex; align-items: center; justify-content: center;">
+                                  <i class="fa-solid fa-lock"></i>
+                                </button>
+                                <% } %>
+
+                                  <!-- Sesli Destek -->
+                                  <% if (userPermissions.teamVoiceSupportToggle) { %>
+                                    <button type="button" class="btn" title="Sesli Destek Ver / Al"
+                                      style="background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+                                      onclick="toggleTeamVoiceSupport('<%= t._id %>')">
+                                      <i class="fa-solid fa-microphone"></i>
+                                    </button>
+                                    <% } else { %>
+                                      <button type="button" class="btn btn-locked" disabled
+                                        title="Sesli Destek (Yetkisiz)"
+                                        style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: not-allowed; opacity: 0.4; display: inline-flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-lock"></i>
+                                      </button>
+                                      <% } %>
+
+                                        <!-- Sil -->
+                                        <% if (userPermissions.deleteTeams) { %>
+                                          <button type="button" class="btn" title="Ekibi Sil"
+                                            style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+                                            onclick="deleteTeam('<%= t._id %>')">
+                                            <i class="fa-solid fa-trash"></i>
+                                          </button>
+                                          <% } else { %>
+                                            <button type="button" class="btn btn-locked" disabled
+                                              title="Ekibi Sil (Yetkisiz)"
+                                              style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: not-allowed; opacity: 0.4; display: inline-flex; align-items: center; justify-content: center;">
+                                              <i class="fa-solid fa-lock"></i>
+                                            </button>
+                                            <% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% }) %>
+                        <% } else { %>
+                          <tr>
+                            <td colspan="4"
+                              style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 20px 0;">
+                              Kayıtlı çete/ekip bulunmuyor.</td>
+                          </tr>
+                          <% } %>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="content-panel" style="grid-column: span 6; padding: 24px; min-height: 350px; overflow-x: auto;">
+            <h3
+              style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-building-shield"></i> Legal Departmanlar (LSPD / LSSD)
+            </h3>
+
+            <table class="admin-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Departman Adı</th>
+                  <th>High Command ID</th>
+                  <th>Kişi Limiti</th>
+                  <th>İşlemler</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% const legalTeams=teams.filter(t=> t.type === 'legal'); %>
+                  <% if (legalTeams.length> 0) { %>
+                    <% legalTeams.forEach(t=> { %>
+                      <tr id="team-row-<%= t._id %>">
+                        <td style="font-weight: 600;">
+                          <%= t.name %>
+                        </td>
+                        <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">
+                          <%= t.bossId || 'Atanmadı' %>
+                        </td>
+                        <td style="white-space: nowrap;">
+                          <div
+                            style="display: inline-flex; align-items: center; gap: 7px; background: rgba(224, 169, 139, 0.08); border: 1px solid rgba(224, 169, 139, 0.25); border-radius: 8px; padding: 5px 9px;">
+                            <div
+                              style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: #ffffff; font-size: 12px;">
+                              <i class="fa-solid fa-users" style="font-size: 10px; opacity: 0.8; color: var(--primary-light);"></i>
+                              <span>
+                                <%= t.memberCount || 0 %> / <%= t.maxMembers !==undefined ? t.maxMembers : 50 %>
+                              </span>
+                            </div>
+                            <div style="width: 1px; height: 12px; background: rgba(255, 255, 255, 0.15);"></div>
+                            <div
+                              style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #4ade80; font-weight: 600;">
+                              <span
+                                style="width: 6px; height: 6px; border-radius: 50%; background-color: #22c55e; display: inline-block; box-shadow: 0 0 6px #22c55e;"></span>
+                              <span>
+                                <%= t.onlineCount || 0 %> Aktif
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td style="white-space: nowrap;">
+                          <div
+                            style="display: flex; flex-direction: row; align-items: center; gap: 6px; white-space: nowrap;">
+                            <!-- Üyeler -->
+                            <button type="button" class="btn" title="Üyeleri Görüntüle"
+                              style="background: rgba(224, 169, 139, 0.15); color: #ffffff; border: 1px solid rgba(224, 169, 139, 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+                              onclick="openTeamMembersModal('<%= t._id %>')">
+                              <i class="fa-solid fa-users"></i>
+                            </button>
+
+                            <!-- Düzenle -->
+                            <% if (userPermissions.createTeams) { %>
+                              <button type="button" class="btn" title="Departmanı Düzenle"
+                                style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+                                onclick="openEditTeamModal('<%= t._id %>', '<%= t.name.replace(/'/g, '\\\'') %>', '<%= t.color %>', '<%= t.bossId %>', '<%= t.type %>', '<%= t.maxMembers !== undefined ? t.maxMembers : 50 %>')">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                              </button>
+                              <% } else { %>
+                                <button type="button" class="btn btn-locked" disabled
+                                  title="Departmanı Düzenle (Yetkisiz)"
+                                  style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: not-allowed; opacity: 0.4; display: inline-flex; align-items: center; justify-content: center;">
+                                  <i class="fa-solid fa-lock"></i>
+                                </button>
+                                <% } %>
+
+                                  <!-- Sesli Destek -->
+                                  <% if (userPermissions.teamVoiceSupportToggle) { %>
+                                    <button type="button" class="btn" title="Sesli Destek Ver / Al"
+                                      style="background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+                                      onclick="toggleTeamVoiceSupport('<%= t._id %>')">
+                                      <i class="fa-solid fa-microphone"></i>
+                                    </button>
+                                    <% } else { %>
+                                      <button type="button" class="btn btn-locked" disabled
+                                        title="Sesli Destek (Yetkisiz)"
+                                        style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: not-allowed; opacity: 0.4; display: inline-flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-lock"></i>
+                                      </button>
+                                      <% } %>
+
+                                        <!-- Sil -->
+                                        <% if (userPermissions.deleteTeams) { %>
+                                          <button type="button" class="btn" title="Departmanı Sil"
+                                            style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+                                            onclick="deleteTeam('<%= t._id %>')">
+                                            <i class="fa-solid fa-trash"></i>
+                                          </button>
+                                          <% } else { %>
+                                            <button type="button" class="btn btn-locked" disabled
+                                              title="Departmanı Sil (Yetkisiz)"
+                                              style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: not-allowed; opacity: 0.4; display: inline-flex; align-items: center; justify-content: center;">
+                                              <i class="fa-solid fa-lock"></i>
+                                            </button>
+                                            <% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% }) %>
+                        <% } else { %>
+                          <tr>
+                            <td colspan="4"
+                              style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 20px 0;">
+                              Kayıtlı departman bulunmuyor.</td>
+                          </tr>
+                          <% } %>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- Create Team Modal -->
+        <div id="add-team-modal" class="modal-overlay"
+          style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+          <div class="content-panel"
+            style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; position: relative;">
+            <button type="button"
+              style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;"
+              onclick="closeAddTeamModal()"><i class="fa-solid fa-xmark"></i></button>
+
+            <h3
+              style="font-family: var(--font-display); font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin: 0; color: var(--text-main);">
+              <i class="fa-solid fa-users-gear" style="color: var(--primary);"></i> Yeni Grup Oluştur
+            </h3>
+
+            <form id="add-team-form" onsubmit="submitAddTeamForm(event)"
+              style="display: flex; flex-direction: column; gap: 16px;">
+              <div
+                style="background: rgba(224, 169, 139, 0.08); border: 1px solid rgba(224, 169, 139, 0.2); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-circle-info" style="font-size: 14px; color: var(--primary);"></i> <span><b>Ekip Limit Belirleme:</b>
+                  Minimum <b>0 Kişi</b>, Maksimum <b>50 Kişi</b> yazabilirsiniz.</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Grup Tipi</label>
+                <select id="team-type" class="form-input"
+                  style="background: #0c0d10; color: var(--text-main); border: 1px solid var(--border-color); height: 40px; border-radius: 8px; padding: 6px 12px; font-size: 13px; width: 100%;"
+                  onchange="updateFormLabels(this.value)">
+                  <option value="illegal">İllegal Ekip (Aile / Çete)</option>
+                  <option value="legal">Legal Departman</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" id="label-team-name">Ekip Adı</label>
+                <input type="text" id="team-name" class="form-input" placeholder="Örn: Grove Street / LSPD" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" id="label-team-boss">Ekip Boss Discord ID</label>
+                <input type="text" id="team-bossId" class="form-input" placeholder="Örn: 444578261494661122 (Boş bırakılabilir veya none)">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Ekip Kişi Sayısı (Maksimum Üye Limiti)</label>
+                <input type="number" id="team-maxMembers" class="form-input" min="0" max="50" value="50"
+                  placeholder="0 - 50 arası sayı girin" required>
+                <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 4px;">Minimum 0,
+                  maksimum 50 kişi yazılabilir.</small>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Ekip Rengi (Discord Rol Rengi)</label>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <input type="color" id="team-color" class="form-input" value="#3b82f6"
+                    style="width: 60px; height: 40px; padding: 2px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer;">
+                  <span id="color-hex-preview"
+                    style="font-family: monospace; font-size: 13px; color: var(--text-muted);">#3b82f6</span>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
+                <button type="button" class="btn btn-secondary" onclick="closeAddTeamModal()">İptal</button>
+                <button type="submit" id="btn-submit-team" class="btn btn-primary"
+                  style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-floppy-disk"></i>
+                  Oluştur</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Edit Team Modal -->
+        <div id="edit-team-modal" class="modal-overlay"
+          style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+          <div class="content-panel"
+            style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; position: relative;">
+            <button type="button"
+              style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;"
+              onclick="closeEditTeamModal()"><i class="fa-solid fa-xmark"></i></button>
+
+            <h3
+              style="font-family: var(--font-display); font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin: 0; color: var(--text-main);">
+              <i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> Grubu Düzenle
+            </h3>
+
+            <form id="edit-team-form" onsubmit="submitEditTeamForm(event)"
+              style="display: flex; flex-direction: column; gap: 16px;">
+              <input type="hidden" id="edit-team-id">
+              <input type="hidden" id="edit-team-type">
+
+              <div class="form-group">
+                <label class="form-label" id="label-edit-team-name">Ekip Adı</label>
+                <input type="text" id="edit-team-name" class="form-input" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" id="label-edit-team-boss">Ekip Boss Discord ID</label>
+                <input type="text" id="edit-team-bossId" class="form-input" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Ekip Kişi Sayısı (Maksimum Üye Limiti)</label>
+                <input type="number" id="edit-team-maxMembers" class="form-input" min="0" max="50" value="50"
+                  placeholder="0 - 50 arası sayı girin" required>
+                <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 4px;">Minimum 0,
+                  maksimum 50 kişi yazılabilir.</small>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Ekip Rengi (Discord Rol Rengi)</label>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <input type="color" id="edit-team-color" class="form-input"
+                    style="width: 60px; height: 40px; padding: 2px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer;">
+                  <span id="edit-color-hex-preview"
+                    style="font-family: monospace; font-size: 13px; color: var(--text-muted);">#3b82f6</span>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditTeamModal()">İptal</button>
+                <button type="submit" id="btn-submit-edit-team" class="btn btn-primary"
+                  style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-floppy-disk"></i>
+                  Değişiklikleri Kaydet</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Team Members Modal -->
+        <div id="team-members-modal" class="modal-overlay"
+          style="display: none; position: fixed; inset: 0; background: rgba(5, 7, 12, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+          <div class="content-panel"
+            style="width: 98vw; max-width: 1680px; height: 95vh; max-height: 95vh; overflow-y: hidden; padding: 24px; display: flex; flex-direction: column; gap: 16px; position: relative; background: #0c0d12; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);">
+
+            <!-- Header Bar (Üst Başlık ve Hızlı Eylem Butonları) -->
+            <div
+              style="display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-users" style="color: #ffffff; font-size: 20px;"></i>
+                <h3
+                  style="font-family: var(--font-display); font-size: 18px; font-weight: 800; margin: 0; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                  <span id="members-modal-title">Ekibini Görüntülüyorsun</span>
+                </h3>
+              </div>
+
+              <!-- Üst Hızlı Butonlar dizisi (Ekran görüntüsündeki tasarım) -->
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <!-- Sunucudan Kickle -->
+                <button type="button" onclick="discordKickTeam()"
+                  style="background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Sunucudan
+                  Kickle</button>
+                <!-- Discorddan Banla -->
+                <button type="button" onclick="discordBanTeam()"
+                  style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.15); color: #e2e8f0; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Discorddan
+                  Banla</button>
+                <!-- Özel Mesaj Gönder -->
+                <button type="button" onclick="sendTeamDM()"
+                  style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Özel
+                  Mesaj Gönder</button>
+                <!-- Whitelist Ver -->
+                <button type="button" onclick="giveTeamWhitelist()"
+                  style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Whitelist
+                  Ver</button>
+                <!-- Whitelist Al -->
+                <button type="button" onclick="takeTeamWhitelist()"
+                  style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.3); color: #60a5fa; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Whitelist
+                  Al</button>
+                <!-- Çete Permi Ver / Departman Permi Ver -->
+                <button type="button" onclick="giveTeamRole()"
+                  style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #ffffff; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;"
+                  id="btn-team-role-action">Çete Permi Ver</button>
+                <!-- Revive -->
+                <button type="button" onclick="reviveTeam()"
+                  style="background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Revive</button>
+                <!-- Blacklist'e Ekle -->
+                <button type="button" id="btn-ban-team" onclick="banTeamCompletely()"
+                  style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.15); color: #e2e8f0; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Blacklist'e Ekle</button>
+                <!-- Wipe -->
+                <button type="button" id="btn-wipe-team" onclick="wipeTeamMembers()"
+                  style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Wipe</button>
+                <!-- Wipe Geri Al -->
+                <button type="button" id="btn-unwipe-team" onclick="unwipeTeamMembers()"
+                  style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Wipe Geri Al</button>
+                <!-- Ekip CK -->
+                <button type="button" id="btn-ck-team" onclick="ckTeamMembers()"
+                  style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #f87171; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Ekip CK</button>
+                <!-- Üye Ekle -->
+                <% if (userPermissions.teamAddMember || userPermissions.editTeams || userPermissions.manageTeams ||
+                  userPermissions.isSuperuser) { %>
+                  <button type="button" onclick="toggleAddMemberBox()"
+                    style="background: #10b981; border: none; color: #ffffff; font-size: 11px; font-weight: 800; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;"><i
+                      class="fa-solid fa-plus"></i> Üye Ekle</button>
+                  <% } %>
+                <!-- Üye Çıkar -->
+                <% if (userPermissions.teamRemoveMember || userPermissions.editTeams || userPermissions.manageTeams ||
+                  userPermissions.isSuperuser) { %>
+                  <button type="button" onclick="toggleRemoveMemberBox()"
+                    style="background: #ef4444; border: none; color: #ffffff; font-size: 11px; font-weight: 800; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;"><i
+                      class="fa-solid fa-minus"></i> Üye Çıkar</button>
+                  <% } %>
+                    <!-- X Kapat -->
+                    <button type="button"
+                      style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); font-size: 16px; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin-left: 4px;"
+                      onclick="closeTeamMembersModal()"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+
+            <input type="hidden" id="members-team-id">
+
+            <!-- Gizlenebilir / Açılabilir Üye Ekleme Paneli -->
+            <div id="add-member-collapsible-box"
+              style="display: none; background: rgba(16,185,129,0.04); border: 1px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 14px; margin-bottom: 8px;">
+              <label class="form-label"
+                style="font-size: 11px; color: #34d399; font-weight: 700; margin-bottom: 6px; display: block;">Ekibe
+                Yeni Üye Ekle (Discord ID)</label>
+              <div style="display: flex; gap: 10px;">
+                <textarea id="add-member-discord-id" class="form-input"
+                  placeholder="Discord ID'leri (Birden fazla ID'yi virgül, boşluk veya yeni satır ile ayırabilirsiniz)"
+                  style="height: 50px; font-size: 12px; flex: 1; resize: none; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: monospace;"></textarea>
+                <button class="btn btn-primary" onclick="addTeamMember()"
+                  style="height: 50px; padding: 0 20px; font-size: 12px; font-weight: 700; background: #10b981; border: none; cursor: pointer; border-radius: 6px;"><i
+                    class="fa-solid fa-user-plus"></i> Ekle</button>
+              </div>
+            </div>
+
+            <!-- Gizlenebilir / Açılabilir Üye Çıkarma Paneli -->
+            <div id="remove-member-collapsible-box"
+              style="display: none; background: rgba(239,68,68,0.04); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 14px;">
+              <label class="form-label"
+                style="font-size: 11px; color: #f87171; font-weight: 700; margin-bottom: 6px; display: block;">Ekipten
+                Üye Çıkar (Discord ID)</label>
+              <div style="display: flex; gap: 10px;">
+                <textarea id="remove-member-discord-ids" class="form-input"
+                  placeholder="Ekipten çıkarılacak Discord ID'leri (Virgül, boşluk veya yeni satır ile ayırabilirsiniz)"
+                  style="height: 50px; font-size: 12px; flex: 1; resize: none; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: monospace;"></textarea>
+                <button id="btn-bulk-remove-members" class="btn" onclick="bulkRemoveTeamMembers()"
+                  style="height: 50px; padding: 0 20px; font-size: 12px; font-weight: 700; background: #ef4444; color: #ffffff; border: none; cursor: pointer; border-radius: 6px;"><i
+                    class="fa-solid fa-user-minus"></i> Çıkar</button>
+              </div>
+            </div>
+
+            <!-- 2 Kolonlu Gövde Yapısı (Sol: Tablo, Sağ: Notlar & Bilgiler) -->
+            <div style="display: grid; grid-template-columns: 1fr 380px; gap: 16px; width: 100%; flex: 1; min-height: 0; overflow: hidden;">
+              <!-- SOL KOLON: Üyeler Tablosu -->
+              <div
+                style="overflow-x: auto; overflow-y: auto; height: 100%; max-height: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 2px;">
+                <table class="table" style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+                  <thead
+                    style="background: rgba(12,13,18,0.95); position: sticky; top: 0; z-index: 5; backdrop-filter: blur(8px);">
+                    <tr
+                      style="border-bottom: 1px solid rgba(255,255,255,0.08); text-transform: uppercase; font-size: 10px; color: var(--text-muted); letter-spacing: 0.5px;">
+                      <th style="padding: 10px 12px;">ÜYE İSMİ</th>
+                      <th style="padding: 10px 12px;">DISCORD ID</th>
+                      <th style="padding: 10px 12px;">YETKİ</th>
+                      <th style="padding: 10px 12px;" id="th-og-hc">OG DURUMU</th>
+                      <th style="padding: 10px 12px;">ONLİNE DURUMU</th>
+                      <th style="padding: 10px 12px;">WHITELIST DURUMU</th>
+                      <th style="padding: 10px 12px;">OYUN SAATİ</th>
+                      <th style="padding: 10px 12px;">OYUNA SON GİRİŞ</th>
+                      <th style="padding: 10px 12px; text-align: right;">İŞLEM</th>
+                    </tr>
+                  </thead>
+                  <tbody id="team-members-table-body">
+                    <!-- Dinamik Doldurulur -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- SAĞ KOLON: Notlar & Ekip Bilgileri -->
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <!-- Notlar Alanı -->
+                <div
+                  style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+                  <textarea id="team-notes-input" placeholder="Ekip ile ilgili notlarınızı bu alana girebilirsiniz"
+                    style="width: 100%; height: 160px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 10px; color: #fff; font-size: 11px; resize: vertical; box-sizing: border-box; font-family: inherit;"></textarea>
+                  <button type="button" onclick="saveTeamNotes()"
+                    style="width: 100%; padding: 8px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-weight: 700; font-size: 11px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fa-solid fa-lock"></i> Notları Kaydet
+                  </button>
+                </div>
+
+                <!-- Ekip Hakkında Bilgiler Kartı -->
+                <div
+                  style="background: linear-gradient(135deg, rgba(224,169,139,0.1) 0%, rgba(15,23,42,0.9) 100%); border: 1px solid rgba(224,169,139,0.25); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+                  <h4
+                    style="font-family: var(--font-display); font-size: 12px; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Ekip Hakkında Bilgiler
+                  </h4>
+                  <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #e2e8f0;">
+                    <div style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-star"
+                        style="color: #ffffff; font-size: 9px;"></i> <span>Ekip limiti: <b id="info-team-limit"
+                          style="color: #fff;">50 kişi</b></span></div>
+                    <div style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-star"
+                        style="color: #ffffff; font-size: 9px;"></i> <span>Toplam ekip üyesi: <b
+                          id="info-team-total-members" style="color: #fff;">0 kişi</b></span></div>
+                    <div style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-star"
+                        style="color: #ffffff; font-size: 9px;"></i> <span>Toplam oyun saati: <b
+                          id="info-team-total-hours" style="color: #fff;">0 saat</b></span></div>
+                    <div style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-star"
+                        style="color: #ffffff; font-size: 9px;"></i> <span>Ortalama oyun saati: <b
+                          id="info-team-avg-hours" style="color: #fff;">0 saat</b></span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Member Details Modal (Ayrı Pencerede Veritabanı Üye & Karakter Detayları) -->
+        <div id="member-details-modal" class="modal-overlay"
+          style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 20000; align-items: center; justify-content: center; padding: 20px;">
+          <div class="content-panel-2">
+            <button type="button"
+              style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;"
+              onclick="closeMemberDetailsModal()"><i class="fa-solid fa-xmark"></i></button>
+
+            <div
+              style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; display: flex; flex-direction: column; gap: 4px;">
+              <h3
+                style="font-family: var(--font-display); font-size: 18px; font-weight: 700; margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-id-card" style="color: var(--primary);"></i> <span
+                  id="member-detail-modal-username">Veritabanı Tüm Üye Detayları</span>
+              </h3>
+              <p id="member-detail-modal-discordid"
+                style="font-size: 11px; color: var(--text-muted); font-family: monospace; margin: 0;"></p>
+            </div>
+
+            <!-- 1. Kullanıcı Hesap Veritabanı Bilgileri -->
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <h4
+                style="font-family: var(--font-display); font-size: 13px; font-weight: 700; margin: 0; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-user-gear" style="color: var(--primary);"></i> Web & Panel Kullanıcı Kaydı
+                (DiscordUser DB)
+              </h4>
+              <div id="member-account-details-container"
+                style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
+                <!-- Dinamik doldurulur -->
+              </div>
+            </div>
+
+            <!-- 2. Sunucu FiveM Oyun Karakter Verileri -->
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <h4
+                style="font-family: var(--font-display); font-size: 13px; font-weight: 700; margin: 0; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-database" style="color: var(--primary);"></i> Sunucu Karakter Veritabanı (FiveM)
+              </h4>
+              <div id="member-characters-container" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Karakter kartları dinamik yüklenir -->
+              </div>
+            </div>
+
+            <div
+              style="display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 16px;">
+              <button type="button" class="btn btn-secondary" onclick="closeMemberDetailsModal()">Kapat</button>
+            </div>
+          </div>
+        </div>
+
+  </section>
+
+  <script>
+    async function refreshTeamStats() {
+      try {
+        const res = await fetch("/admin/teams/stats");
+        const data = await res.json();
+        if (data.success && data.stats) {
+          // Illegal stats
+          if (data.stats.illegal) {
+            const elTeams = document.getElementById("stat-total-teams");
+            const elMembers = document.getElementById("stat-total-members");
+            const elOGs = document.getElementById("stat-total-ogs");
+            if (elTeams) elTeams.innerText = data.stats.illegal.totalTeams;
+            if (elMembers) elMembers.innerText = data.stats.illegal.totalMembers;
+            if (elOGs) elOGs.innerText = data.stats.illegal.totalOGs;
+          }
+          // Legal stats
+          if (data.stats.legal) {
+            const elLegalTeams = document.getElementById("stat-legal-teams");
+            const elLegalMembers = document.getElementById("stat-legal-members");
+            const elLegalHCs = document.getElementById("stat-legal-hcs");
+            if (elLegalTeams) elLegalTeams.innerText = data.stats.legal.totalTeams;
+            if (elLegalMembers) elLegalMembers.innerText = data.stats.legal.totalMembers;
+            if (elLegalHCs) elLegalHCs.innerText = data.stats.legal.totalHCs;
+          }
+        }
+      } catch (err) {
+        // Silently catch fetch errors
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.location.hash === "#team-list" || window.location.hash === "#teams-settings") {
+        refreshTeamStats();
+      }
+
+      const colorInput = document.getElementById("team-color");
+      if (colorInput) {
+        colorInput.addEventListener("input", (e) => {
+          document.getElementById("color-hex-preview").innerText = e.target.value;
+        });
+      }
+
+      const editColorInput = document.getElementById("edit-team-color");
+      if (editColorInput) {
+        editColorInput.addEventListener("input", (e) => {
+          document.getElementById("edit-color-hex-preview").innerText = e.target.value;
+        });
+      }
+
+      const modal = document.getElementById("add-team-modal");
+      if (modal) {
+        document.body.appendChild(modal);
+      }
+
+      const editModal = document.getElementById("edit-team-modal");
+      if (editModal) {
+        document.body.appendChild(editModal);
+      }
+
+      const membersModal = document.getElementById("team-members-modal");
+      if (membersModal) {
+        document.body.appendChild(membersModal);
+      }
+    });
+
+    function filterTeams() {
+      const query = (document.getElementById("team-search-input")?.value || "").toLowerCase().trim();
+      const rows = document.querySelectorAll("tr[id^='team-row-']");
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        if (!query || text.includes(query)) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+
+    function openAddTeamModal() {
+      const modal = document.getElementById("add-team-modal");
+      if (!modal) return;
+      if (modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+      }
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = scrollbarWidth + "px";
+      modal.style.setProperty("display", "flex", "important");
+    }
+
+    function closeAddTeamModal() {
+      document.getElementById("add-team-modal").style.display = "none";
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+      document.getElementById("add-team-form").reset();
+      document.getElementById("color-hex-preview").innerText = "#3b82f6";
+    }
+
+    function openEditTeamModal(id, name, color, bossId, type, maxMembers) {
+      const modal = document.getElementById("edit-team-modal");
+      if (modal && modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+      }
+      document.getElementById("edit-team-id").value = id;
+      document.getElementById("edit-team-type").value = type;
+      document.getElementById("edit-team-name").value = name;
+      document.getElementById("edit-team-bossId").value = bossId;
+      document.getElementById("edit-team-color").value = color;
+      document.getElementById("edit-color-hex-preview").innerText = color;
+      document.getElementById("edit-team-maxMembers").value = (maxMembers !== undefined && maxMembers !== '') ? maxMembers : 50;
+
+      const labelName = document.getElementById("label-edit-team-name");
+      const labelBoss = document.getElementById("label-edit-team-boss");
+      if (type === "legal") {
+        labelName.innerText = "Departman Adı";
+        labelBoss.innerText = "High Command Discord ID";
+      } else if (type === "business") {
+        labelName.innerText = "İşletme Adı";
+        labelBoss.innerText = "İşletme Sahibi (Boss) Discord ID";
+      } else {
+        labelName.innerText = "Ekip Adı";
+        labelBoss.innerText = "Ekip Boss Discord ID";
+      }
+
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = scrollbarWidth + "px";
+      if (modal) modal.style.display = "flex";
+    }
+
+    function closeEditTeamModal() {
+      document.getElementById("edit-team-modal").style.display = "none";
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+      document.getElementById("edit-team-form").reset();
+    }
+
+    function updateFormLabels(type) {
+      const labelName = document.getElementById("label-team-name");
+      const labelBoss = document.getElementById("label-team-boss");
+
+      if (type === "legal") {
+        if (labelName) labelName.innerText = "Departman Adı";
+        if (labelBoss) labelBoss.innerText = "High Command Discord ID";
+      } else if (type === "business") {
+        if (labelName) labelName.innerText = "İşletme Adı";
+        if (labelBoss) labelBoss.innerText = "İşletme Sahibi (Boss) Discord ID";
+      } else {
+        if (labelName) labelName.innerText = "Ekip Adı";
+        if (labelBoss) labelBoss.innerText = "Ekip Boss Discord ID";
+      }
+    }
+
+    async function submitAddTeamForm(event) {
+      event.preventDefault();
+
+      const name = document.getElementById("team-name").value;
+      const color = document.getElementById("team-color").value;
+      const bossId = document.getElementById("team-bossId").value;
+      const type = document.getElementById("team-type").value;
+      const maxMembers = parseInt(document.getElementById("team-maxMembers").value, 10);
+
+      if (isNaN(maxMembers) || maxMembers < 0 || maxMembers > 50) {
+        showAdminToast("Ekip kişi sayısı minimum 0, maksimum 50 olabilir.", "error");
+        return;
+      }
+
+      const btn = document.getElementById("btn-submit-team");
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> İşleniyor...`;
+
+      try {
+        const response = await fetch("/admin/teams/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ name, color, bossId, type, maxMembers })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          showAdminToast(data.message || "Ekip oluşturulamadı.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    }
+
+    async function submitEditTeamForm(event) {
+      event.preventDefault();
+
+      const id = document.getElementById("edit-team-id").value;
+      const name = document.getElementById("edit-team-name").value;
+      const color = document.getElementById("edit-team-color").value;
+      const bossId = document.getElementById("edit-team-bossId").value;
+      const maxMembers = parseInt(document.getElementById("edit-team-maxMembers").value, 10);
+
+      if (isNaN(maxMembers) || maxMembers < 0 || maxMembers > 50) {
+        showAdminToast("Ekip kişi sayısı minimum 0, maksimum 50 olabilir.", "error");
+        return;
+      }
+
+      const btn = document.getElementById("btn-submit-edit-team");
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Kaydediliyor...`;
+
+      try {
+        const response = await fetch("/admin/teams/edit/" + id, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ name, color, bossId, maxMembers })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          showAdminToast(data.message || "Ekip güncellenemedi.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    }
+
+    async function deleteTeam(id, isBusiness = false) {
+      const targetText = isBusiness ? "işletmeyi" : "ekibi/departmanı";
+      if (!confirm(`Bu ${targetText} silmek istediğinize emin misiniz? Discord üzerindeki kanalı ve rolü de silinecektir.`)) {
+        return;
+      }
+
+      try {
+        const url = isBusiness ? `/admin/businesses/delete/${id}` : `/admin/teams/delete/${id}`;
+        const response = await fetch(url, {
+          method: "POST"
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+
+          const row = document.getElementById("team-row-" + id);
+          if (row) {
+            const tbody = row.parentElement;
+            row.style.transition = "all 0.3s ease";
+            row.style.opacity = "0";
+            row.style.transform = "translateX(20px)";
+            setTimeout(() => {
+              row.remove();
+              if (tbody && tbody.children.length === 0) {
+                const emptyTr = document.createElement("tr");
+                emptyTr.innerHTML = '<td colspan="4" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 20px 0;">Kayıtlı ekip/işletme bulunmuyor.</td>';
+                tbody.appendChild(emptyTr);
+              }
+            }, 300);
+          }
+        } else {
+          showAdminToast(data.message || "İşlem başarısız.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function toggleTeamVoiceSupport(id, isBusiness = false) {
+      if (!confirm("Tüm üyelerin sesli destek rol durumunu değiştirmek istediğinize emin misiniz?")) {
+        return;
+      }
+
+      try {
+        const url = isBusiness ? `/admin/businesses/${id}/voice-support` : `/admin/teams/voice-support/toggle/${id}`;
+        const response = await fetch(url, {
+          method: "POST"
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+        } else {
+          showAdminToast(data.message || "İşlem başarısız.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    const canRemoveTeamMember = <%= !!(userPermissions.teamRemoveMember || userPermissions.editTeams || userPermissions.manageTeams || userPermissions.deleteTeams || userPermissions.isSuperuser) %>;
+    const canAddTeamMember = <%= !!(userPermissions.teamAddMember || userPermissions.editTeams || userPermissions.manageTeams || userPermissions.createTeams || userPermissions.isSuperuser) %>;
+
+    let currentActiveTeamId = null;
+    let currentTeamMemberCount = 0;
+    let currentTeamMaxMembers = 50;
+    let isCurrentModalBusiness = false;
+
+    async function openTeamMembersModal(teamId, isBusiness = false) {
+      currentActiveTeamId = teamId;
+      isCurrentModalBusiness = isBusiness;
+      const hiddenInput = document.getElementById("members-team-id");
+      if (hiddenInput) hiddenInput.value = teamId;
+      const addInput = document.getElementById("add-member-discord-id");
+      if (addInput) addInput.value = "";
+
+      const tableBody = document.getElementById("team-members-table-body");
+      if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</td></tr>';
+      }
+
+      const modal = document.getElementById("team-members-modal");
+      if (modal) modal.style.display = "flex";
+
+      await refreshTeamMembers();
+    }
+
+    function closeTeamMembersModal() {
+      const modal = document.getElementById("team-members-modal");
+      if (modal) modal.style.display = "none";
+      currentActiveTeamId = null;
+      currentTeamMemberCount = 0;
+      currentTeamMaxMembers = 50;
+    }
+
+    function toggleAddMemberBox() {
+      const box = document.getElementById("add-member-collapsible-box");
+      const removeBox = document.getElementById("remove-member-collapsible-box");
+      if (removeBox) removeBox.style.display = "none";
+      if (box) {
+        box.style.display = (box.style.display === "none" || !box.style.display) ? "block" : "none";
+      }
+    }
+
+    function toggleRemoveMemberBox() {
+      const box = document.getElementById("remove-member-collapsible-box");
+      const addBox = document.getElementById("add-member-collapsible-box");
+      if (addBox) addBox.style.display = "none";
+      if (box) {
+        box.style.display = (box.style.display === "none" || !box.style.display) ? "block" : "none";
+      }
+    }
+
+    async function saveTeamNotes() {
+      if (!currentActiveTeamId) return;
+      const notes = document.getElementById("team-notes-input").value;
+      try {
+        const url = isCurrentModalBusiness ? `/admin/businesses/notes/${currentActiveTeamId}` : `/admin/teams/notes/${currentActiveTeamId}`;
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notes })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message || "Notlar kaydedildi.", "success");
+        } else {
+          showAdminToast(data.message || "Notlar kaydedilemedi.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Notlar kaydedilirken hata oluştu.", "error");
+      }
+    }
+
+    let currentTeamName = "";
+    let currentTeamColor = "";
+    let currentTeamType = "";
+    let currentTeamBossId = "";
+
+    async function setTeamBoss(bossId) {
+      if (!currentActiveTeamId) return;
+
+      const isLegal = (typeof currentTeamType !== 'undefined' && currentTeamType === 'legal');
+      const currentBosses = (currentTeamBossId || "").split(/[\s,]+/).map(s => s.trim()).filter(Boolean);
+      let newBossId = bossId;
+
+      if (isLegal) {
+        const isAlreadyBoss = currentBosses.includes(bossId);
+        if (isAlreadyBoss) {
+          if (!confirm("Bu üyeyi HC / Lider kadrosundan çıkarmak istediğinize emin misiniz?")) return;
+          const updated = currentBosses.filter(id => id !== bossId);
+          newBossId = updated.length > 0 ? updated.join(", ") : "";
+        } else {
+          if (!confirm("Bu üyeyi HC / Lider kadrosuna eklemek istediğinize emin misiniz?")) return;
+          if (!currentBosses.includes(bossId)) {
+            currentBosses.push(bossId);
+          }
+          newBossId = currentBosses.join(", ");
+        }
+      } else {
+        const isAlreadyBoss = currentBosses.includes(bossId);
+        if (isAlreadyBoss) {
+          if (!confirm("Bu üyeyi Liderlik / Boss görevinden almak istediğinize emin misiniz?")) return;
+          newBossId = "";
+        } else {
+          if (!confirm("Bu üyeyi ekibin Lideri / Boss'u olarak atamak istediğinize emin misiniz?")) return;
+          newBossId = bossId;
+        }
+      }
+
+      try {
+        const url = isCurrentModalBusiness ? `/admin/businesses/edit/${currentActiveTeamId}` : `/admin/teams/edit/${currentActiveTeamId}`;
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: currentTeamName, color: currentTeamColor, bossId: newBossId, maxMembers: currentTeamMaxMembers })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast("Lider kadrosu başarıyla güncellendi!", "success");
+          await refreshTeamMembers();
+        } else {
+          showAdminToast(data.message || "Lider güncellenemedi.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function sendTeamDM() {
+      if (!currentActiveTeamId) return;
+      const message = prompt("Ekip üyelerine gönderilecek özel mesajı giriniz (Zorunlu):");
+      if (!message || !message.trim()) return;
+
+      try {
+        const response = await fetch(`/admin/teams/send-dm/${currentActiveTeamId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: message.trim() })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+        } else {
+          showAdminToast(data.message || "Mesaj gönderilemedi.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function giveTeamWhitelist() {
+      if (!currentActiveTeamId) return;
+      if (!confirm("Tüm ekip üyelerine Whitelist yetkisi tanımlamak istediğinize emin misiniz?")) return;
+      try {
+        const response = await fetch(`/admin/teams/whitelist/give/${currentActiveTeamId}`, { method: "POST" });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          await refreshTeamMembers();
+        } else {
+          showAdminToast(data.message || "İşlem başarısız.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function takeTeamWhitelist() {
+      if (!currentActiveTeamId) return;
+      if (!confirm("Tüm ekip üyelerinin Whitelist yetkisini almak istediğinize emin misiniz?")) return;
+      try {
+        const response = await fetch(`/admin/teams/whitelist/take/${currentActiveTeamId}`, { method: "POST" });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          await refreshTeamMembers();
+        } else {
+          showAdminToast(data.message || "İşlem başarısız.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function giveTeamRole() {
+      if (!currentActiveTeamId) return;
+      if (!confirm("Tüm ekip üyelerine Discord rolünü tanımlamak istediğinize emin misiniz?")) return;
+      try {
+        const response = await fetch(`/admin/teams/give-role/${currentActiveTeamId}`, { method: "POST" });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+        } else {
+          showAdminToast(data.message || "İşlem başarısız.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function reviveTeam() {
+      if (!currentActiveTeamId) return;
+      if (!confirm("Oyundaki tüm ekip üyelerine Revive atmak istediğinize emin misiniz?")) return;
+      try {
+        const response = await fetch(`/admin/teams/revive/${currentActiveTeamId}`, { method: "POST" });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+        } else {
+          showAdminToast(data.message || "Revive gönderilemedi.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function refreshTeamMembers() {
+      if (!currentActiveTeamId) return;
+      const tableBody = document.getElementById("team-members-table-body");
+      if (!tableBody) return;
+
+      try {
+        const url = isCurrentModalBusiness ? `/admin/businesses/${currentActiveTeamId}/members` : `/admin/teams/detail/${currentActiveTeamId}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        const teamInfo = data.business || data.team;
+
+        if (data.success && teamInfo) {
+          const membersList = data.members || [];
+          currentTeamMemberCount = membersList.length;
+          currentTeamMaxMembers = (teamInfo.maxMembers !== undefined) ? teamInfo.maxMembers : 50;
+          currentTeamName = teamInfo.name;
+          currentTeamColor = teamInfo.color || "#f59e0b";
+          currentTeamType = teamInfo.type || "illegal";
+          currentTeamBossId = teamInfo.bossId || "";
+
+          const bossIdsList = (teamInfo.bossId || "").split(/[\s,]+/).map(s => s.trim()).filter(Boolean);
+
+          document.getElementById("members-modal-title").innerHTML = `<span style="color: #ffffff; font-weight: 800;">${teamInfo.name}</span> ${isCurrentModalBusiness ? 'İşletmesini' : 'Ekibini'} Görüntülüyorsun`;
+
+          const thOgHc = document.getElementById("th-og-hc");
+          if (thOgHc) {
+            thOgHc.innerText = isCurrentModalBusiness ? "BOSS DURUMU" : (teamInfo.type === "legal" ? "HC DURUMU" : "OG DURUMU");
+          }
+
+          const btnRoleAct = document.getElementById("btn-team-role-action");
+          if (btnRoleAct) {
+            btnRoleAct.innerText = isCurrentModalBusiness ? "İşletme Permi Ver" : (teamInfo.type === "legal" ? "Departman Permi Ver" : "Çete Permi Ver");
+          }
+
+          tableBody.innerHTML = "";
+          let totalPlayHoursTeam = 0;
+
+          if (membersList.length > 0) {
+            membersList.forEach(m => {
+              const playHrs = parseFloat(m.totalPlayHours || 0);
+              totalPlayHoursTeam += playHrs;
+              const isBoss = bossIdsList.includes(m.discordId.trim());
+
+              const leaderLabel = teamInfo.type === 'legal' ? 'HC Lider' : (isCurrentModalBusiness ? 'Patron' : 'Lider');
+              const roleBadge = isBoss
+                ? `<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">${leaderLabel}</span>`
+                : `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Üye</span>`;
+
+              const ogBadge = isBoss
+                ? `<span style="background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Evet</span>`
+                : `<span style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 10px; padding: 2px 8px; border-radius: 12px;">Hayır</span>`;
+
+              const onlineBadge = m.isOnline
+                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Oyunda</span>`
+                : `<span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 10px; padding: 2px 8px; border-radius: 12px;">Oyunda Değil</span>`;
+
+              const wlBadge = m.isWhitelist
+                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Whitelist</span>`
+                : `<span style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 10px; padding: 2px 8px; border-radius: 12px;">Yok</span>`;
+
+              const tr = document.createElement("tr");
+              tr.style = "border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.15s;";
+              tr.onmouseover = () => tr.style.background = "rgba(255,255,255,0.02)";
+              tr.onmouseout = () => tr.style.background = "transparent";
+
+              let lastSeenDisplay = m.lastSeen || 'Girmedi';
+              if (m.lastSeen && typeof m.lastSeen === 'string' && !m.lastSeen.includes('.')) {
+                const parsedDate = new Date(m.lastSeen);
+                if (!isNaN(parsedDate.getTime())) {
+                  const day = String(parsedDate.getDate()).padStart(2, '0');
+                  const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+                  const year = parsedDate.getFullYear();
+                  const hours = String(parsedDate.getHours()).padStart(2, '0');
+                  const minutes = String(parsedDate.getMinutes()).padStart(2, '0');
+                  lastSeenDisplay = `${day}.${month}.${year} ${hours}:${minutes}`;
+                }
+              }
+
+              const btnTitle = isBoss
+                ? (teamInfo.type === 'legal' ? 'HC Kadrosundan Çıkar' : 'Liderlikten Al')
+                : (teamInfo.type === 'legal' ? 'HC Kadrosuna Ekle (HC Lider Yap)' : 'Lider Yap');
+
+              tr.innerHTML = `
+                <td style="padding: 10px 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="${m.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                    <span style="font-weight: 600; color: #fff;">${m.username}</span>
+                  </div>
+                </td>
+                <td style="padding: 10px 12px; font-family: monospace; color: var(--text-muted);">${m.discordId}</td>
+                <td style="padding: 10px 12px;">${roleBadge}</td>
+                <td style="padding: 10px 12px;">${ogBadge}</td>
+                <td style="padding: 10px 12px;">${onlineBadge}</td>
+                <td style="padding: 10px 12px;">${wlBadge}</td>
+                <td style="padding: 10px 12px; color: #fff; font-weight: 600;">${playHrs} Saat</td>
+                <td style="padding: 10px 12px; color: var(--text-muted);">${lastSeenDisplay}</td>
+                <td style="padding: 10px 12px; text-align: right;">
+                  <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                    <button type="button" title="Görüntüle / Detay" onclick="openMemberDetailsModal('${m.discordId}', '${encodeURIComponent(m.username)}')" style="background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fa-solid fa-eye"></i></button>
+                    <button type="button" title="${btnTitle}" onclick="setTeamBoss('${m.discordId}')" style="background: ${isBoss ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.15)'}; border: 1px solid ${isBoss ? 'rgba(245,158,11,0.4)' : 'rgba(16,185,129,0.3)'}; color: ${isBoss ? '#fbbf24' : '#34d399'}; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fa-solid ${isBoss ? 'fa-user-minus' : 'fa-user-shield'}"></i></button>
+                    ${canRemoveTeamMember ? `<button type="button" title="Ekipten Çıkar" onclick="removeTeamMember('${m._id}', '${m.discordId}')" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fa-solid fa-trash"></i></button>` : ''}
+                  </div>
+                </td>
+              `;
+              tableBody.appendChild(tr);
+            });
+          } else {
+            tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 12px;">Bu ekipte henüz üye bulunmuyor.</td></tr>';
+          }
+
+          // Update Right Sidebar Stats
+          document.getElementById("info-team-limit").innerText = `${currentTeamMaxMembers} kişi`;
+          document.getElementById("info-team-total-members").innerText = `${membersList.length} kişi`;
+          document.getElementById("info-team-total-hours").innerText = `${totalPlayHoursTeam.toFixed(1)} saat`;
+          const avgHours = membersList.length > 0 ? (totalPlayHoursTeam / membersList.length).toFixed(1) : 0;
+          document.getElementById("info-team-avg-hours").innerText = `${avgHours} saat (${totalPlayHoursTeam.toFixed(1)} saat / ${membersList.length} kişi)`;
+
+          const notesInput = document.getElementById("team-notes-input");
+          if (notesInput) notesInput.value = (teamInfo && teamInfo.notes) ? teamInfo.notes : "";
+        } else {
+          tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--danger); font-size: 12px;">${data.message || 'Üyeler yüklenemedi.'}</td></tr>`;
+        }
+      } catch (err) {
+        console.error("refreshTeamMembers error:", err);
+        tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--danger); font-size: 12px;">Bağlantı hatası oluştu.</td></tr>';
+      }
+    }
+
+    async function addTeamMember() {
+      const inputVal = document.getElementById("add-member-discord-id").value.trim();
+      if (!inputVal) {
+        showAdminToast("Lütfen en az bir Discord ID girin.", "error");
+        return;
+      }
+
+      // Split by commas, spaces, or newlines, and filter out empty items
+      const rawIds = inputVal.split(/[,\s\n]+/).map(id => id.trim()).filter(id => id.length > 0);
+      const discordIds = [...new Set(rawIds.filter(id => /^\d{17,20}$/.test(id)))];
+
+      if (rawIds.length > 0 && discordIds.length === 0) {
+        showAdminToast("Girilen ID'lerin hiçbiri geçerli bir Discord ID formatında değil (17-20 haneli rakamlar olmalı).", "error");
+        return;
+      }
+
+      if (discordIds.length === 0) {
+        showAdminToast("Lütfen geçerli Discord ID'leri girin.", "error");
+        return;
+      }
+
+      const maxLimit = currentTeamMaxMembers !== undefined ? currentTeamMaxMembers : 50;
+
+      if (currentTeamMemberCount >= maxLimit) {
+        showAdminToast(`Bu ekip maksimum üye limitine (${maxLimit} kişi) ulaştı. Daha fazla üye eklenemez.`, "error");
+        return;
+      }
+
+      if (currentTeamMemberCount + discordIds.length > maxLimit) {
+        showAdminToast(`Ekip üye kapasitesi aşılamaz! Maksimum ${maxLimit} üye eklenebilir. (Mevcut Üye: ${currentTeamMemberCount}, Eklenmek İstenen: ${discordIds.length}, Kalan Kontenjan: ${maxLimit - currentTeamMemberCount})`, "error");
+        return;
+      }
+
+      const btn = document.querySelector("#team-members-modal button[onclick='addTeamMember()']");
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Ekleniyor (0/${discordIds.length})...`;
+
+      let successCount = 0;
+      let failCount = 0;
+      let errorMessages = [];
+
+      for (let i = 0; i < discordIds.length; i++) {
+        const discordId = discordIds[i];
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Ekleniyor (${i + 1}/${discordIds.length})...`;
+        try {
+          const addUrl = isCurrentModalBusiness ? `/admin/businesses/${currentActiveTeamId}/members/add` : "/admin/teams/members/add";
+          const response = await fetch(addUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ teamId: currentActiveTeamId, discordId })
+          });
+          const data = await response.json();
+          if (data.success) {
+            successCount++;
+          } else {
+            failCount++;
+            errorMessages.push(`${discordId}: ${data.message || 'Başarısız'}`);
+          }
+        } catch (err) {
+          failCount++;
+          errorMessages.push(`${discordId}: Bağlantı hatası`);
+        }
+      }
+
+      if (successCount > 0 && failCount === 0) {
+        showAdminToast(`${successCount} üye başarıyla eklendi!`, "success");
+        document.getElementById("add-member-discord-id").value = "";
+      } else if (successCount > 0 && failCount > 0) {
+        showAdminToast(`${successCount} üye başarıyla eklendi, ${failCount} üye eklenirken hata oluştu.\nDetaylar:\n${errorMessages.join('\n')}`, "warning");
+        document.getElementById("add-member-discord-id").value = "";
+      } else {
+        showAdminToast(`Üyeler eklenemedi:\n${errorMessages.join('\n')}`, "error");
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+      await refreshTeamMembers();
+    }
+
+    async function bulkRemoveTeamMembers() {
+      const inputVal = document.getElementById("remove-member-discord-ids").value.trim();
+      if (!inputVal) {
+        showAdminToast("Lütfen en az bir Discord ID girin.", "error");
+        return;
+      }
+
+      const rawIds = inputVal.split(/[,\s\n]+/).map(id => id.trim()).filter(id => id.length > 0);
+      const discordIds = [...new Set(rawIds.filter(id => /^\d{17,20}$/.test(id)))];
+
+      if (rawIds.length > 0 && discordIds.length === 0) {
+        showAdminToast("Girilen ID'lerin hiçbiri geçerli bir Discord ID formatında değil (17-20 haneli rakamlar olmalı).", "error");
+        return;
+      }
+
+      if (!confirm(`${discordIds.length} adet üyeyi ekipten çıkarmak istediğinize emin misiniz?`)) return;
+
+      const btn = document.getElementById("btn-bulk-remove-members");
+      const originalHTML = btn ? btn.innerHTML : "Çıkar";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Çıkarılıyor (0/${discordIds.length})...`;
+      }
+
+      let successCount = 0;
+      let failCount = 0;
+      let errorMessages = [];
+
+      for (let i = 0; i < discordIds.length; i++) {
+        const discordId = discordIds[i];
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Çıkarılıyor (${i + 1}/${discordIds.length})...`;
+        try {
+          const removeUrl = isCurrentModalBusiness ? `/admin/businesses/${currentActiveTeamId}/members/remove` : "/admin/teams/members/remove";
+          const response = await fetch(removeUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ teamId: currentActiveTeamId, discordId })
+          });
+          const data = await response.json();
+          if (data.success) {
+            successCount++;
+          } else {
+            failCount++;
+            errorMessages.push(`${discordId}: ${data.message || 'Çıkarılamadı'}`);
+          }
+        } catch (err) {
+          failCount++;
+          errorMessages.push(`${discordId}: Bağlantı hatası`);
+        }
+      }
+
+      if (successCount > 0 && failCount === 0) {
+        showAdminToast(`${successCount} üye ekipten başarıyla çıkarıldı!`, "success");
+        document.getElementById("remove-member-discord-ids").value = "";
+      } else if (successCount > 0 && failCount > 0) {
+        showAdminToast(`${successCount} üye çıkarıldı, ${failCount} üye için hata oluştu.\nDetaylar:\n${errorMessages.join('\n')}`, "warning");
+        document.getElementById("remove-member-discord-ids").value = "";
+      } else {
+        showAdminToast(`Üyeler çıkarılamadı:\n${errorMessages.join('\n')}`, "error");
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+      await refreshTeamMembers();
+    }
+
+    async function removeTeamMember(userId, discordId) {
+      if (!confirm("Bu üyeyi çıkarmak istediğinize emin misiniz?")) return;
+
+      try {
+        const discId = discordId || userId;
+        const removeUrl = isCurrentModalBusiness ? `/admin/businesses/${currentActiveTeamId}/members/remove` : "/admin/teams/members/remove";
+        const response = await fetch(removeUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teamId: currentActiveTeamId, userId, discordId: discId })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          await refreshTeamMembers();
+        } else {
+          showAdminToast(data.message || "Çıkarma başarısız oldu.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function banTeamCompletely() {
+      if (!confirm("DİKKAT: Bu ekibi komple banlamak istediğinize emin misiniz?\n\nBu işlem ekibi tamamen silecek, tüm üyelerin whitelistlerini iptal edecek ve kalıcı olarak banlayacaktır!")) return;
+      if (!confirm("Bunu yapmak istediğinize kesinlikle emin misiniz? Bu işlem geri alınamaz!")) return;
+
+      const btn = document.getElementById("btn-ban-team");
+      const originalHTML = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Banlanıyor...';
+      }
+
+      try {
+        const response = await fetch(`/admin/teams/ban/${currentActiveTeamId}`, {
+          method: "POST"
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          closeTeamMembersModal();
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          showAdminToast(data.message || "Ekip banlanamadı.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      }
+    }
+
+    async function discordBanTeam() {
+      const reason = prompt("Lütfen tüm ekip üyelerinin Discord yasaklama (ban) nedenini giriniz (Zorunlu):");
+      if (reason === null) return; // Cancelled
+      if (!reason.trim()) {
+        alert("Yasaklama nedeni boş bırakılamaz!");
+        return;
+      }
+
+      if (!confirm("Tüm ekip üyelerini Discord'dan yasaklamak istediğinize emin misiniz?")) return;
+
+      try {
+        const response = await fetch(`/admin/teams/discord-ban/${currentActiveTeamId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          closeTeamMembersModal();
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          showAdminToast(data.message || "Ekip üyeleri yasaklanamadı.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function discordKickTeam() {
+      const reason = prompt("Lütfen tüm ekip üyelerinin Discord atılma (kick) nedenini giriniz (Zorunlu):");
+      if (reason === null) return; // Cancelled
+      if (!reason.trim()) {
+        alert("Atılma nedeni boş bırakılamaz!");
+        return;
+      }
+
+      if (!confirm("Tüm ekip üyelerini Discord'dan atmak istediğinize emin misiniz?")) return;
+
+      try {
+        const response = await fetch(`/admin/teams/discord-kick/${currentActiveTeamId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          closeTeamMembersModal();
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          showAdminToast(data.message || "Ekip üyeleri atılamadı.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function voiceSupportTeam() {
+      await toggleTeamVoiceSupport(currentActiveTeamId);
+      closeTeamMembersModal();
+    }
+
+    async function wipeTeamMembers() {
+      if (!confirm("DİKKAT: Bu ekibe Wipe atmak istediğinize emin misiniz?\n\nEkipteki tüm üyelerin bütün rolleri çekilecek, whitelistleri iptal edilecek ve üzerlerine Kayıtsız Üye rolü tanımlanacaktır!")) return;
+      if (!confirm("Bu işlemi gerçekleştirmek istediğinize kesinlikle emin misiniz?")) return;
+
+      const btn = document.getElementById("btn-wipe-team");
+      const originalHTML = btn ? btn.innerHTML : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wipe Atılıyor...';
+      }
+
+      try {
+        const response = await fetch(`/admin/teams/wipe/${currentActiveTeamId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        const data = await response.json().catch(() => null);
+        if (data && data.success) {
+          showAdminToast(data.message, "success");
+          await refreshTeamMembers();
+        } else {
+          showAdminToast((data && data.message) ? data.message : "Wipe işlemi başarısız oldu.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      }
+    }
+
+    async function unwipeTeamMembers() {
+      if (!currentActiveTeamId) {
+        showAdminToast("Ekip bilgisi alınamadı.", "error");
+        return;
+      }
+      if (!confirm("DİKKAT: Bu ekibe daha önce atılan Wipe işlemini geri almak istediğinize emin misiniz?\n\nEkipteki tüm üyelerin eski rolleri, whitelist yetkileri ve ekip ticket erişimleri geri yüklenecektir!")) return;
+
+      const btn = document.getElementById("btn-unwipe-team");
+      const originalHTML = btn ? btn.innerHTML : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wipe Geri Alınıyor...';
+      }
+
+      try {
+        const response = await fetch(`/admin/teams/unwipe/${currentActiveTeamId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        const data = await response.json().catch(() => null);
+        if (data && data.success) {
+          showAdminToast(data.message, "success");
+          await refreshTeamMembers();
+        } else {
+          showAdminToast((data && data.message) ? data.message : "Wipe geri alma işlemi başarısız oldu.", "error");
+        }
+      } catch (err) {
+        console.error("Unwipe fetch error:", err);
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      }
+    }
+
+    async function ckTeamMembers() {
+      const teamId = currentActiveTeamId || (document.getElementById("members-team-id") ? document.getElementById("members-team-id").value : null);
+      if (!teamId) {
+        showAdminToast("Ekip bilgisi alınamadı.", "error");
+        return;
+      }
+      if (!confirm("DİKKAT: Bu ekibin tüm üyelerine CK atarak sunucudaki TÜM KARAKTERLERİNİ veritabanından kalıcı olarak silmek istediğinize emin misiniz?\n\nBu işlem GERİ ALINAMAZ!")) return;
+      if (!confirm("Bu işlemi gerçekleştirmek istediğinize KESİNLİKLE emin misiniz? Bütün karakterler veritabanından tamamen silinecektir!")) return;
+
+      const btn = document.getElementById("btn-ck-team");
+      const originalHTML = btn ? btn.innerHTML : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Ekip CK Atılıyor...';
+      }
+
+      try {
+        const response = await fetch(`/admin/teams/ck/${teamId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        const data = await response.json().catch(() => null);
+        if (data && data.success) {
+          showAdminToast(data.message, "success");
+          await refreshTeamMembers();
+        } else {
+          showAdminToast((data && data.message) ? data.message : "Ekip CK işlemi başarısız oldu.", "error");
+        }
+      } catch (err) {
+        console.error("CK fetch error:", err);
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      }
+    }
+
+    async function openMemberDetailsModal(discordId, username) {
+      closeTeamMembersModal();
+
+      const modal = document.getElementById("member-details-modal");
+      const titleEl = document.getElementById("member-detail-modal-username");
+      const discordIdEl = document.getElementById("member-detail-modal-discordid");
+      const accountContainer = document.getElementById("member-account-details-container");
+      const charContainer = document.getElementById("member-characters-container");
+
+      if (!modal || !charContainer) return;
+
+      const decodedUsername = decodeURIComponent(username || "");
+      titleEl.innerText = `${decodedUsername || discordId} - Tüm Veritabanı Kayıtları`;
+      discordIdEl.innerText = `Discord ID: ${discordId}`;
+      if (accountContainer) accountContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 11px;"><i class="fa-solid fa-spinner fa-spin"></i> Hesap verileri çekiliyor...</div>';
+      charContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 11px;"><i class="fa-solid fa-spinner fa-spin"></i> Karakter verileri veritabanından çekiliyor...</div>';
+
+      modal.style.display = "flex";
+
+      try {
+        const response = await fetch(`/api/fivem/player-detail/${discordId}`);
+        const data = await response.json();
+
+        if (data.success) {
+          const u = data.discordUser;
+          if (u && accountContainer) {
+            titleEl.innerText = `${u.username || decodedUsername || discordId} - Tüm Veritabanı Kayıtları`;
+            const rankName = (u.rankId && u.rankId.name) ? u.rankId.name : "Yetki Yok";
+            const teamName = (u.teamId && u.teamId.name) ? u.teamId.name : "Ekipsiz";
+            const wlStatus = u.isWhitelist ? '<span style="color: #34d399; font-weight: 700;">✅ Whitelist Var</span>' : '<span style="color: #f87171; font-weight: 700;">❌ Whitelist Yok</span>';
+            const wlDate = u.whitelistAt ? new Date(u.whitelistAt).toLocaleString("tr-TR") : "Tarih Yok";
+            const addedDate = u.addedAt ? new Date(u.addedAt).toLocaleString("tr-TR") : "Tarih Yok";
+            const banStatus = u.isPermaBanned ? '<span style="color: #ef4444; font-weight: 700;">⛔ Perma Banlı</span>' : '<span style="color: #10b981; font-weight: 700;">✅ Temiz</span>';
+            const warningsCount = (typeof u.warnings === "number") ? u.warnings : 0;
+            const wlPenalty = u.wlCezaBitis ? new Date(u.wlCezaBitis).toLocaleString("tr-TR") : "Cezasız";
+
+            accountContainer.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
+                <img src="${u.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                <div style="flex: 1;">
+                  <div style="font-size: 15px; font-weight: 700; color: #fff;">${u.username}</div>
+                  <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">${u.discordId}</div>
+                </div>
+                <div>${banStatus}</div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 11px;">
+                <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Rol / Rütbe</span>
+                  <strong style="color: var(--primary);">${rankName}</strong>
+                </div>
+                <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Ekip / Departman</span>
+                  <strong style="color: #fff;">${teamName}</strong>
+                </div>
+                <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Whitelist Durumu</span>
+                  ${wlStatus}
+                </div>
+                <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Whitelist Tarihi</span>
+                  <span style="color: #e2e8f0;">${wlDate}</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Ekibe Katılma</span>
+                  <span style="color: #e2e8f0;">${addedDate}</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Uyarı & Ceza</span>
+                  <span style="color: #f59e0b; font-weight: 700;">${warningsCount} Uyarı</span> | <span style="color: var(--text-muted);">${wlPenalty}</span>
+                </div>
+              </div>
+            `;
+          } else if (accountContainer) {
+            accountContainer.innerHTML = '<div style="font-size: 11px; color: var(--text-muted);">DiscordUser hesabı bulunamadı.</div>';
+          }
+
+          if (data.characters && data.characters.length > 0) {
+            let html = "";
+            data.characters.forEach(char => {
+              const cashFormatted = (char.money && typeof char.money.cash === "number") ? char.money.cash.toLocaleString("tr-TR") : 0;
+              const bankFormatted = (char.money && typeof char.money.bank === "number") ? char.money.bank.toLocaleString("tr-TR") : 0;
+              const playHours = (char.playtime && typeof char.playtime === "number") ? (char.playtime / 60).toFixed(1) : 0;
+              const jobLabel = (char.job && char.job.label) ? char.job.label : "Civilian";
+              const jobGrade = (char.job && char.job.grade) ? char.job.grade : "Derece Yok";
+              const birthdate = char.birthdate || "Belirtilmedi";
+              const citizenid = char.citizenid || "YOK";
+
+              html += `
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="background: var(--primary); color: #fff; font-weight: 800; font-size: 10px; padding: 2px 8px; border-radius: 4px;">SLOT ${char.cid || 1}</span>
+                      <h5 style="margin: 0; font-size: 14px; font-weight: 700; color: #fff;">${char.firstname || ''} ${char.lastname || ''}</h5>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: monospace; font-size: 11px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 4px; font-weight: 700;">
+                        CID: ${citizenid}
+                      </span>
+                      <button type="button" class="btn" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 10px; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" onclick="deleteSingleCharacter('${char._id}', '${citizenid}', '${encodeURIComponent((char.firstname || '') + ' ' + (char.lastname || ''))}', '${discordId}')">
+                        <i class="fa-solid fa-trash"></i> Karakteri Sil
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 11px;">
+                    <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                      <span style="color: var(--text-muted); font-size: 9px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-briefcase"></i> Meslek & Derece</span>
+                      <strong style="color: var(--text-main);">${jobLabel}</strong> <span style="color: var(--primary); font-size: 10px;">(${jobGrade})</span>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                      <span style="color: var(--text-muted); font-size: 9px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-clock"></i> Oynama Süresi</span>
+                      <strong style="color: #34d399;">${playHours} Saat</strong> <span style="color: var(--text-muted); font-size: 9px;">(${char.playtime || 0} Dk)</span>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                      <span style="color: var(--text-muted); font-size: 9px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-money-bill-wave"></i> Cüzdan (Nakit)</span>
+                      <strong style="color: #4ade80;">$${cashFormatted}</strong>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                      <span style="color: var(--text-muted); font-size: 9px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-building-columns"></i> Banka Hesabı</span>
+                      <strong style="color: #60a5fa;">$${bankFormatted}</strong>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); grid-column: span 2;">
+                      <span style="color: var(--text-muted); font-size: 9px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-cake-candles"></i> Doğum Tarihi</span>
+                      <strong style="color: var(--text-main);">${birthdate}</strong>
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+            charContainer.innerHTML = html;
+          } else {
+            charContainer.innerHTML = '<div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 10px; color: var(--text-muted); font-size: 12px;"><i class="fa-solid fa-user-slash" style="font-size: 24px; margin-bottom: 8px; color: var(--warning); display: block;"></i> Bu kullanıcıya ait veritabanında henüz oluşturulmuş bir FiveM karakter kaydı bulunmuyor.</div>';
+          }
+        } else {
+          charContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--danger); font-size: 12px;">Detay verileri çekilemedi.</div>';
+        }
+      } catch (err) {
+        console.error("Fetch character details error:", err);
+        charContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--danger); font-size: 12px;">Karakter verileri yüklenirken hata oluştu.</div>';
+      }
+    }
+
+    function closeMemberDetailsModal() {
+      const modal = document.getElementById("member-details-modal");
+      if (modal) modal.style.display = "none";
+      if (currentActiveTeamId) {
+        openTeamMembersModal(currentActiveTeamId, typeof isCurrentModalBusiness !== 'undefined' ? isCurrentModalBusiness : false);
+      }
+    }
+
+    async function deleteSingleCharacter(characterId, citizenid, charNameEncoded, discordId) {
+      const charName = decodeURIComponent(charNameEncoded || "Karakter");
+      if (!confirm(`DİKKAT: "${charName}" (CID: ${citizenid}) isimli karakteri veritabanından kalıcı olarak silmek istediğinize emin misiniz?\n\nBu işlem GERİ ALINAMAZ!`)) return;
+
+      try {
+        const response = await fetch("/api/fivem/character/delete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ characterId, citizenid, discordId })
+        });
+
+        const data = await response.json().catch(() => null);
+        if (data && data.success) {
+          showAdminToast(data.message, "success");
+          await openMemberDetailsModal(discordId, "");
+        } else {
+          showAdminToast((data && data.message) ? data.message : "Karakter silinemedi.", "error");
+        }
+      } catch (err) {
+        console.error("Delete character fetch error:", err);
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+  </script>
+  <% } %>

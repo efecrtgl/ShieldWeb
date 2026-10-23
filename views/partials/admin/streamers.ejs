@@ -1,0 +1,552 @@
+<% if (userPermissions.isSuperuser || userPermissions.isProjectLeader || userPermissions.manageWebsite || userPermissions.editWebsite) { %>
+  <section id="streamers-settings-content" class="admin-section-inner">
+    <!-- Quick Link to Public Page -->
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+      <a href="/streamers" target="_blank" class="btn" style="background: linear-gradient(135deg, var(--primary), #a855f7); color: #fff; font-size: 12px; font-weight: 700; padding: 8px 18px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> Streamer's Sayfasını Görüntüle
+      </a>
+    </div>
+    <div class="main-layout">
+      <!-- Add Streamer Panel -->
+      <div class="content-panel" style="grid-column: span 5;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase;">
+          <i class="fa-solid fa-headset text-sky-400"></i> Yeni Yayıncı Ekle
+        </h3>
+
+        <!-- Smart Auto-Fetch Box -->
+        <div style="background: rgba(168, 85, 247, 0.08); border: 1px dashed rgba(168, 85, 247, 0.35); border-radius: 12px; padding: 14px; margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <label style="font-size: 11px; font-weight: 700; color: #d8b4fe; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Otomatik Profil & Avatar Çekici
+            </label>
+            <span style="font-size: 10px; color: var(--text-muted);">Kick / Twitch</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="admin-streamer-quickQuery" class="form-input" placeholder="Örn: elraenn veya kick.com/elraenn" style="flex: 1; font-size: 12px; padding: 8px 12px;">
+            <button type="button" id="btn-fetch-streamer-info" onclick="handleAutoFetchStreamerInfo()" class="btn" style="background: linear-gradient(135deg, #a855f7, var(--primary)); color: #fff; font-size: 11px; font-weight: 700; padding: 8px 14px; border-radius: 8px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-cloud-arrow-down"></i> <span id="fetch-btn-text">Bilgileri Çek</span>
+            </button>
+          </div>
+          <p style="font-size: 10px; color: var(--text-muted); margin: 6px 0 0 0;">
+            Kanal adını veya linkini yazdığınızda profil fotoğrafı, banner ve canlı durumu otomatik doldurulur.
+          </p>
+        </div>
+
+        <!-- Live Preview Card (Hidden until info is present or typed) -->
+        <div id="admin-streamer-preview-box" style="display: none; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img id="preview-avatar" src="https://cdn.discordapp.com/embed/avatars/0.png" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light);">
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span id="preview-name" style="font-weight: 800; color: #fff; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Yayıncı</span>
+                <span id="preview-live-badge" class="status-badge offline" style="font-size: 9px; padding: 2px 6px;">ÇEVRİMDIŞI</span>
+              </div>
+              <div id="preview-slug" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <form id="admin-streamer-add-form" onsubmit="handleAdminAddStreamer(event)" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Yayıncı / Kanal Adı *</label>
+            <input type="text" id="admin-streamer-name" class="form-input" placeholder="Örn: Elraenn, WTCN, vb." required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">IC Karakter Adı</label>
+            <input type="text" id="admin-streamer-characterName" class="form-input" placeholder="Örn: Tuğkan Gönültaş">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Profil Fotoğrafı URL</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="url" id="admin-streamer-avatarUrl" class="form-input" placeholder="Otomatik çekilir veya manuel URL..." style="flex: 1;">
+              <button type="button" onclick="testPreviewAvatar()" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px;" title="Önizle">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Kapak / Banner Fotoğrafı URL</label>
+            <input type="url" id="admin-streamer-bannerUrl" class="form-input" placeholder="https://... (Banner)">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Biyografi / Açıklama</label>
+            <textarea id="admin-streamer-bio" class="form-input" style="min-height: 55px; resize: vertical;" placeholder="Yayıncı hakkında kısa bilgi..."></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label"><i class="fa-brands fa-kickstarter" style="color: #53FC18;"></i> Kick Kanal URL / Adı</label>
+              <input type="text" id="admin-streamer-kickUrl" class="form-input" placeholder="kick.com/elraenn veya elraenn" onblur="handleUrlInputBlur(this, 'kick')">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label"><i class="fa-brands fa-twitch" style="color: #9146FF;"></i> Twitch Kanal URL / Adı</label>
+              <input type="text" id="admin-streamer-twitchUrl" class="form-input" placeholder="twitch.tv/elraenn veya elraenn" onblur="handleUrlInputBlur(this, 'twitch')">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Etiketler (Virgülle ayırın)</label>
+            <input type="text" id="admin-streamer-tags" class="form-input" placeholder="FiveM, Polis, Çete, Shield">
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 8px;">
+            <div>
+              <span style="font-size: 12px; font-weight: 700; color: #fff;">Canlı Yayında Olarak Başlat</span>
+              <p style="font-size: 10px; color: var(--text-muted); margin: 2px 0 0 0;">Otomatik sistem tarafından periyodik olarak da güncellenir.</p>
+            </div>
+            <input type="checkbox" id="admin-streamer-isLive" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+          </div>
+
+          <button type="submit" id="btn-admin-add-streamer" class="btn btn-primary" style="width: 100%; margin-top: 6px; padding: 12px;">
+            <i class="fa-solid fa-plus-circle"></i> Yayıncıyı Kaydet
+          </button>
+        </form>
+      </div>
+
+      <!-- Streamers List Panel -->
+      <div class="content-panel" style="grid-column: span 7; overflow-x: auto; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin: 0; text-transform: uppercase;">
+              <i class="fa-solid fa-list-ol text-sky-400"></i> Kayıtlı Yayıncılar (<%= locals.streamers ? streamers.length : 0 %>)
+            </h3>
+            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">Sunucuda listelenen tüm yayıncı profilleri ve canlı durumları.</span>
+          </div>
+          
+          <!-- Auto Sync Button -->
+          <button type="button" id="btn-sync-all-live" onclick="adminSyncAllLiveStatuses()" class="btn" style="background: rgba(34, 197, 94, 0.12); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); font-size: 11px; font-weight: 700; padding: 8px 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-arrows-rotate" id="sync-icon"></i>
+            <span id="sync-text">Canlı Durumlarını Tara ve Güncelle</span>
+          </button>
+        </div>
+
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">Avatar</th>
+              <th>Yayıncı Bilgisi</th>
+              <th>Platformlar</th>
+              <th>Canlı Durumu</th>
+              <th style="text-align: right;">İşlem</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (locals.streamers && streamers.length > 0) { %>
+              <% streamers.forEach(st => { %>
+                <tr>
+                  <td>
+                    <img src="<%= st.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                  </td>
+                  <td>
+                    <div style="font-weight: 700; color: #fff; font-size: 13px;"><%= st.name %></div>
+                    <% if (st.characterName) { %>
+                      <div style="font-size: 11px; color: var(--primary-light);">IC: <%= st.characterName %></div>
+                    <% } %>
+                    <% if (st.streamTitle && st.isLive) { %>
+                      <div style="font-size: 10px; color: var(--text-muted); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<%= st.streamTitle %>">
+                        <i class="fa-solid fa-play" style="font-size: 8px; color: #ef4444;"></i> <%= st.streamTitle %>
+                      </div>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div style="display: flex; gap: 8px; font-size: 14px;">
+                      <% if (st.kickUrl) { %>
+                        <a href="<%= st.kickUrl %>" target="_blank" title="Kick: <%= st.kickUrl %>" style="color: #53FC18;"><i class="fa-brands fa-kickstarter"></i></a>
+                      <% } %>
+                      <% if (st.twitchUrl) { %>
+                        <a href="<%= st.twitchUrl %>" target="_blank" title="Twitch: <%= st.twitchUrl %>" style="color: #9146FF;"><i class="fa-brands fa-twitch"></i></a>
+                      <% } %>
+                      <% if (!st.kickUrl && !st.twitchUrl) { %>
+                        <span style="font-size: 11px; color: var(--text-muted);">-</span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td>
+                    <button onclick="adminToggleStreamerLive('<%= st._id %>', <%= !st.isLive %>)" class="btn" style="padding: 4px 10px; font-size: 10px; font-weight: 700; border-radius: 6px; background: <%= st.isLive ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)' %>; color: <%= st.isLive ? 'var(--danger)' : 'var(--text-muted)' %>; border: 1px solid <%= st.isLive ? 'rgba(239, 68, 68, 0.3)' : 'var(--border-color)' %>; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                      <span style="width: 6px; height: 6px; border-radius: 50%; background: <%= st.isLive ? '#ef4444' : '#64748b' %>;"></span>
+                      <%= st.isLive ? 'CANLI' : 'ÇEVRİMDIŞI' %>
+                      <% if (st.isLive && st.viewerCount) { %>
+                        <span style="font-size: 9px; opacity: 0.8;">(<%= st.viewerCount %>)</span>
+                      <% } %>
+                    </button>
+                  </td>
+                  <td style="text-align: right;">
+                    <div style="display: inline-flex; gap: 6px;">
+                      <button onclick="adminOpenEditStreamer(<%= JSON.stringify(st) %>)" class="btn" style="background: rgba(0, 113, 227, 0.1); color: var(--primary); padding: 6px 10px; border-radius: 6px; font-size: 11px;" title="Düzenle">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button onclick="adminDeleteStreamer('<%= st._id %>', '<%= st.name %>')" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 10px; border-radius: 6px; font-size: 11px;" title="Sil">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 24px 0;">
+                  Henüz kayıtlı yayıncı bulunmuyor.
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Edit Modal for Admin Panel -->
+    <div id="admin-streamer-edit-modal" class="streamer-modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+      <div style="background: #10121a; border: 1px solid var(--border-color); border-radius: 18px; width: 100%; max-width: 580px; padding: 24px; max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
+          <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-pen-to-square text-sky-400"></i> Yayıncıyı Düzenle
+          </h3>
+          <button onclick="document.getElementById('admin-streamer-edit-modal').style.display = 'none'" style="background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form onsubmit="handleAdminEditStreamerSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+          <input type="hidden" id="edit-streamer-id">
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Yayıncı / Kanal Adı *</label>
+              <input type="text" id="edit-streamer-name" class="form-input" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">IC Karakter Adı</label>
+              <input type="text" id="edit-streamer-characterName" class="form-input">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Profil Fotoğrafı URL</label>
+              <input type="url" id="edit-streamer-avatarUrl" class="form-input">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Banner Fotoğrafı URL</label>
+              <input type="url" id="edit-streamer-bannerUrl" class="form-input">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin: 0;">
+            <label class="form-label">Biyografi / Açıklama</label>
+            <textarea id="edit-streamer-bio" class="form-input" style="min-height: 60px; resize: vertical;"></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label"><i class="fa-brands fa-kickstarter" style="color: #53FC18;"></i> Kick URL</label>
+              <input type="text" id="edit-streamer-kickUrl" class="form-input">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label"><i class="fa-brands fa-twitch" style="color: #9146FF;"></i> Twitch URL</label>
+              <input type="text" id="edit-streamer-twitchUrl" class="form-input">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin: 0;">
+            <label class="form-label">Etiketler (Virgülle ayırın)</label>
+            <input type="text" id="edit-streamer-tags" class="form-input">
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 8px;">
+            <div>
+              <span style="font-size: 12px; font-weight: 700; color: #fff;">Canlı Yayında Olarak İşaretle</span>
+            </div>
+            <input type="checkbox" id="edit-streamer-isLive" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+            <button type="button" onclick="document.getElementById('admin-streamer-edit-modal').style.display = 'none'" class="btn btn-outline" style="padding: 10px 20px;">İptal</button>
+            <button type="submit" class="btn btn-primary" style="padding: 10px 24px;"><i class="fa-solid fa-check"></i> Güncelle</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Smart auto-fetch information
+    async function handleAutoFetchStreamerInfo() {
+      const query = document.getElementById("admin-streamer-quickQuery").value.trim();
+      if (!query) {
+        showAdminToast("Lütfen bir yayıncı adı veya linki yazın.", "warning");
+        return;
+      }
+
+      const btn = document.getElementById("btn-fetch-streamer-info");
+      const textSpan = document.getElementById("fetch-btn-text");
+      btn.disabled = true;
+      textSpan.textContent = "Çekiliyor...";
+
+      try {
+        const res = await fetch("/admin/streamers/fetch-info", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query })
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+          const d = json.data;
+          // Fill form fields
+          if (d.name && !document.getElementById("admin-streamer-name").value) {
+            document.getElementById("admin-streamer-name").value = d.name;
+          } else if (!document.getElementById("admin-streamer-name").value) {
+            document.getElementById("admin-streamer-name").value = d.slug || query;
+          }
+
+          if (d.avatarUrl) {
+            document.getElementById("admin-streamer-avatarUrl").value = d.avatarUrl;
+          }
+          if (d.bannerUrl) {
+            document.getElementById("admin-streamer-bannerUrl").value = d.bannerUrl;
+          }
+          if (d.bio && !document.getElementById("admin-streamer-bio").value) {
+            document.getElementById("admin-streamer-bio").value = d.bio;
+          }
+
+          if (d.platform === "kick") {
+            document.getElementById("admin-streamer-kickUrl").value = d.url || `https://kick.com/${d.slug}`;
+          } else if (d.platform === "twitch") {
+            document.getElementById("admin-streamer-twitchUrl").value = d.url || `https://twitch.tv/${d.slug}`;
+          }
+
+          document.getElementById("admin-streamer-isLive").checked = !!d.isLive;
+
+          // Update Preview Card
+          const previewBox = document.getElementById("admin-streamer-preview-box");
+          document.getElementById("preview-avatar").src = d.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png';
+          document.getElementById("preview-name").textContent = d.name || query;
+          document.getElementById("preview-slug").textContent = (d.platform ? d.platform.toUpperCase() + ": " : "") + (d.url || query);
+          
+          const liveBadge = document.getElementById("preview-live-badge");
+          if (d.isLive) {
+            liveBadge.className = "status-badge online";
+            liveBadge.textContent = "CANLI YAYINDA" + (d.viewerCount ? ` (${d.viewerCount})` : "");
+          } else {
+            liveBadge.className = "status-badge offline";
+            liveBadge.textContent = "ÇEVRİMDIŞI";
+          }
+          previewBox.style.display = "block";
+
+          showAdminToast(`${d.platform ? d.platform.toUpperCase() : ''} profil bilgileri ve fotoğrafı başarıyla çekildi!`, "success");
+        } else {
+          showAdminToast(json.message || "Yayıncı bilgileri bulunamadı.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+        textSpan.textContent = "Bilgileri Çek";
+      }
+    }
+
+    // Auto-fetch if user leaves Kick/Twitch input
+    async function handleUrlInputBlur(inputEl, platform) {
+      const val = inputEl.value.trim();
+      if (!val) return;
+
+      // Clean format
+      if (!val.startsWith("http://") && !val.startsWith("https://")) {
+        if (platform === "kick") inputEl.value = `https://kick.com/${val.replace(/[@\/]/g, "")}`;
+        if (platform === "twitch") inputEl.value = `https://twitch.tv/${val.replace(/[@\/]/g, "")}`;
+      }
+
+      // If avatar is currently empty, fetch automatically
+      const currentAvatar = document.getElementById("admin-streamer-avatarUrl").value.trim();
+      if (!currentAvatar) {
+        try {
+          const res = await fetch("/admin/streamers/fetch-info", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: val, platform })
+          });
+          const json = await res.json();
+          if (json.success && json.data) {
+            if (json.data.avatarUrl) document.getElementById("admin-streamer-avatarUrl").value = json.data.avatarUrl;
+            if (json.data.bannerUrl && !document.getElementById("admin-streamer-bannerUrl").value) {
+              document.getElementById("admin-streamer-bannerUrl").value = json.data.bannerUrl;
+            }
+            if (json.data.name && !document.getElementById("admin-streamer-name").value) {
+              document.getElementById("admin-streamer-name").value = json.data.name;
+            }
+            if (json.data.bio && !document.getElementById("admin-streamer-bio").value) {
+              document.getElementById("admin-streamer-bio").value = json.data.bio;
+            }
+            document.getElementById("admin-streamer-isLive").checked = !!json.data.isLive;
+          }
+        } catch (e) {}
+      }
+    }
+
+    function testPreviewAvatar() {
+      const url = document.getElementById("admin-streamer-avatarUrl").value.trim();
+      if (!url) {
+        showAdminToast("Lütfen bir avatar URL girin.", "warning");
+        return;
+      }
+      const previewBox = document.getElementById("admin-streamer-preview-box");
+      document.getElementById("preview-avatar").src = url;
+      document.getElementById("preview-name").textContent = document.getElementById("admin-streamer-name").value || "Önizleme";
+      previewBox.style.display = "block";
+    }
+
+    async function adminSyncAllLiveStatuses() {
+      const btn = document.getElementById("btn-sync-all-live");
+      const icon = document.getElementById("sync-icon");
+      const text = document.getElementById("sync-text");
+      
+      btn.disabled = true;
+      icon.classList.add("fa-spin");
+      text.textContent = "Taranıyor...";
+
+      try {
+        const res = await fetch("/admin/streamers/sync-live", { method: "POST" });
+        const data = await res.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showAdminToast(data.message || "Senkronizasyon hatası.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+        icon.classList.remove("fa-spin");
+        text.textContent = "Canlı Durumlarını Tara ve Güncelle";
+      }
+    }
+
+    async function handleAdminAddStreamer(e) {
+      e.preventDefault();
+      const name = document.getElementById("admin-streamer-name").value.trim();
+      const characterName = document.getElementById("admin-streamer-characterName").value.trim();
+      const avatarUrl = document.getElementById("admin-streamer-avatarUrl").value.trim();
+      const bannerUrl = document.getElementById("admin-streamer-bannerUrl").value.trim();
+      const bio = document.getElementById("admin-streamer-bio").value.trim();
+      const kickUrl = document.getElementById("admin-streamer-kickUrl").value.trim();
+      const twitchUrl = document.getElementById("admin-streamer-twitchUrl").value.trim();
+      const isLive = document.getElementById("admin-streamer-isLive").checked;
+      const tags = document.getElementById("admin-streamer-tags").value.split(",").map(s => s.trim()).filter(Boolean);
+
+      const btn = document.getElementById("btn-admin-add-streamer");
+      btn.disabled = true;
+
+      try {
+        const response = await fetch("/admin/streamers/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, characterName, avatarUrl, bannerUrl, bio, kickUrl, twitchUrl, isLive, tags })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast("Yayıncı başarıyla eklendi.", "success");
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showAdminToast(data.message || "Hata oluştu.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function adminOpenEditStreamer(st) {
+      document.getElementById("edit-streamer-id").value = st._id;
+      document.getElementById("edit-streamer-name").value = st.name || "";
+      document.getElementById("edit-streamer-characterName").value = st.characterName || "";
+      document.getElementById("edit-streamer-avatarUrl").value = st.avatarUrl || "";
+      document.getElementById("edit-streamer-bannerUrl").value = st.bannerUrl || "";
+      document.getElementById("edit-streamer-bio").value = st.bio || "";
+      document.getElementById("edit-streamer-kickUrl").value = st.kickUrl || "";
+      document.getElementById("edit-streamer-twitchUrl").value = st.twitchUrl || "";
+      document.getElementById("edit-streamer-tags").value = (st.tags || []).join(", ");
+      document.getElementById("edit-streamer-isLive").checked = !!st.isLive;
+      document.getElementById("admin-streamer-edit-modal").style.display = "flex";
+    }
+
+    async function handleAdminEditStreamerSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById("edit-streamer-id").value;
+      const name = document.getElementById("edit-streamer-name").value.trim();
+      const characterName = document.getElementById("edit-streamer-characterName").value.trim();
+      const avatarUrl = document.getElementById("edit-streamer-avatarUrl").value.trim();
+      const bannerUrl = document.getElementById("edit-streamer-bannerUrl").value.trim();
+      const bio = document.getElementById("edit-streamer-bio").value.trim();
+      const kickUrl = document.getElementById("edit-streamer-kickUrl").value.trim();
+      const twitchUrl = document.getElementById("edit-streamer-twitchUrl").value.trim();
+      const isLive = document.getElementById("edit-streamer-isLive").checked;
+      const tags = document.getElementById("edit-streamer-tags").value.split(",").map(s => s.trim()).filter(Boolean);
+
+      try {
+        const response = await fetch(`/admin/streamers/update/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, characterName, avatarUrl, bannerUrl, bio, kickUrl, twitchUrl, isLive, tags })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast("Yayıncı başarıyla güncellendi.", "success");
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showAdminToast(data.message || "Hata oluştu.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function adminToggleStreamerLive(id, isLive) {
+      try {
+        const res = await fetch(`/admin/streamers/toggle-live/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isLive })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showAdminToast("Canlı yayın durumu güncellendi.", "success");
+          setTimeout(() => window.location.reload(), 800);
+        } else {
+          showAdminToast(data.message || "İşlem başarısız.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası.", "error");
+      }
+    }
+
+    async function adminDeleteStreamer(id, name) {
+      if (!confirm(`"${name}" adlı yayıncıyı silmek istediğinize emin misiniz?`)) return;
+      try {
+        const res = await fetch(`/admin/streamers/delete/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showAdminToast("Yayıncı başarıyla silindi.", "success");
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showAdminToast(data.message || "Silinemedi.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası.", "error");
+      }
+    }
+  </script>
+<% } else { %>
+  <div class="locked-overlay">
+    <div class="locked-overlay-icon"><i class="fa-solid fa-lock"></i></div>
+    <h4>Erişim Kısıtlandı</h4>
+    <p>Burayı görüntülemeye yetkiniz yok.</p>
+  </div>
+<% } %>

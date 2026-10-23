@@ -1,0 +1,133 @@
+<section id="fivem-vehicles-content" class="admin-section-inner" style="font-family: 'Outfit', sans-serif;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-car text-primary"></i> FiveM Araç Listesi</h2>
+    <span id="fivem-vehicles-total" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;">0 Tanımlı Araç</span>
+  </div>
+
+  <div class="content-panel" style="padding: 24px;">
+    <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+        <div style="position: relative; width: 320px; max-width: 100%;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; z-index: 2;"></i>
+          <input type="text" id="search-fivem-vehicles" oninput="filterFiveMVehicles()" placeholder="Araç adı, marka veya model kodu ara..." class="form-input" style="padding-left: 38px !important; height: 40px; border-radius: 8px; font-size: 13px; width: 100%;">
+        </div>
+        <div id="fivem-vehicles-categories" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button onclick="filterFiveMVehiclesCategory('all')" class="tab-btn active" style="padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">Hepsi</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="fivem-vehicles-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+      <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px; color: var(--primary);"></i><br>Araç verileri alınıyor...
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  let fivemVehiclesCached = {};
+  let selectedFiveMVehiclesCategory = 'all';
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const tabLink = document.querySelector('.sidebar-link[href="#fivem-vehicles"]');
+    if (tabLink) {
+      tabLink.addEventListener("click", fetchFiveMVehicles);
+    }
+    if (window.location.hash === "#fivem-vehicles") {
+      fetchFiveMVehicles();
+    }
+  });
+
+  async function fetchFiveMVehicles() {
+    try {
+      const res = await fetch("/api/fivem/shared-data");
+      const data = await res.json();
+      if (data.success && data.vehicles) {
+        fivemVehiclesCached = data.vehicles;
+        renderFiveMVehiclesCategories();
+        filterFiveMVehicles();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function renderFiveMVehiclesCategories() {
+    const catsContainer = document.getElementById("fivem-vehicles-categories");
+    if (!catsContainer) return;
+
+    const categories = new Set();
+    Object.values(fivemVehiclesCached).forEach(veh => {
+      if (veh.category) categories.add(veh.category);
+    });
+
+    let html = `<button onclick="filterFiveMVehiclesCategory('all')" class="tab-btn ${selectedFiveMVehiclesCategory === 'all' ? 'active' : ''}" style="padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); color: #fff;">Hepsi</button>`;
+    
+    categories.forEach(cat => {
+      const label = cat.toUpperCase();
+      html += `<button onclick="filterFiveMVehiclesCategory('${cat}')" class="tab-btn ${selectedFiveMVehiclesCategory === cat ? 'active' : ''}" style="padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); color: #fff;">${label}</button>`;
+    });
+
+    catsContainer.innerHTML = html;
+  }
+
+  function filterFiveMVehiclesCategory(cat) {
+    selectedFiveMVehiclesCategory = cat;
+    const buttons = document.querySelectorAll("#fivem-vehicles-categories .tab-btn");
+    buttons.forEach(b => b.classList.remove("active"));
+    
+    renderFiveMVehiclesCategories();
+    filterFiveMVehicles();
+  }
+
+  function filterFiveMVehicles() {
+    const query = document.getElementById("search-fivem-vehicles").value.toLowerCase().trim();
+    const grid = document.getElementById("fivem-vehicles-grid");
+    if (!grid) return;
+
+    const vehicles = Object.entries(fivemVehiclesCached);
+    const filtered = vehicles.filter(([modelCode, veh]) => {
+      const matchesSearch = modelCode.toLowerCase().includes(query) || 
+                            (veh.name || "").toLowerCase().includes(query) || 
+                            (veh.brand || "").toLowerCase().includes(query);
+      const matchesCategory = selectedFiveMVehiclesCategory === 'all' || veh.category === selectedFiveMVehiclesCategory;
+      return matchesSearch && matchesCategory;
+    });
+
+    document.getElementById("fivem-vehicles-total").innerText = `${filtered.length} Tanımlı Araç`;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0;">Araç bulunamadı.</div>
+      `;
+      return;
+    }
+
+    let html = '';
+    filtered.forEach(([modelCode, veh]) => {
+      const priceFormatted = veh.price ? `$${veh.price.toLocaleString()}` : 'Bilinmiyor';
+      const catBadge = veh.category ? `<span style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59,130,246,0.3); color: #60a5fa; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;">${veh.category}</span>` : '';
+
+      html += `
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; transition: transform 0.2s;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #fff;">${veh.name || modelCode}</h4>
+              <span style="font-family: monospace; font-size: 11px; color: var(--text-muted);">${veh.brand || 'Bilinmeyen Marka'} (${modelCode})</span>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: center; padding: 16px 0; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02);">
+            <i class="fa-solid fa-car-side" style="font-size: 36px; color: rgba(255,255,255,0.25);"></i>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px;">
+            ${catBadge}
+            <span style="color: #34d399; font-weight: 800; font-size: 13px; font-family: monospace;">${priceFormatted}</span>
+          </div>
+        </div>
+      `;
+    });
+
+    grid.innerHTML = html;
+  }
+</script>

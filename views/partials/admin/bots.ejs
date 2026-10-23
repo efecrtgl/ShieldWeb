@@ -1,0 +1,522 @@
+<% if (userPermissions.isSuperuser) { %>
+  <section id="discord-bots-content" class="admin-section-inner">
+    <h2 class="panel-title" style="margin-bottom: 24px;"><i class="fa-brands fa-discord"></i> Discord Botları Yönetimi</h2>
+    
+    <div class="content-panel" style="padding: 24px; margin-bottom: 24px; border-radius: 12px; border: 1px solid rgba(0, 113, 227, 0.15); background: linear-gradient(135deg, rgba(8, 10, 15, 0.9) 0%, rgba(3, 4, 6, 0.95) 100%);">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 800; margin: 0 0 16px 0; color: #fff; display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-layer-group text-primary" style="color: var(--primary);"></i> Toplu Bot Kontrol Merkezi
+      </h3>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+        
+        <div style="background: rgba(255, 255, 255, 0.02); padding: 18px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.04); display: flex; flex-direction: column; justify-content: space-between; gap: 16px;">
+          <div>
+            <h4 style="font-size: 13px; font-weight: 700; color: #fff; margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-volume-high text-primary" style="color: var(--primary);"></i> Toplu Sese Bağlan
+            </h4>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.4;">
+              Sistemdeki aktif botları belirteceğiniz ses kanalına sırayla bağlar.
+            </p>
+          </div>
+          <form onsubmit="executeMassVoiceJoin(event)" style="margin: 0; display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Ses Kanalı ID</label>
+              <input type="text" name="channelId" placeholder="Ses Kanalı ID" class="form-input" required style="border-radius: 8px; font-size: 12px; width: 100%;">
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">İşlem Sıralaması (Bot ID'leri)</label>
+              <input type="text" name="order" value="verification,logger,moderation,sync,management" placeholder="Örn: verification,logger,..." class="form-input" required style="border-radius: 8px; font-size: 11px; font-family: monospace;">
+            </div>
+            <button type="submit" class="btn btn-secondary" style="font-size: 12px; font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i class="fa-solid fa-play"></i> Sırayla Bağla
+            </button>
+          </form>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.02); padding: 18px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.04);">
+          <h4 style="font-size: 13px; font-weight: 700; color: #fff; margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-wand-magic-sparkles text-primary" style="color: var(--primary);"></i> Toplu Durum Ayarla
+          </h4>
+          <form onsubmit="executeMassPresence(event)" style="margin: 0; display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Durum Tipi</label>
+                <select name="statusType" class="form-input" style="border-radius: 6px; font-size: 12px; background: #0c0d10; padding: 8px 10px;">
+                  <option value="online">Online</option>
+                  <option value="idle">Idle (Boşta)</option>
+                  <option value="dnd">DND (Rahatsız Etmeyin)</option>
+                  <option value="invisible">Invisible (Gizli)</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Etkinlik</label>
+                <select name="activityType" id="mass-activity-select" class="form-input" onchange="toggleMassStreamingField(this.value)" style="border-radius: 6px; font-size: 12px; background: #0c0d10; padding: 8px 10px;">
+                  <option value="playing">Oynuyor</option>
+                  <option value="streaming">Yayın Yapıyor</option>
+                  <option value="listening">Dinliyor</option>
+                  <option value="watching">İzliyor</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Durum Yazısı</label>
+              <input type="text" name="statusText" placeholder="Örn: Shield Altyapısı" class="form-input" required style="border-radius: 6px; font-size: 12px; padding: 8px 10px;">
+            </div>
+            <div id="mass-streaming-group" style="display: none;">
+              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Yayın URL (Twitch/YouTube)</label>
+              <input type="text" name="streamingUrl" placeholder="https://twitch.tv/..." class="form-input" style="border-radius: 6px; font-size: 12px; padding: 8px 10px;">
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">İşlem Sıralaması (Bot ID'leri)</label>
+              <input type="text" name="order" value="verification,logger,moderation,sync,management" placeholder="Örn: verification,logger,..." class="form-input" required style="border-radius: 8px; font-size: 11px; font-family: monospace;">
+            </div>
+            <button type="submit" class="btn btn-secondary" style="font-size: 12px; font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i class="fa-solid fa-arrows-spin"></i> Sırayla Durumları Güncelle
+            </button>
+          </form>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.02); padding: 18px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.04); display: flex; flex-direction: column; justify-content: space-between; gap: 16px;">
+          <div>
+            <h4 style="font-size: 13px; font-weight: 700; color: #fff; margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-user-gear text-primary" style="color: var(--primary);"></i> Toplu Profil Ayarla
+            </h4>
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 8px 12px; border-radius: 8px; margin-bottom: 12px;">
+              <p style="font-size: 10px; color: var(--danger); margin: 0; line-height: 1.4; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-circle-exclamation"></i> Discord ad ve profil resmi değişikliklerini saatte en fazla 2 kez yapmanıza izin verir. Lütfen dikkatli kullanın!
+              </p>
+            </div>
+          </div>
+          <form onsubmit="executeMassProfile(event)" style="margin: 0; display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Ortak İsim Başlangıcı (Ön Ek)</label>
+              <input type="text" name="baseName" placeholder="Örn: Shield (Shield Loglama vb. olur)" class="form-input" style="border-radius: 6px; font-size: 12px; padding: 8px 10px;">
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Yeni Profil Resmi URL'si</label>
+              <input type="text" name="avatarUrl" placeholder="Profil Resmi URL'si" class="form-input" style="border-radius: 6px; font-size: 12px; padding: 8px 10px;">
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">İşlem Sıralaması (Bot ID'leri)</label>
+              <input type="text" name="order" value="verification,logger,moderation,sync,management" placeholder="Örn: verification,logger,..." class="form-input" required style="border-radius: 8px; font-size: 11px; font-family: monospace;">
+            </div>
+            <button type="submit" class="btn btn-secondary" style="font-size: 12px; font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i class="fa-solid fa-id-card"></i> Sırayla Profilleri Güncelle
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 40px;">
+      <% bots.forEach(bot => { %>
+        <div class="content-panel bot-card" style="padding: 24px; background: rgba(8, 10, 15, 0.5); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06);" id="card-<%= bot.botId %>">
+          <form id="form-<%= bot.botId %>" oninput="debounceAutoSave('<%= bot.botId %>')" onchange="autoSaveBot('<%= bot.botId %>')">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div class="bot-header-avatar-wrapper" style="position: relative; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.1);">
+                  <img src="<%= bot.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" class="bot-header-avatar" id="avatar-preview-<%= bot.botId %>" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                </div>
+                <div>
+                  <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span id="name-display-<%= bot.botId %>"><%= bot.name %></span>
+                    <% if (bot.isEnabled) { %>
+                      <span class="bot-inline-status online" id="inline-status-<%= bot.botId %>" style="background: rgba(16, 185, 129, 0.1); color: var(--success); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Aktif</span>
+                    <% } else { %>
+                      <span class="bot-inline-status offline" id="inline-status-<%= bot.botId %>" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Pasif</span>
+                    <% } %>
+                  </h3>
+                  <span style="font-size: 10px; color: var(--text-muted); font-family: monospace;">ID: <%= bot.botId %></span>
+                </div>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <span class="autosave-status saved" id="status-<%= bot.botId %>" style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); transition: var(--transition);">
+                  <i class="fa-solid fa-cloud-check"></i> Kaydedildi
+                </span>
+                <label class="switch">
+                  <input type="checkbox" name="isEnabled" value="true" <%= bot.isEnabled ? 'checked' : '' %> onchange="toggleBotStatus(this, '<%= bot.botId %>')">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="main-layout" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+              
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <h4 class="settings-group-title" style="font-size: 12.5px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-gear" style="color: var(--primary);"></i> Ana Ayarlar & Profil</h4>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Discord Bot Adı (Username)</label>
+                  <input type="text" name="name" value="<%= bot.name %>" class="form-input" style="border-radius: 8px;" oninput="document.getElementById('name-display-<%= bot.botId %>').innerText = this.value">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Açıklama</label>
+                  <textarea name="description" class="form-input" style="min-height: 80px; resize: none; border-radius: 8px;"><%= bot.description %></textarea>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Bot Logo (Avatar URL)</label>
+                  <input type="text" name="avatarUrl" value="<%= bot.avatarUrl %>" placeholder="Görsel veya avatar adresi" class="form-input" style="border-radius: 8px;" onchange="updateAvatarPreview(this.value, '<%= bot.botId %>')">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Bağlanacağı Ses Kanalı ID'si</label>
+                  <input type="text" name="voiceChannelId" value="<%= bot.voiceChannelId %>" placeholder="Ses Kanalı ID (Örn: 103735883630395392)" class="form-input" style="border-radius: 8px;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Davet Bağlantısı</label>
+                  <% if (bot.clientId) { %>
+                    <div style="display: flex; gap: 8px; position: relative;">
+                      <input type="text" readonly id="invite-<%= bot.botId %>" value="https://discord.com/oauth2/authorize?client_id=<%= bot.clientId %>&permissions=8&scope=bot" class="form-input" style="background: rgba(255,255,255,0.02); cursor: pointer; flex: 1; border-radius: 8px; padding-right: 40px;" onclick="copyInviteLink('<%= bot.botId %>')">
+                      <button type="button" class="btn btn-secondary" style="position: absolute; right: 0; top: 0; bottom: 0; padding: 0 12px; border-radius: 0 8px 8px 0; background: rgba(255,255,255,0.04); border-left: 1px solid var(--border-color); border-top: none; border-bottom: none; border-right: none;" onclick="copyInviteLink('<%= bot.botId %>')" title="Kopyala">
+                        <i class="fa-solid fa-copy" id="copy-icon-<%= bot.botId %>"></i>
+                      </button>
+                    </div>
+                  <% } else { %>
+                    <input type="text" readonly value="Bot hazır olduğunda davet linki üretilecektir." class="form-input" style="background: rgba(255,255,255,0.02); cursor: not-allowed; font-style: italic; color: var(--text-muted); border-radius: 8px;">
+                  <% } %>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <h4 class="settings-group-title" style="font-size: 12.5px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary);"></i> Durum & Etkinlik</h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Varlık Durumu</label>
+                    <select name="statusType" class="form-input" style="border-radius: 8px; background: #0c0d10; color: var(--text-main);">
+                      <option value="online" <%= bot.statusType === 'online' ? 'selected' : '' %>>Online</option>
+                      <option value="idle" <%= bot.statusType === 'idle' ? 'selected' : '' %>>Idle (Boşta)</option>
+                      <option value="dnd" <%= bot.statusType === 'dnd' ? 'selected' : '' %>>DND (Rahatsız Etmeyin)</option>
+                      <option value="invisible" <%= bot.statusType === 'invisible' ? 'selected' : '' %>>Invisible (Gizli)</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Etkinlik Türü</label>
+                    <select name="activityType" id="activity-<%= bot.botId %>" class="form-input" onchange="toggleStreamingField('<%= bot.botId %>')" style="border-radius: 8px; background: #0c0d10; color: var(--text-main);">
+                      <option value="playing" <%= bot.activityType === 'playing' ? 'selected' : '' %>>Oynuyor</option>
+                      <option value="streaming" <%= bot.activityType === 'streaming' ? 'selected' : '' %>>Yayın Yapıyor</option>
+                      <option value="listening" <%= bot.activityType === 'listening' ? 'selected' : '' %>>Dinliyor</option>
+                      <option value="watching" <%= bot.activityType === 'watching' ? 'selected' : '' %>>İzliyor</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Durum Yazısı (Presence Text)</label>
+                  <input type="text" name="statusText" value="<%= bot.statusText %>" placeholder="Örn: Shield oynuyor" class="form-input" style="border-radius: 8px;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;" id="streaming-group-<%= bot.botId %>">
+                  <label class="form-label">Yayın Adresi (Twitch/YouTube URL)</label>
+                  <input type="text" name="streamingUrl" id="url-<%= bot.botId %>" value="<%= bot.streamingUrl %>" placeholder="https://twitch.tv/..." class="form-input" style="border-radius: 8px;">
+                </div>
+              </div>
+              
+            </div>
+            
+          </form>
+        </div>
+      <% }) %>
+    </div>
+  </section>
+
+  <script>
+    let autoSaveTimeouts = {};
+
+    function debounceAutoSave(botId) {
+      clearTimeout(autoSaveTimeouts[botId]);
+      
+      const statusLabel = document.getElementById(`status-${botId}`);
+      if (statusLabel) {
+        statusLabel.className = 'autosave-status saving';
+        statusLabel.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+      }
+
+      autoSaveTimeouts[botId] = setTimeout(() => {
+        autoSaveBot(botId);
+      }, 1000);
+    }
+
+    async function autoSaveBot(botId) {
+      const form = document.getElementById(`form-${botId}`);
+      if (!form) return;
+
+      const statusLabel = document.getElementById(`status-${botId}`);
+      
+      const isEnabledInput = form.querySelector('input[name="isEnabled"]');
+      const isEnabled = isEnabledInput ? isEnabledInput.checked : false;
+
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((value, key) => {
+        data[key] = value;
+      });
+      data['isEnabled'] = isEnabled ? 'true' : 'false';
+
+      try {
+        const response = await fetch(`/admin/bots/update/${botId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const resData = await response.json();
+        if (resData.success) {
+          if (statusLabel) {
+            statusLabel.className = 'autosave-status saved';
+            statusLabel.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Kaydedildi';
+          }
+        } else {
+          throw new Error();
+        }
+      } catch (err) {
+        if (statusLabel) {
+          statusLabel.className = 'autosave-status error';
+          statusLabel.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Hata Oluştu!';
+        }
+      }
+    }
+
+    function toggleBotStatus(checkbox, botId) {
+      const inlineStatus = document.getElementById(`inline-status-${botId}`);
+      if (inlineStatus) {
+        if (checkbox.checked) {
+          inlineStatus.className = 'bot-inline-status online';
+          inlineStatus.innerText = 'Aktif';
+        } else {
+          inlineStatus.className = 'bot-inline-status offline';
+          inlineStatus.innerText = 'Pasif';
+        }
+      }
+      autoSaveBot(botId);
+    }
+
+    function updateAvatarPreview(url, botId) {
+      const preview = document.getElementById(`avatar-preview-${botId}`);
+      if (preview) {
+        preview.src = url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+      }
+    }
+
+    function toggleStreamingField(botId) {
+      const select = document.getElementById(`activity-${botId}`);
+      const group = document.getElementById(`streaming-group-${botId}`);
+      const input = document.getElementById(`url-${botId}`);
+      
+      if (select && group && input) {
+        if (select.value === 'streaming') {
+          group.style.opacity = '1';
+          input.disabled = false;
+        } else {
+          group.style.opacity = '0.3';
+          input.disabled = true;
+          input.value = '';
+        }
+      }
+    }
+
+    function toggleMassStreamingField(value) {
+      const group = document.getElementById("mass-streaming-group");
+      if (group) {
+        group.style.display = value === "streaming" ? "block" : "none";
+      }
+    }
+
+    function copyInviteLink(botId) {
+      const input = document.getElementById(`invite-${botId}`);
+      const icon = document.getElementById(`copy-icon-${botId}`);
+      if (!input) return;
+
+      input.select();
+      document.execCommand('copy');
+      
+      if (icon) {
+        icon.className = 'fa-solid fa-check';
+        icon.style.color = 'var(--success)';
+        setTimeout(() => {
+          icon.className = 'fa-solid fa-copy';
+          icon.style.color = '';
+        }, 1500);
+      }
+      
+      showAdminToast('Davet bağlantısı panoya kopyalandı!', 'success');
+    }
+
+
+    async function toggleFunTabVisibility(hide) {
+      const statusText = document.getElementById("fun-tab-status-text");
+      if (statusText) {
+        statusText.innerText = "Güncelleniyor...";
+      }
+
+      try {
+        const response = await fetch("/admin/bots/toggle-entertainment-tab", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ hide: hide })
+        });
+        const data = await response.json();
+        if (data.success) {
+          if (statusText) {
+            statusText.innerText = data.hide ? "Gizlendi" : "Gösteriliyor";
+          }
+          setTimeout(() => {
+            window.location.reload();
+          }, 800);
+        } else {
+          alert("Görünüm güncellenemedi: " + data.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Bağlantı hatası.");
+      }
+    }
+
+    async function executeMassVoiceJoin(event) {
+      event.preventDefault();
+      const form = event.target;
+      const input = form.querySelector('input[name="channelId"]');
+      const channelId = input ? input.value.trim() : "";
+      if (!channelId) return;
+
+      const orderInput = form.querySelector('input[name="order"]');
+      const order = orderInput ? orderInput.value.trim() : "";
+
+      const btn = form.querySelector('button[type="submit"]');
+      const orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+      try {
+        const res = await fetch("/admin/bots/mass-voice-join", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ channelId, order })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          document.querySelectorAll('input[name="voiceChannelId"]').forEach(inp => {
+            inp.value = channelId;
+          });
+        } else {
+          showAdminToast(data.message, "danger");
+        }
+      } catch (e) {
+        showAdminToast("Bağlantı hatası.", "danger");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
+    }
+
+    async function executeMassPresence(event) {
+      event.preventDefault();
+      const form = event.target;
+      const statusType = form.querySelector('select[name="statusType"]').value;
+      const activityType = form.querySelector('select[name="activityType"]').value;
+      const statusText = form.querySelector('input[name="statusText"]').value.trim();
+      const streamingUrl = form.querySelector('input[name="streamingUrl"]').value.trim();
+      const order = form.querySelector('input[name="order"]').value.trim();
+
+      const btn = form.querySelector('button[type="submit"]');
+      const orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+      try {
+        const res = await fetch("/admin/bots/mass-presence", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ statusType, activityType, statusText, streamingUrl, order })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          document.querySelectorAll('select[name="statusType"]').forEach(sel => sel.value = statusType);
+          document.querySelectorAll('select[name="activityType"]').forEach(sel => {
+            sel.value = activityType;
+            const botId = sel.id.split('-').pop();
+            toggleStreamingField(botId);
+          });
+          document.querySelectorAll('input[name="statusText"]').forEach(inp => inp.value = statusText);
+          document.querySelectorAll('input[name="streamingUrl"]').forEach(inp => inp.value = streamingUrl);
+        } else {
+          showAdminToast(data.message, "danger");
+        }
+      } catch (e) {
+        showAdminToast("Bağlantı hatası.", "danger");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
+    }
+
+    async function executeMassProfile(event) {
+      event.preventDefault();
+      const form = event.target;
+      const baseName = form.querySelector('input[name="baseName"]').value.trim();
+      const avatarUrl = form.querySelector('input[name="avatarUrl"]').value.trim();
+      const order = form.querySelector('input[name="order"]').value.trim();
+
+      if (!baseName && !avatarUrl) {
+        showAdminToast("Lütfen en az bir alanı doldurun.", "warning");
+        return;
+      }
+
+      if (!confirm("Tüm botların Discord üzerindeki adını/avatarını güncellemek istediğinize emin misiniz? Discord limitlerinden dolayı bu işlem hata verebilir.")) {
+        return;
+      }
+
+      const btn = form.querySelector('button[type="submit"]');
+      const orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+      try {
+        const res = await fetch("/admin/bots/mass-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ baseName, avatarUrl, order })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          showAdminToast(data.message, "danger");
+        }
+      } catch (e) {
+        showAdminToast("Bağlantı hatası.", "danger");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('[id^="activity-"]').forEach(select => {
+        const botId = select.id.split('-').pop();
+        toggleStreamingField(botId);
+      });
+    });
+  </script>
+<% } else { %>
+  <div class="locked-overlay">
+    <div class="locked-overlay-icon"><i class="fa-solid fa-lock"></i></div>
+    <h4>Erişim Kısıtlandı</h4>
+    <p>Burayı görüntülemeye yetkiniz yok.</p>
+  </div>
+<% } %>

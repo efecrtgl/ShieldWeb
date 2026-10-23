@@ -1,0 +1,346 @@
+<section id="overview-content" class="admin-section-inner" style="animation: fadeIn 0.4s ease-out;">
+  <div class="overview-header" style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h2 class="panel-title" style="font-family: var(--font-display); font-size: 26px; font-weight: 900; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; color: #fff;">
+        <i class="fa-solid fa-gauge-high text-primary" style="filter: drop-shadow(0 0 8px var(--primary-glow));"></i> Genel Bakış
+      </h2>
+      <p style="color: var(--text-muted); font-size: 13px;">Sistem genel durumu, analitik veriler ve hesap ayrıntıları</p>
+    </div>
+    <div style="font-size: 12px; font-weight: 600; color: #fff; padding: 8px 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 30px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px);">
+      <span style="width: 8px; height: 8px; background-color: var(--primary); border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span>
+      <%= new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+    </div>
+  </div>
+
+  <!-- Row 1: Profile & OS Metrics -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 24px;">
+    <!-- Profile Card -->
+    <div class="content-panel-glass" style="padding: 24px; background: rgba(12, 13, 16, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color); border-radius: 16px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; min-height: 220px; transition: transform 0.3s ease, border-color 0.3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.2);" onmouseover="this.style.borderColor='rgba(0,113,227,0.2)';" onmouseout="this.style.borderColor='var(--border-color)'">
+      <div style="position: absolute; top: -50px; right: -50px; width: 130px; height: 130px; background: var(--primary); filter: blur(80px); opacity: 0.12; pointer-events: none;"></div>
+      
+      <div>
+        <h3 style="font-family: var(--font-display); font-size: 11px; font-weight: 800; margin-bottom: 18px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-address-card text-primary"></i> Hesabım & Yetki Seviyem
+        </h3>
+        
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <%
+            let avatarUrl = "/images/default-avatar.png";
+            if (user && user.avatar) {
+              avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+            } else if (user) {
+              avatarUrl = `https://cdn.discordapp.com/embed/avatars/${parseInt(user.id) % 5}.png`;
+            }
+          %>
+          <div style="position: relative;">
+            <img src="<%= avatarUrl %>" alt="Avatar" style="width: 64px; height: 64px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,0.06); filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));">
+            <span style="position: absolute; bottom: 2px; right: 2px; width: 14px; height: 14px; background: var(--success); border: 2.5px solid #090a0d; border-radius: 50%; box-shadow: 0 0 6px rgba(16,185,129,0.5);"></span>
+          </div>
+          
+          <div>
+            <h4 style="font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+              <%= user ? user.username : 'Kullanıcı' %>
+              <% if (user && user.isSuperuser) { %>
+                <span style="font-size: 9px; font-weight: 800; padding: 2px 8px; background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;">Kurucu</span>
+              <% } else { %>
+                <span style="font-size: 9px; font-weight: 800; padding: 2px 8px; background: rgba(0, 113, 227, 0.12); color: var(--primary); border: 1px solid rgba(0, 113, 227, 0.25); border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;">Yetkili</span>
+              <% } %>
+            </h4>
+            <p style="font-family: monospace; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+              ID: <%= user ? user.id : '-' %> 
+              <button onclick="navigator.clipboard.writeText('<%= user ? user.id : '' %>'); alert('ID kopyalandı!')" style="background: none; border: none; padding: 0; color: var(--text-muted); cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'" title="ID Kopyala">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Permissions Info -->
+      <div style="margin-top: 18px; padding: 10px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px;">
+        <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 6px; font-weight: 700; letter-spacing: 0.05em;">Erişim İzinleri</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <% if (userPermissions.isSuperuser) { %>
+            <span style="font-size: 10px; font-weight: 700; padding: 2px 8px; background: rgba(16, 185, 129, 0.1); color: var(--success); border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-circle-check"></i> Tam Yetkili Yönetici</span>
+          <% } else { %>
+            <% 
+              let permList = [];
+              if (userPermissions.viewUsers) permList.push("Kullanıcılar");
+              if (userPermissions.viewTeams) permList.push("Ekipler");
+              if (userPermissions.viewPunishments) permList.push("Cezalar");
+              if (userPermissions.manageApplications) permList.push("Başvurular");
+              if (userPermissions.manageWebsite) permList.push("Website");
+              if (permList.length === 0) {
+            %>
+              <span style="font-size: 10px; color: var(--text-muted);">Sadece İzleme Modu</span>
+            <% } else { %>
+              <% permList.forEach(p => { %>
+                <span style="font-size: 10px; font-weight: 600; padding: 2px 8px; background: rgba(255,255,255,0.04); color: #fff; border-radius: 4px;"><%= p %></span>
+              <% }) %>
+            <% } %>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Server OS Info Card -->
+    <div class="content-panel-glass" style="padding: 24px; background: rgba(12, 13, 16, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color); border-radius: 16px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; min-height: 220px; transition: transform 0.3s ease, border-color 0.3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.2);" onmouseover="this.style.borderColor='rgba(245,158,11,0.2)';" onmouseout="this.style.borderColor='var(--border-color)'">
+      <div style="position: absolute; top: -50px; right: -50px; width: 130px; height: 130px; background: #f59e0b; filter: blur(80px); opacity: 0.08; pointer-events: none;"></div>
+      
+      <%
+        const metrics = locals.systemMetrics || { cpuCount: 0, osType: 'Bilinmiyor', memUsageMB: 0, uptimeString: 'Bilinmiyor' };
+        const cpuCount = metrics.cpuCount;
+        const osType = metrics.osType;
+        const memUsageMB = metrics.memUsageMB;
+        const uptimeString = metrics.uptimeString;
+      %>
+      
+      <div>
+        <h3 style="font-family: var(--font-display); font-size: 11px; font-weight: 800; margin-bottom: 18px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-server text-warning"></i> Sunucu & Sistem Verileri
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px; background: rgba(255,255,255,0.01); border-radius: 8px;">
+            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(245, 158, 11, 0.1); display: flex; align-items: center; justify-content: center; color: var(--warning); font-size: 13px;">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div>
+              <span style="font-size: 9px; color: var(--text-muted); display: block; font-weight: 600;">UPTIME</span>
+              <span style="font-size: 12px; font-weight: 700; color: #fff;"><%= uptimeString %></span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px; background: rgba(255,255,255,0.01); border-radius: 8px;">
+            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: var(--success); font-size: 13px;">
+              <i class="fa-solid fa-microchip"></i>
+            </div>
+            <div>
+              <span style="font-size: 9px; color: var(--text-muted); display: block; font-weight: 600;">CPU</span>
+              <span style="font-size: 12px; font-weight: 700; color: #fff;"><%= cpuCount %> Çekirdek</span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px; background: rgba(255,255,255,0.01); border-radius: 8px;">
+            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 13px;">
+              <i class="fa-solid fa-memory"></i>
+            </div>
+            <div>
+              <span style="font-size: 9px; color: var(--text-muted); display: block; font-weight: 600;">RAM BELLEK</span>
+              <span style="font-size: 12px; font-weight: 700; color: #fff;"><%= memUsageMB %> MB</span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px; background: rgba(255,255,255,0.01); border-radius: 8px;">
+            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; color: var(--danger); font-size: 13px;">
+              <i class="fa-solid fa-network-wired"></i>
+            </div>
+            <div>
+              <span style="font-size: 9px; color: var(--text-muted); display: block; font-weight: 600;">VERİTABANI</span>
+              <span style="font-size: 12px; font-weight: 700; color: var(--success);">Çevrimiçi</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Staff Card -->
+    <div class="content-panel-glass" style="padding: 24px; background: rgba(12, 13, 16, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color); border-radius: 16px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; min-height: 220px; transition: transform 0.3s ease, border-color 0.3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.2);" onmouseover="this.style.borderColor='rgba(16,185,129,0.2)';" onmouseout="this.style.borderColor='var(--border-color)'">
+      <div style="position: absolute; top: -50px; right: -50px; width: 130px; height: 130px; background: #10b981; filter: blur(80px); opacity: 0.08; pointer-events: none;"></div>
+      
+      <div>
+        <h3 style="font-family: var(--font-display); font-size: 11px; font-weight: 800; margin-bottom: 18px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-users-viewfinder text-success"></i> Aktif Yetkililer (Panelde)
+        </h3>
+        
+        <div id="active-staff-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 140px; overflow-y: auto; padding-right: 4px;">
+          <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 12px;"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Analytics & Graphs Section -->
+  <div class="content-panel" style="padding: 24px; background: rgba(9, 10, 13, 0.45); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 24px;">
+    <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; color: #fff; letter-spacing: 0.05em;">
+      <i class="fa-solid fa-chart-pie text-primary"></i> Sunucu Analitikleri ve Grafiksel Veriler
+    </h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+      <!-- Whitelist Doughnut -->
+      <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
+        <h4 style="font-size: 11px; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;"><i class="fa-solid fa-circle-notch"></i> Genel Başvuru Analitiği</h4>
+        <div style="flex: 1; position: relative; display: flex; align-items: center; justify-content: center;">
+          <canvas id="wlAnalyticsChart" style="width: 100%; height: 180px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Subsystems Table & Staff -->
+  <div style="display: grid; grid-template-columns: 1fr; gap: 24px;">
+    <% if (userPermissions && userPermissions.isSuperuser) { %>
+      <div class="content-panel" style="padding: 20px; border: 1px solid var(--border-color); border-radius: 14px; background: rgba(9, 10, 13, 0.45);">
+        <h3 style="font-family: var(--font-display); font-size: 14px; font-weight: 900; margin: 0 0 16px 0; text-transform: uppercase; display: flex; align-items: center; gap: 8px; color: #fff;">
+          <i class="fa-solid fa-server text-primary"></i> Servis & Altyapı Durumları
+        </h3>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px;">
+          <% Object.entries(systems).forEach(([key, sys]) => { %>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px;">
+              <div>
+                <div style="font-weight: 800; font-size: 13px; color: #fff; text-transform: uppercase;"><b><%= sys.name %></b></div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">PID: <b style="color: #fff;"><%= sys.pid %></b></div>
+              </div>
+              <div>
+                <% if (sys.status === 'ONLINE') { %>
+                  <span style="font-size: 11px; font-weight: 800; padding: 4px 12px; background: rgba(16,185,129,0.15); color: #34d399; border-radius: 6px; border: 1px solid rgba(16,185,129,0.3);"><b>ONLINE</b></span>
+                <% } else if (sys.status === 'OFFLINE') { %>
+                  <span style="font-size: 11px; font-weight: 800; padding: 4px 12px; background: rgba(255,255,255,0.05); color: var(--text-muted); border-radius: 6px; border: 1px solid var(--border-color);"><b>OFFLINE</b></span>
+                <% } else if (sys.status === 'CONNECTING') { %>
+                  <span style="font-size: 11px; font-weight: 800; padding: 4px 12px; background: rgba(245,158,11,0.15); color: #fbbf24; border-radius: 6px; border: 1px solid rgba(245,158,11,0.3);"><b>BAĞLANIYOR</b></span>
+                <% } else { %>
+                  <span style="font-size: 11px; font-weight: 800; padding: 4px 12px; background: rgba(239,68,68,0.15); color: #f87171; border-radius: 6px; border: 1px solid rgba(239,68,68,0.3);"><b>HATA</b></span>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
+  </div>
+</section>
+
+<!-- ChartJS Script Injection and Initialization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Whitelist Submissions Doughnut Chart
+    const wlCtx = document.getElementById('wlAnalyticsChart').getContext('2d');
+    
+    <%
+      let appSub = submissions.filter(s => s.status === 'approved').length;
+      let rejSub = submissions.filter(s => s.status === 'rejected').length;
+      let penSub = submissions.filter(s => s.status === 'pending').length;
+    %>
+
+    new Chart(wlCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Onaylandı', 'Reddedildi', 'Bekliyor'],
+        datasets: [{
+          data: [<%= appSub %>, <%= rejSub %>, <%= penSub %>],
+          backgroundColor: [
+            'rgba(16, 185, 129, 0.25)',
+            'rgba(239, 68, 68, 0.25)',
+            'rgba(245, 158, 11, 0.25)'
+          ],
+          borderColor: [
+            '#10b981',
+            '#ef4444',
+            '#f59e0b'
+          ],
+          borderWidth: 1.5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { color: '#86868b', font: { size: 10 } }
+          }
+        },
+        cutout: '70%'
+      }
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById("active-staff-list");
+    if (!container) return;
+
+    let eventSource;
+
+    function connectSSE() {
+      if (eventSource) {
+        eventSource.close();
+      }
+
+      eventSource = new EventSource("/admin/api/active-staff/sse");
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data && data.success) {
+            container.innerHTML = "";
+            if (data.activeStaff && data.activeStaff.length > 0) {
+              data.activeStaff.forEach(staff => {
+                const div = document.createElement("div");
+                div.style = "display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px;";
+                
+                const isGradient = staff.rankColor && (staff.rankColor.includes("gradient") || staff.rankColor.includes(","));
+                let rankStyle = "";
+                if (isGradient) {
+                  rankStyle = `background: ${staff.rankColor}; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); border: none;`;
+                } else {
+                  rankStyle = `background: ${staff.rankColor}15; color: ${staff.rankColor}; border: 1px solid ${staff.rankColor}35;`;
+                }
+
+                div.innerHTML = `
+                  <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                    <img src="${staff.avatarUrl}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;">
+                    <div style="min-width: 0; flex: 1;">
+                      <div style="font-size: 12px; font-weight: 700; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${staff.username}
+                      </div>
+                    </div>
+                  </div>
+                  <span class="rank-badge" style="${rankStyle} padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; margin-left: 8px;">
+                    ${staff.rankName}
+                  </span>
+                `;
+                container.appendChild(div);
+              });
+            } else {
+              container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 11px;">Aktif yetkili bulunmuyor.</div>`;
+            }
+          }
+        } catch (e) {
+          console.error("Error parsing active staff SSE data:", e);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.error("SSE connection error, attempting reconnection in 5s...", err);
+        eventSource.close();
+        setTimeout(connectSSE, 5000);
+      };
+    }
+
+    connectSSE();
+
+    // Clean connection on page unload
+    window.addEventListener("beforeunload", () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    });
+  });
+</script>
+
+<style>
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 113, 227, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(0, 113, 227, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 113, 227, 0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>

@@ -1,0 +1,41 @@
+<section id="theme-settings-content" class="admin-section-inner">
+  <h2 class="panel-title"><i class="fa-solid fa-palette"></i> Website Tema Ayarları</h2>
+
+  <div class="content-panel" style="padding: 28px; max-width: 600px;">
+    <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #fff;">
+      <i class="fa-solid fa-paintbrush" style="color: var(--primary); margin-right: 6px;"></i> Sitenin Ana Renk Temasını Belirleyin
+    </h3>
+    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;">
+      Bu ayar, web sitesindeki tüm butonlar, bağlantılar, vurgulanmış alanlar ve başlıklar için geçerli olacak ana rengi (Primary Theme Color) dinamik olarak günceller.
+    </p>
+
+    <form action="/admin/settings/theme" method="POST" style="display: flex; flex-direction: column; gap: 20px;">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label" style="font-size: 11px; margin-bottom: 8px;">Tema Vurgu Rengi (Accent Color)</label>
+        <div class="color-picker-wrapper" style="display: flex; align-items: center; gap: 16px; background: rgba(0,0,0,0.15); padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
+          <input type="color" name="themeColor" id="theme-color-picker" class="color-input-field" value="<%= (locals.stats && locals.stats.themeColor) || '#e0a98b' %>" style="width: 64px; height: 38px; border: 1.5px solid var(--border-color); border-radius: 6px; cursor: pointer; background: none;">
+          <div>
+            <div style="font-size: 13px; font-weight: 700; color: #fff; font-family: monospace;" id="theme-color-hex"><%= (locals.stats && locals.stats.themeColor) || '#e0a98b' %></div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Renk kodu otomatik güncellenir.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 8px;">
+        <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 20px;"><i class="fa-solid fa-floppy-disk"></i> Temayı Kaydet</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const picker = document.getElementById("theme-color-picker");
+    const hexText = document.getElementById("theme-color-hex");
+    if (picker && hexText) {
+      picker.addEventListener("input", (e) => {
+        hexText.innerText = e.target.value.toUpperCase();
+      });
+    }
+  });
+</script>

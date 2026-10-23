@@ -1,0 +1,142 @@
+<section id="fivem-items-content" class="admin-section-inner" style="font-family: 'Outfit', sans-serif;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-box text-primary"></i> FiveM Item Listesi</h2>
+    <span id="fivem-items-total" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;">0 Tanımlı Item</span>
+  </div>
+
+  <div class="content-panel" style="padding: 24px;">
+    <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+        <div style="position: relative; width: 320px; max-width: 100%;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; z-index: 2;"></i>
+          <input type="text" id="search-fivem-items" oninput="filterFiveMItems()" placeholder="Item adı, kod veya açıklama ara..." class="form-input" style="padding-left: 38px !important; height: 40px; border-radius: 8px; font-size: 13px; width: 100%;">
+        </div>
+        <div id="fivem-items-categories" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button onclick="filterFiveMItemsCategory('all')" class="tab-btn active" style="padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">Hepsi</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="fivem-items-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+      <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px; color: var(--primary);"></i><br>Item verileri alınıyor...
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  let fivemItemsCached = {};
+  let selectedFiveMItemsCategory = 'all';
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const tabLink = document.querySelector('.sidebar-link[href="#fivem-items"]');
+    if (tabLink) {
+      tabLink.addEventListener("click", fetchFiveMItems);
+    }
+    if (window.location.hash === "#fivem-items") {
+      fetchFiveMItems();
+    }
+  });
+
+  async function fetchFiveMItems() {
+    try {
+      const res = await fetch("/api/fivem/shared-data");
+      const data = await res.json();
+      if (data.success && data.items) {
+        fivemItemsCached = data.items;
+        renderFiveMItemsCategories();
+        filterFiveMItems();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function renderFiveMItemsCategories() {
+    const catsContainer = document.getElementById("fivem-items-categories");
+    if (!catsContainer) return;
+
+    const types = new Set();
+    Object.values(fivemItemsCached).forEach(item => {
+      if (item.type) types.add(item.type);
+    });
+
+    let html = `<button onclick="filterFiveMItemsCategory('all')" class="tab-btn ${selectedFiveMItemsCategory === 'all' ? 'active' : ''}" style="padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); color: #fff;">Hepsi</button>`;
+    
+    types.forEach(t => {
+      const label = t.toUpperCase();
+      html += `<button onclick="filterFiveMItemsCategory('${t}')" class="tab-btn ${selectedFiveMItemsCategory === t ? 'active' : ''}" style="padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); color: #fff;">${label}</button>`;
+    });
+
+    catsContainer.innerHTML = html;
+  }
+
+  function filterFiveMItemsCategory(cat) {
+    selectedFiveMItemsCategory = cat;
+    const buttons = document.querySelectorAll("#fivem-items-categories .tab-btn");
+    buttons.forEach(b => b.classList.remove("active"));
+    
+    renderFiveMItemsCategories();
+    filterFiveMItems();
+  }
+
+  function filterFiveMItems() {
+    const query = document.getElementById("search-fivem-items").value.toLowerCase().trim();
+    const grid = document.getElementById("fivem-items-grid");
+    if (!grid) return;
+
+    const items = Object.values(fivemItemsCached);
+    const filtered = items.filter(item => {
+      const matchesSearch = (item.name || "").toLowerCase().includes(query) || 
+                            (item.label || "").toLowerCase().includes(query) || 
+                            (item.description || "").toLowerCase().includes(query);
+      const matchesCategory = selectedFiveMItemsCategory === 'all' || item.type === selectedFiveMItemsCategory;
+      return matchesSearch && matchesCategory;
+    });
+
+    document.getElementById("fivem-items-total").innerText = `${filtered.length} Tanımlı Item`;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0;">Item bulunamadı.</div>
+      `;
+      return;
+    }
+
+    let html = '';
+    filtered.forEach(item => {
+      const weightKg = item.weight ? (item.weight / 1000).toFixed(2) : "0.00";
+      const isUnique = item.unique ? `<span style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">BENZERSİZ</span>` : '';
+      const isUseable = item.useable ? `<span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">KULLANILABİLİR</span>` : '';
+      const typeBadge = item.type ? `<span style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59,130,246,0.3); color: #60a5fa; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;">${item.type}</span>` : '';
+
+      html += `
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; transition: transform 0.2s; position: relative; overflow: hidden;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #fff;">${item.label || item.name}</h4>
+              <span style="font-family: monospace; font-size: 11px; color: var(--text-muted);">${item.name}</span>
+            </div>
+            <div style="text-align: right; font-weight: 700; font-size: 12px; color: #60a5fa; font-family: monospace;">
+              ${weightKg} kg
+            </div>
+          </div>
+          <div style="display: flex; justify-content: center; padding: 12px 0; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02);">
+            <i class="fa-solid fa-box-open" style="font-size: 32px; color: rgba(255,255,255,0.25);"></i>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4; min-height: 34px;">
+            ${item.description || "Açıklama girilmemiş."}
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px;">
+            ${typeBadge}
+            ${isUnique}
+            ${isUseable}
+          </div>
+        </div>
+      `;
+    });
+
+    grid.innerHTML = html;
+  }
+</script>

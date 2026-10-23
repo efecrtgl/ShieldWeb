@@ -1,0 +1,270 @@
+<%- include('partials/header') %>
+
+<main class="container">
+  <!-- Page Header -->
+  <div style="margin-bottom: 56px; text-align: center; position: relative;">
+    <div style="display: inline-flex; justify-content: center; align-items: center; width: 64px; height: 64px; background: rgba(245, 158, 11, 0.15); border-radius: 20px; border: 1px solid rgba(245, 158, 11, 0.3); margin-bottom: 20px; box-shadow: 0 0 25px rgba(245, 158, 11, 0.2);">
+      <i class="fa-solid fa-coins" style="font-size: 28px; color: var(--warning);"></i>
+    </div>
+    <h1 style="font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 900; margin-bottom: 12px; color: #fff; letter-spacing: -0.02em;">
+      Mağaza & Kredi Merkezi
+    </h1>
+    <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 650px; margin: 0 auto; line-height: 1.7;">
+      Kredileriniz ile mağazamızdaki özel VIP araçlara, işletmelere ve benzersiz fırsatlara sahip olabilirsiniz.
+    </p>
+  </div>
+
+  <% if (!locals.user) { %>
+    <!-- Login Notice -->
+    <div class="glass-card" style="text-align: center; max-width: 550px; margin: 0 auto 80px auto; padding: 48px;">
+      <i class="fa-brands fa-discord" style="font-size: 56px; color: #5865F2; margin-bottom: 24px; display: block; filter: drop-shadow(0 0 15px rgba(88, 101, 242, 0.3));"></i>
+      <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 12px;">Alışveriş İçin Giriş Yapmalısınız</h3>
+      <p style="color: var(--text-muted); font-size: 14.5px; margin-bottom: 28px; line-height: 1.6;">
+        Mağazadaki araç ve işletmeleri satın alabilmek için öncelikle Discord hesabınızla giriş yapmanız gerekmektedir.
+      </p>
+      <a href="/auth/login" class="nav-btn-discord" style="padding: 14px 36px; font-size: 14px;">
+        <i class="fa-brands fa-discord"></i> Discord ile Giriş Yap
+      </a>
+    </div>
+  <% } else { %>
+    <!-- User Info & Balance Bar -->
+    <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 48px; padding: 24px 32px; background: linear-gradient(135deg, rgba(13, 16, 26, 0.8) 0%, rgba(245, 158, 11, 0.05) 100%); border-color: rgba(245, 158, 11, 0.2);">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'" style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--warning); box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); object-fit: cover;">
+        <div>
+          <h4 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 2px;"><%= user.username %></h4>
+          <span style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;"><%= user.isSuperuser ? 'Sunucu Yöneticisi' : 'Onaylı Oyuncu' %></span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="text-align: right;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.05em;">Mevcut Bakiye</span>
+          <span id="user-balance-display" style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--warning); display: flex; align-items: center; gap: 8px; justify-content: flex-end; text-shadow: 0 0 20px rgba(245, 158, 11, 0.4);">
+            <i class="fa-solid fa-coins" style="font-size: 1.6rem;"></i> <%= userCredits %> <span style="font-size: 1rem; color: var(--text-muted); font-weight: 700;">KV</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 48px; margin-bottom: 80px;">
+
+      <!-- Mağaza Section -->
+      <section class="content-panel" style="padding: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
+          <h3 style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; margin: 0;">
+            <i class="fa-solid fa-store" style="color: var(--primary-light);"></i> Ürün Kataloğu
+          </h3>
+          
+          <!-- Category Tabs -->
+          <div style="display: flex; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 12px; border: 1px solid var(--border-color); gap: 6px; flex-wrap: wrap;">
+            <button type="button" class="category-tab active" data-category="all" style="padding: 8px 16px; font-size: 12px; font-weight: 700; border: none; border-radius: 8px; background: rgba(224, 169, 139, 0.15); color: #fff; cursor: pointer; transition: var(--transition); text-transform: uppercase; letter-spacing: 0.05em;">Tümü</button>
+            <button type="button" class="category-tab" data-category="araba" style="padding: 8px 16px; font-size: 12px; font-weight: 700; border: none; border-radius: 8px; background: transparent; color: var(--text-muted); cursor: pointer; transition: var(--transition); text-transform: uppercase; letter-spacing: 0.05em;"><i class="fa-solid fa-car"></i> Arabalar</button>
+            <button type="button" class="category-tab" data-category="motorsiklet" style="padding: 8px 16px; font-size: 12px; font-weight: 700; border: none; border-radius: 8px; background: transparent; color: var(--text-muted); cursor: pointer; transition: var(--transition); text-transform: uppercase; letter-spacing: 0.05em;"><i class="fa-solid fa-motorcycle"></i> Motorlar</button>
+            <button type="button" class="category-tab" data-category="isletme" style="padding: 8px 16px; font-size: 12px; font-weight: 700; border: none; border-radius: 8px; background: transparent; color: var(--text-muted); cursor: pointer; transition: var(--transition); text-transform: uppercase; letter-spacing: 0.05em;"><i class="fa-solid fa-briefcase"></i> İşletmeler</button>
+            <button type="button" class="category-tab" data-category="illegal" style="padding: 8px 16px; font-size: 12px; font-weight: 700; border: none; border-radius: 8px; background: transparent; color: var(--text-muted); cursor: pointer; transition: var(--transition); text-transform: uppercase; letter-spacing: 0.05em;"><i class="fa-solid fa-skull-crossbones"></i> İllegaller</button>
+          </div>
+        </div>
+
+        <!-- Shop Grid -->
+        <div id="shop-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 24px;">
+          <% if (items && items.length > 0) { %>
+            <% items.forEach(item => { %>
+              <div class="shop-card" data-category="<%= item.category %>" style="background: rgba(11, 13, 20, 0.8); border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: var(--transition); position: relative; box-shadow: var(--shadow-sm);">
+                
+                <!-- Category Badge -->
+                <span style="position: absolute; top: 16px; left: 16px; background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); color: <%= item.category === 'araba' ? 'var(--primary-light)' : (item.category === 'motorsiklet' ? 'var(--secondary)' : (item.category === 'isletme' ? 'var(--success)' : 'var(--danger)')) %>; font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 6px 10px; border-radius: 6px; z-index: 5; letter-spacing: 0.08em; display: flex; align-items: center; gap: 6px;">
+                  <% if (item.category === 'araba') { %><i class="fa-solid fa-car"></i> Araba
+                  <% } else if (item.category === 'motorsiklet') { %><i class="fa-solid fa-motorcycle"></i> Motorsiklet
+                  <% } else if (item.category === 'isletme') { %><i class="fa-solid fa-briefcase"></i> İşletme
+                  <% } else if (item.category === 'illegal') { %><i class="fa-solid fa-skull-crossbones"></i> İllegal
+                  <% } %>
+                </span>
+
+                <!-- Image -->
+                <div style="height: 180px; overflow: hidden; position: relative;">
+                  <img src="<%= item.imageUrl %>" alt="<%= item.name %>" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+                  <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(11,13,20,1) 0%, rgba(11,13,20,0.2) 60%, transparent 100%); pointer-events: none;"></div>
+                </div>
+
+                <!-- Info -->
+                <div style="padding: 24px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 20px; position: relative; z-index: 2;">
+                  <div>
+                    <h4 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 8px;"><%= item.name %></h4>
+                    <p style="color: var(--text-muted); font-size: 13.5px; line-height: 1.6; margin: 0;"><%= item.description %></p>
+                  </div>
+                  
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06);">
+                    <div style="display: flex; flex-direction: column;">
+                      <span style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Fiyat</span>
+                      <div style="font-family: var(--font-display); font-size: 20px; font-weight: 900; color: var(--warning); display: flex; align-items: center; gap: 6px; text-shadow: 0 0 15px rgba(245, 158, 11, 0.3);">
+                        <i class="fa-solid fa-coins"></i> <%= item.price %>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-primary buy-btn" data-id="<%= item._id %>" data-name="<%= item.name %>" data-price="<%= item.price %>" style="padding: 12px 20px; font-size: 12.5px;">
+                      Satın Al <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-size: 14px; padding: 60px 0;">
+              <i class="fa-solid fa-store-slash" style="font-size: 42px; margin-bottom: 16px; opacity: 0.3;"></i>
+              <p>Mağazada henüz ürün bulunmuyor.</p>
+            </div>
+          <% } %>
+        </div>
+      </section>
+
+      <!-- Purchase History Section -->
+      <section class="content-panel" style="padding: 32px;">
+        <h3 style="font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; margin-bottom: 24px; color: #fff; display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary-light);"></i> İşlem Geçmişi
+        </h3>
+        
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ürün</th>
+                <th>Kategori</th>
+                <th>Ödenen Miktar</th>
+                <th>Tarih</th>
+              </tr>
+            </thead>
+            <tbody id="purchase-history-tbody">
+              <% if (purchases && purchases.length > 0) { %>
+                <% purchases.forEach(purchase => { %>
+                  <tr>
+                    <td style="font-weight: 600; color: #fff;"><%= purchase.itemId ? purchase.itemId.name : 'Silinmiş Ürün' %></td>
+                    <td>
+                      <% if(purchase.itemId) { %>
+                        <span class="badge <%= purchase.itemId.category === 'araba' ? 'badge-primary' : (purchase.itemId.category === 'motorsiklet' ? 'badge-primary' : (purchase.itemId.category === 'isletme' ? 'badge-success' : 'badge-danger')) %>"><%= purchase.itemId.category %></span>
+                      <% } else { %>
+                        -
+                      <% } %>
+                    </td>
+                    <td style="color: var(--warning); font-weight: 700;"><i class="fa-solid fa-coins"></i> <%= purchase.pricePaid %></td>
+                    <td style="font-family: var(--font-mono);"><%= new Date(purchase.date).toLocaleString('tr-TR') %></td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                    <i class="fa-solid fa-receipt" style="font-size: 32px; margin-bottom: 12px; opacity: 0.3;"></i>
+                    <br>Henüz bir satın alım gerçekleştirmediniz.
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  <% } %>
+
+</main>
+
+<style>
+  .shop-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(224, 169, 139, 0.4) !important;
+    box-shadow: 0 16px 40px rgba(224, 169, 139, 0.2) !important;
+  }
+  
+  .category-tab:hover:not(.active) {
+    background: rgba(255,255,255,0.05) !important;
+    color: #fff !important;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Category Tabs Logic
+    const tabs = document.querySelectorAll('.category-tab');
+    const cards = document.querySelectorAll('.shop-card');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.classList.remove('active');
+          t.style.background = 'transparent';
+          t.style.color = 'var(--text-muted)';
+        });
+        
+        tab.classList.add('active');
+        tab.style.background = 'rgba(224, 169, 139, 0.15)';
+        tab.style.color = '#fff';
+        
+        const category = tab.getAttribute('data-category');
+        
+        cards.forEach(card => {
+          if (category === 'all' || card.getAttribute('data-category') === category) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // Buy Button Logic
+    const buyBtns = document.querySelectorAll('.buy-btn');
+    buyBtns.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        const price = btn.getAttribute('data-price');
+
+        if (!confirm(`"${name}" ürününü ${price} Kredi karşılığında satın almak istediğinize emin misiniz?`)) return;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> İşleniyor...';
+
+        try {
+          const res = await fetch('/api/store/buy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ itemId: id })
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            window.showToast('Satın alım başarılı! Araç/İşletme hesabınıza eklendi.', 'success', 'Başarılı');
+            
+            const balEl = document.getElementById('user-balance-display');
+            if(balEl) balEl.innerHTML = `<i class="fa-solid fa-coins"></i> ${data.newBalance} <span style="font-size: 1rem; color: var(--text-muted); font-weight: 700;">KV</span>`;
+
+            const tbody = document.getElementById('purchase-history-tbody');
+            if(tbody) {
+              const emptyRow = tbody.querySelector('td[colspan="4"]');
+              if(emptyRow) emptyRow.parentElement.remove();
+              
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td style="font-weight: 600; color: #fff;">${name}</td>
+                <td><span class="badge badge-primary">Yeni</span></td>
+                <td style="color: var(--warning); font-weight: 700;"><i class="fa-solid fa-coins"></i> ${price}</td>
+                <td style="font-family: var(--font-mono);">${new Date().toLocaleString('tr-TR')}</td>
+              `;
+              tbody.prepend(tr);
+            }
+          } else {
+            window.showToast(data.message || 'Satın alım başarısız.', 'error', 'Hata');
+          }
+        } catch (e) {
+          console.error(e);
+          window.showToast('Bir ağ hatası oluştu.', 'error', 'Hata');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = 'Satın Al <i class="fa-solid fa-arrow-right"></i>';
+        }
+      });
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

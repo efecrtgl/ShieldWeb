@@ -1,0 +1,115 @@
+  <footer>
+    <div class="container footer-content" style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px; text-align: left;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 40px;">
+        <div style="flex: 1 1 320px;">
+          <div class="footer-logo" style="margin-bottom: 14px; display: flex; align-items: center; gap: 10px;">
+            <img src="/images/logo.png" alt="EmpireV Logo" style="filter: drop-shadow(0 0 10px rgba(224, 169, 139, 0.45));"> EmpireV
+          </div>
+          <p style="color: var(--text-muted); font-size: 13.5px; line-height: 1.7; max-width: 340px; margin-bottom: 16px;">
+            Yeni nesil FiveM roleplay standartları ile oyuncularımıza yüksek kaliteli, kesintisiz ve dengeli ekonomi altyapısıyla seçkin bir rol deneyimi sunuyoruz.
+          </p>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="badge badge-success" style="font-size: 10px; padding: 4px 10px; border-radius: 99px;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+              SUNUCU AKTİF
+            </span>
+            <span style="font-size: 11px; color: var(--text-muted);">FiveM v1.0.0</span>
+          </div>
+        </div>
+        
+        <div style="flex: 1 1 160px; display: flex; flex-direction: column; gap: 12px;">
+          <h4 style="font-family: var(--font-display); font-size: 13px; font-weight: 800; text-transform: uppercase; color: #fff; letter-spacing: 0.08em; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-compass" style="color: var(--primary-light);"></i> Hızlı Erişim
+          </h4>
+          <a href="/" class="footer-link-item" style="font-size: 12.5px;"><i class="fa-solid fa-angle-right" style="font-size: 10px; color: var(--primary-light);"></i> Ana Sayfa</a>
+          <a href="/stats" class="footer-link-item" style="font-size: 12.5px;"><i class="fa-solid fa-angle-right" style="font-size: 10px; color: var(--primary-light);"></i> İstatistikler</a>
+          <a href="/gallery" class="footer-link-item" style="font-size: 12.5px;"><i class="fa-solid fa-angle-right" style="font-size: 10px; color: var(--primary-light);"></i> Sunucu Galerisi</a>
+          <a href="/team" class="footer-link-item" style="font-size: 12.5px;"><i class="fa-solid fa-angle-right" style="font-size: 10px; color: var(--primary-light);"></i> Ekibimiz</a>
+          <a href="/faq" class="footer-link-item" style="font-size: 12.5px;"><i class="fa-solid fa-angle-right" style="font-size: 10px; color: var(--primary-light);"></i> SSS</a>
+        </div>
+
+        <div style="flex: 1 1 160px; display: flex; flex-direction: column; gap: 12px;">
+          <h4 style="font-family: var(--font-display); font-size: 13px; font-weight: 800; text-transform: uppercase; color: #fff; letter-spacing: 0.08em; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-gavel" style="color: var(--primary-light);"></i> Kurallar & Topluluk
+          </h4>
+          <a href="/rules" class="footer-link-item" style="font-size: 12.5px;"><i class="fa-solid fa-angle-right" style="font-size: 10px; color: var(--primary-light);"></i> Sunucu Kuralları</a>
+          <a href="/legal-rules" class="footer-link-item" style="font-size: 12.5px;"><i class="fa-solid fa-angle-right" style="font-size: 10px; color: var(--primary-light);"></i> Legal Kurallar</a>
+          <a href="/penalties" class="footer-link-item" style="font-size: 12.5px;"><i class="fa-solid fa-angle-right" style="font-size: 10px; color: var(--primary-light);"></i> Ceza Sicili</a>
+          <a href="https://discord.gg/starv" target="_blank" class="footer-link-item" style="font-size: 12.5px; color: #818cf8;"><i class="fa-brands fa-discord" style="font-size: 11px;"></i> Discord Topluluğu</a>
+        </div>
+
+        <div style="flex: 1 1 160px; display: flex; flex-direction: column; gap: 12px;">
+          <h4 style="font-family: var(--font-display); font-size: 13px; font-weight: 800; text-transform: uppercase; color: #fff; letter-spacing: 0.08em; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-link" style="color: var(--primary-light);"></i> Bağlantılar
+          </h4>
+          <a href="/characters" class="footer-link-item" style="font-size: 12.5px;"><i class="fa-solid fa-id-card-clip" style="font-size: 10px; color: var(--primary-light);"></i> Karakterlerim</a>
+          <a href="/donate" class="footer-link-item" style="font-size: 12.5px;"><i class="fa-solid fa-coins" style="font-size: 10px; color: var(--primary-light);"></i> Mağaza & Kredi</a>
+          <% if (locals.user && (user.isSuperuser || (locals.userPermissions && Object.values(userPermissions).some(v => v === true)))) { %>
+            <a href="/admin/dashboard" class="footer-link-item" style="font-size: 12.5px; color: var(--primary-light); font-weight: 700;"><i class="fa-solid fa-shield-halved" style="font-size: 10px;"></i> Yönetim Paneli</a>
+          <% } %>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 24px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+        <div class="footer-copyright" style="font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span>EmpireV © 2026 — Tüm Hakları Saklıdır.</span>
+          <span style="color: rgba(255,255,255,0.12);">|</span>
+          <a href="/terms" class="footer-link-item" style="font-size: 12px; text-decoration: none;">Kullanım Koşulları</a>
+          <span style="color: rgba(255,255,255,0.12);">|</span>
+          <a href="/privacy-and-policy" class="footer-link-item" style="font-size: 12px; text-decoration: none;">Gizlilik Politikası</a>
+        </div>
+        <div class="footer-powered-by" style="font-size: 11.5px; color: var(--text-muted);">
+          Geliştirme &amp; Tasarım: <a href="#" class="kai-gradient">kai.ejs &amp; realflexd</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    window.showToast = function(message, type = 'info', title = '') {
+      let container = document.getElementById('toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+      }
+
+      const toast = document.createElement('div');
+      toast.className = `toast-card ${type}`;
+
+      let iconClass = 'fa-solid fa-circle-info';
+      let defaultTitle = 'Bilgi';
+      if (type === 'success') {
+        iconClass = 'fa-solid fa-circle-check';
+        defaultTitle = 'Başarılı';
+      } else if (type === 'error') {
+        iconClass = 'fa-solid fa-circle-exclamation';
+        defaultTitle = 'Hata';
+      } else if (type === 'warning') {
+        iconClass = 'fa-solid fa-triangle-exclamation';
+        defaultTitle = 'Uyarı';
+      }
+
+      toast.innerHTML = `
+        <div class="toast-icon">
+          <i class="${iconClass}"></i>
+        </div>
+        <div class="toast-content">
+          <div class="toast-title">${title || defaultTitle}</div>
+          <div class="toast-msg">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => { toast.classList.add('show'); }, 10);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => { toast.remove(); }, 350);
+      }, 4000);
+    };
+  </script>
+</body>
+</html>

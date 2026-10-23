@@ -1,0 +1,793 @@
+<% if (userPermissions.viewUsers) { %>
+  <section id="users-mgmt-content" class="admin-section-inner">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+      <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-users"></i> Kullanıcı Listesi</h2>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="font-size: 11px; font-weight: 700; color: #ffffff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.25); padding: 6px 14px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.05em;"><i class="fa-brands fa-discord" style="font-size: 14px;"></i> Canlı Discord Verisi</span>
+        <% if (userPermissions.syncUsers || userPermissions.isProjectLeader || userPermissions.isSuperuser) { %>
+          <button class="btn btn-secondary" id="btn-sync-whitelists" onclick="syncWhitelistsFromDiscord()" style="display: flex; align-items: center; gap: 6px; background: rgba(0, 113, 227, 0.1); color: var(--primary); border: 1px solid rgba(0, 113, 227, 0.2); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: var(--transition);"><i class="fa-solid fa-arrows-rotate"></i> Whitelistleri Eşitle</button>
+        <% } else { %>
+          <button class="btn btn-locked" disabled style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 13px; padding: 10px 20px; border-radius: 8px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Whitelistleri Eşitle</button>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- User Overview Stats Cards (Matching requested UI design) -->
+    <% 
+      const initUserStats = locals.userManagementStats || { totalUsers: 0, staffCount: 0, whitelistCount: 0 };
+    %>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px;">
+      <!-- Card 1: Toplam Kullanıcı -->
+      <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+        <div>
+          <div id="stat-total-users" style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display, sans-serif); letter-spacing: -0.5px;"><%= Number(initUserStats.totalUsers || 0).toLocaleString('tr-TR') %></div>
+          <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Toplam Kullanıcı</div>
+        </div>
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1.5px solid rgba(255, 255, 255, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(255, 255, 255, 0.15);">
+          <i class="fa-solid fa-users" style="color: #ffffff; font-size: 19px;"></i>
+        </div>
+      </div>
+
+      <!-- Card 2: Yetkili Sayısı -->
+      <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+        <div>
+          <div id="stat-staff-users" style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display, sans-serif); letter-spacing: -0.5px;"><%= Number(initUserStats.staffCount || 0).toLocaleString('tr-TR') %></div>
+          <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Yetkili Sayısı</div>
+        </div>
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1.5px solid rgba(255, 255, 255, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(255, 255, 255, 0.15);">
+          <i class="fa-solid fa-user-lock" style="color: #ffffff; font-size: 19px;"></i>
+        </div>
+      </div>
+
+      <!-- Card 3: Whitelist Sayısı -->
+      <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+        <div>
+          <div id="stat-whitelist-users" style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display, sans-serif); letter-spacing: -0.5px;"><%= Number(initUserStats.whitelistCount || 0).toLocaleString('tr-TR') %></div>
+          <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Whitelist Sayısı</div>
+        </div>
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1.5px solid rgba(255, 255, 255, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(255, 255, 255, 0.15);">
+          <i class="fa-solid fa-gamepad" style="color: #ffffff; font-size: 19px;"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <% if (userPermissions.wlGive !== false || userPermissions.wlTake !== false || userPermissions.rankName || userPermissions.isSuperuser || userPermissions.voiceSupportToggle) { %>
+      <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; margin: 0 0 24px 0; box-shadow: none;">
+        <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-bolt" style="color: var(--warning);"></i> Hızlı Whitelist & Rol İşlemleri
+        </h3>
+        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 250px; position: relative;">
+            <input type="text" id="quick-discord-id" class="form-input" placeholder="Kullanıcı Discord ID (Örn: 444578261494661122)" style="height: 42px; padding: 0 16px; border-radius: 8px; font-size: 13px; width: 100%;">
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <% if (userPermissions.wlGive !== false || userPermissions.rankName || userPermissions.isSuperuser) { %>
+              <button class="btn" onclick="executeQuickAction('add')" style="background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); font-weight: 600; font-size: 12px; height: 42px; padding: 0 18px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fa-solid fa-user-check"></i> Whitelist Ver
+              </button>
+            <% } else { %>
+              <button class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 12px; height: 42px; padding: 0 18px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: not-allowed; opacity: 0.5;">
+                <i class="fa-solid fa-lock"></i> Whitelist Ver
+              </button>
+            <% } %>
+
+            <% if (userPermissions.wlTake !== false || userPermissions.rankName || userPermissions.isSuperuser) { %>
+              <button class="btn" onclick="executeQuickAction('remove')" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); font-weight: 600; font-size: 12px; height: 42px; padding: 0 18px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fa-solid fa-user-slash"></i> Whitelist Al
+              </button>
+            <% } else { %>
+              <button class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 12px; height: 42px; padding: 0 18px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: not-allowed; opacity: 0.5;">
+                <i class="fa-solid fa-lock"></i> Whitelist Al
+              </button>
+            <% } %>
+
+            <% if (userPermissions.voiceSupportToggle) { %>
+              <button class="btn" onclick="executeQuickVoiceSupport()" style="background: rgba(0, 191, 255, 0.1); color: #00bfff; border: 1px solid rgba(0, 191, 255, 0.2); font-weight: 600; font-size: 12px; height: 42px; padding: 0 18px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fa-solid fa-microphone"></i> Sesli Destek Ver/Kaldır
+              </button>
+            <% } else { %>
+              <button class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 12px; height: 42px; padding: 0 18px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: not-allowed; opacity: 0.5;">
+                <i class="fa-solid fa-lock"></i> Sesli Destek Ver/Kaldır
+              </button>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="content-panel" style="padding: 24px; overflow-x: auto;">
+      
+      <!-- User Search and Summary Panel -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+        <div style="position: relative; width: 300px;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; z-index: 2;"></i>
+          <input type="text" id="search-users-input" oninput="debounceUsersSearch()" placeholder="Kullanıcı adı veya ID ara..." class="form-input" style="padding-left: 38px !important; height: 38px; border-radius: 8px; font-size: 13px; width: 100%;">
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">
+          Gösterilen: <strong id="users-shown-count" style="color: #fff;">0</strong> / <strong id="users-total-count" style="color: var(--text-muted);">0</strong> Kullanıcı
+        </div>
+      </div>
+
+      <table class="admin-table" id="users-table">
+        <thead>
+          <tr>
+            <th>Profil</th>
+            <th>Kullanıcı Adı</th>
+            <th>Discord ID</th>
+            <th>Rütbe</th>
+            <th>Whitelist</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody id="users-table-body">
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 24px 0;">
+              <i class="fa-solid fa-spinner fa-spin" style="font-size: 18px; margin-bottom: 8px; color: var(--primary);"></i><br>Kullanıcılar Yükleniyor...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Users Table Pagination controls -->
+      <div id="users-pagination" style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+        <!-- Generated via Javascript -->
+      </div>
+
+    </div>
+
+  </section>
+
+  <script>
+    const canEditUsers = <%= userPermissions.editUsers || false %>;
+    const canDeleteUsers = <%= userPermissions.deleteUsers || false %>;
+    const userPerms = <%- JSON.stringify(userPermissions) %>;
+    
+    let currentUsersPage = 1;
+    let totalUsersPages = 1;
+    let searchDebounceTimeout = null;
+    let currentPageUsers = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchUsers(1);
+
+      const sec = document.getElementById("users-mgmt");
+      if (sec) {
+        const obs = new MutationObserver(() => {
+          if (sec.classList.contains("active")) {
+            fetchUsers(currentUsersPage, true);
+          }
+        });
+        obs.observe(sec, { attributes: true, attributeFilter: ["class"] });
+      }
+
+      // Live Auto Refresh every 15 seconds ONLY when users tab is active
+      setInterval(() => {
+        const usersSec = document.getElementById("users-mgmt");
+        if (usersSec && usersSec.classList.contains("active")) {
+          fetchUsers(currentUsersPage, true);
+        }
+      }, 15000);
+    });
+
+    async function fetchUsers(page = 1, isSilent = false) {
+      currentUsersPage = page;
+      const tbody = document.getElementById("users-table-body");
+      if (!tbody) return;
+      const query = document.getElementById("search-users-input").value.trim();
+      
+      if (!isSilent) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 24px 0;">
+              <i class="fa-solid fa-spinner fa-spin" style="font-size: 18px; margin-bottom: 8px; color: var(--primary);"></i><br>Kullanıcılar Yükleniyor...
+            </td>
+          </tr>
+        `;
+      }
+
+      try {
+        const response = await fetch(`/admin/api/users?page=${page}&limit=10&search=${encodeURIComponent(query)}`);
+        const resData = await response.json();
+        
+        if (resData.success) {
+          currentPageUsers = resData.users;
+          totalUsersPages = resData.totalPages;
+          
+          const shownCountSpan = document.getElementById("users-shown-count");
+          const totalCountSpan = document.getElementById("users-total-count");
+          if (shownCountSpan) shownCountSpan.innerText = resData.users.length;
+          if (totalCountSpan) totalCountSpan.innerText = resData.total;
+
+          if (resData.stats) {
+            const elTotal = document.getElementById("stat-total-users");
+            const elStaff = document.getElementById("stat-staff-users");
+            const elWl = document.getElementById("stat-whitelist-users");
+            if (elTotal && resData.stats.totalUsers !== undefined) elTotal.innerText = Number(resData.stats.totalUsers).toLocaleString("tr-TR");
+            if (elStaff && resData.stats.staffCount !== undefined) elStaff.innerText = Number(resData.stats.staffCount).toLocaleString("tr-TR");
+            if (elWl && resData.stats.whitelistCount !== undefined) elWl.innerText = Number(resData.stats.whitelistCount).toLocaleString("tr-TR");
+          }
+
+          if (resData.users.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 16px 0;">Kullanıcı bulunamadı.</td>
+              </tr>
+            `;
+            renderUsersPaginationButtons(0);
+            return;
+          }
+
+          tbody.innerHTML = "";
+          resData.users.forEach(dUser => {
+            const row = document.createElement("tr");
+            row.className = "user-row";
+            row.setAttribute("data-username", dUser.username.toLowerCase());
+            row.setAttribute("data-id", dUser.discordId);
+
+            let rankBadge = "";
+            if (dUser.rankId && typeof dUser.rankId === 'object' && dUser.rankId.name) {
+              const rColor = dUser.rankId.color || '#3B82F6';
+              const isGradient = typeof rColor === 'string' && (rColor.includes("gradient") || rColor.includes(","));
+              if (isGradient) {
+                rankBadge = `<span class="rank-badge" style="background: ${rColor}; color: #fff; border: none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${dUser.rankId.name}</span>`;
+              } else {
+                rankBadge = `<span class="rank-badge" style="background: ${rColor}22; color: ${rColor}; border: 1px solid ${rColor}44;">${dUser.rankId.name}</span>`;
+              }
+            } else {
+              rankBadge = `<span class="rank-badge" style="background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border-color);">Rütbesiz</span>`;
+            }
+
+            const whitelistBadge = dUser.isWhitelist 
+              ? `<span class="status-badge online" style="font-size: 11px;">● Aktif</span>`
+              : `<span class="status-badge offline" style="font-size: 11px;">○ Yok</span>`;
+
+            let actionButtons = `<button type="button" class="btn" style="background: rgba(0, 113, 227, 0.1); color: var(--primary); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;" onclick="openUserDetailModal('${dUser._id}')"><i class="fa-solid fa-circle-info"></i> Detaylar</button>`;
+
+            // Whitelist Ver / Al
+            if (dUser.isWhitelist) {
+              if (userPerms.wlTake !== false || userPerms.rankName || userPerms.isSuperuser) {
+                actionButtons += `
+                  <form action="/admin/users/whitelist/remove/${dUser._id}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-user-slash"></i> Whitelist Kaldır</button>
+                  </form>
+                `;
+              } else {
+                actionButtons += `
+                  <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Whitelist Kaldır</button>
+                `;
+              }
+            } else {
+              if (userPerms.wlGive !== false || userPerms.rankName || userPerms.isSuperuser) {
+                actionButtons += `
+                  <form action="/admin/users/whitelist/add/${dUser._id}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-user-check"></i> Whitelist Ver</button>
+                  </form>
+                `;
+              } else {
+                actionButtons += `
+                  <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Whitelist Ver</button>
+                `;
+              }
+            }
+
+            // Sesli Destek
+            if (userPerms.voiceSupportToggle) {
+              actionButtons += `
+                <form action="/admin/users/voice-support/toggle/${dUser.discordId}" method="POST" style="display: inline;">
+                  <button type="submit" class="btn" style="background: rgba(0, 191, 255, 0.1); color: #00bfff; padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-microphone"></i> Sesli Destek</button>
+                </form>
+              `;
+            } else {
+              actionButtons += `
+                <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Sesli Destek</button>
+              `;
+            }
+
+            // Tüm Rolleri Kaldır
+            if (userPerms.removeAllRoles) {
+              actionButtons += `
+                <form action="/admin/users/tum-rolleri-kaldir/${dUser.discordId}" method="POST" style="display: inline;">
+                  <button type="submit" class="btn" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-user-xmark"></i> Tüm Rolleri Kaldır</button>
+                </form>
+              `;
+            } else {
+              actionButtons += `
+                <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Tüm Rolleri Kaldır</button>
+              `;
+            }
+
+            // Veritabanından Sil
+            if (userPerms.dbDeleteUser) {
+              actionButtons += `
+                <form action="/admin/users/delete/${dUser._id}" method="POST" style="display: inline;" onsubmit="return confirm('Bu kullanıcıyı veritabanından tamamen silmek istediğinize emin misiniz?\\n\\nBu işlem kullanıcının tüm rollerini alıp Discord\\'da kayıtsıza atacaktır.')">
+                  <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.15); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-trash-can"></i> Sil</button>
+                </form>
+              `;
+            } else {
+              actionButtons += `
+                <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Sil</button>
+              `;
+            }
+
+            let onlineBadge = "";
+            if (dUser.activeFivemId !== null && dUser.activeFivemId !== undefined) {
+              onlineBadge = ` <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-family: monospace; font-weight: 700;">ID: ${dUser.activeFivemId}</span>`;
+            }
+
+            row.innerHTML = `
+              <td>
+                <img class="sensitive-info" src="${dUser.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);">
+              </td>
+              <td class="sensitive-info" style="font-weight: 600;">${dUser.username}${onlineBadge}</td>
+              <td class="sensitive-info" style="font-family: monospace; font-size: 12px; color: var(--text-muted);">${dUser.discordId}</td>
+              <td>${rankBadge}</td>
+              <td>${whitelistBadge}</td>
+              <td>
+                <div style="display: flex; gap: 8px;">
+                  ${actionButtons}
+                </div>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+
+          renderUsersPaginationButtons(resData.totalPages);
+        } else {
+          throw new Error();
+        }
+      } catch (err) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--danger); font-size: 12px; padding: 16px 0;">Kullanıcılar yüklenirken hata oluştu.</td>
+          </tr>
+        `;
+      }
+    }
+
+    function debounceUsersSearch() {
+      clearTimeout(searchDebounceTimeout);
+      searchDebounceTimeout = setTimeout(() => {
+        fetchUsers(1);
+      }, 300);
+    }
+
+    function renderUsersPaginationButtons(totalPages) {
+      const container = document.getElementById("users-pagination");
+      if (!container) return;
+      
+      container.innerHTML = "";
+      if (totalPages <= 1) {
+        container.style.display = "none";
+        return;
+      }
+      container.style.display = "flex";
+      
+      const prevBtn = document.createElement("button");
+      prevBtn.type = "button";
+      prevBtn.className = "pagination-btn";
+      prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+      prevBtn.disabled = currentUsersPage === 1;
+      prevBtn.onclick = () => fetchUsers(currentUsersPage - 1);
+      container.appendChild(prevBtn);
+      
+      const maxButtonsToShow = 5;
+      let startPage = Math.max(1, currentUsersPage - 2);
+      let endPage = Math.min(totalPages, startPage + maxButtonsToShow - 1);
+      
+      if (endPage - startPage < maxButtonsToShow - 1) {
+        startPage = Math.max(1, endPage - maxButtonsToShow + 1);
+      }
+      
+      if (startPage > 1) {
+        const firstBtn = document.createElement("button");
+        firstBtn.type = "button";
+        firstBtn.className = "pagination-btn";
+        firstBtn.innerText = "1";
+        firstBtn.onclick = () => fetchUsers(1);
+        container.appendChild(firstBtn);
+        
+        if (startPage > 2) {
+          const ellipsis = document.createElement("span");
+          ellipsis.className = "pagination-ellipsis";
+          ellipsis.innerText = "...";
+          container.appendChild(ellipsis);
+        }
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `pagination-btn ${i === currentUsersPage ? 'active' : ''}`;
+        btn.innerText = i;
+        btn.onclick = () => fetchUsers(i);
+        container.appendChild(btn);
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          const ellipsis = document.createElement("span");
+          ellipsis.className = "pagination-ellipsis";
+          ellipsis.innerText = "...";
+          container.appendChild(ellipsis);
+        }
+        
+        const lastBtn = document.createElement("button");
+        lastBtn.type = "button";
+        lastBtn.className = "pagination-btn";
+        lastBtn.innerText = totalPages;
+        lastBtn.onclick = () => fetchUsers(totalPages);
+        container.appendChild(lastBtn);
+      }
+      
+      const nextBtn = document.createElement("button");
+      nextBtn.type = "button";
+      nextBtn.className = "pagination-btn";
+      nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+      nextBtn.disabled = currentUsersPage === totalPages;
+      nextBtn.onclick = () => fetchUsers(currentUsersPage + 1);
+      container.appendChild(nextBtn);
+    }
+
+    function openUserDetailModal(userId) {
+      const user = currentPageUsers.find(u => u._id === userId);
+      if (!user) return;
+      
+      const modalEl = document.getElementById("user-detail-modal");
+      if (modalEl) modalEl.setAttribute("data-current-user-id", userId);
+      
+      document.getElementById("detail-avatar").src = user.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png';
+      document.getElementById("detail-username").innerText = user.username;
+      document.getElementById("detail-discordId").innerText = user.discordId;
+      
+      const creationDate = getDiscordAccountAge(user.discordId);
+      document.getElementById("detail-created-at").innerText = creationDate ? creationDate.toLocaleDateString('tr-TR') + ' ' + creationDate.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) : 'Bilinmiyor';
+      
+      const joinedDate = new Date(user.addedAt);
+      document.getElementById("detail-joined-at").innerText = joinedDate.toLocaleDateString('tr-TR') + ' ' + joinedDate.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+      
+      const wlStatus = document.getElementById("detail-whitelist-status");
+      const wlTimeRow = document.getElementById("detail-whitelist-time-row");
+      if (user.isWhitelist) {
+        wlStatus.innerHTML = '<span class="status-badge online" style="font-size: 11px; padding: 2px 8px; border-radius: 4px;">● Aktif</span>';
+        wlTimeRow.style.display = "flex";
+        if (user.whitelistAt) {
+          const wlDate = new Date(user.whitelistAt);
+          document.getElementById("detail-whitelist-at").innerText = wlDate.toLocaleDateString('tr-TR') + ' ' + wlDate.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+        } else {
+          document.getElementById("detail-whitelist-at").innerText = 'Bilinmiyor';
+        }
+      } else {
+        wlStatus.innerHTML = '<span class="status-badge offline" style="font-size: 11px; padding: 2px 8px; border-radius: 4px;">○ Yok</span>';
+        wlTimeRow.style.display = "none";
+      }
+      
+      document.getElementById("detail-rank").innerText = user.rankId ? user.rankId.name : 'Rütbesiz';
+      document.getElementById("detail-description-input").value = user.description || "";
+      document.getElementById("detail-description-form").setAttribute("action", `/admin/users/update-description/${user._id}`);
+      
+      const blacklistBtnContainer = document.getElementById("modal-blacklist-btn-container");
+      if (blacklistBtnContainer) {
+        if (user.isPermaBanned) {
+          if (userPerms.blacklistRemove || userPerms.blacklistUserRemove) {
+            blacklistBtnContainer.innerHTML = `
+              <form action="/admin/users/blacklist/remove/${user.discordId}" method="POST" style="width: 100%; margin: 0;">
+                <button type="submit" class="btn" style="width: 100%; background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); font-size: 11px; padding: 8px; border-radius: 6px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer;">
+                  <i class="fa-solid fa-user-shield"></i> Blacklist'ten Çıkar
+                </button>
+              </form>
+            `;
+          } else {
+            blacklistBtnContainer.innerHTML = `
+              <button type="button" class="btn btn-locked" disabled style="width: 100%; background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 11px; padding: 8px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; opacity: 0.5; cursor: not-allowed;"><i class="fa-solid fa-lock"></i> Blacklist'ten Çıkar</button>
+            `;
+          }
+        } else {
+          if (userPerms.blacklistAdd || userPerms.blacklistUserAdd) {
+            blacklistBtnContainer.innerHTML = `
+              <form action="/admin/users/blacklist/add" method="POST" style="width: 100%; margin: 0;" onsubmit="return confirm('Bu kullanıcıyı kara listeye eklemek istediğinize emin misiniz?')">
+                <input type="hidden" name="discordId" value="${user.discordId}">
+                <button type="submit" class="btn" style="width: 100%; background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); font-size: 11px; padding: 8px; border-radius: 6px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer;">
+                  <i class="fa-solid fa-user-slash"></i> Blacklist'e Ekle
+                </button>
+              </form>
+            `;
+          } else {
+            blacklistBtnContainer.innerHTML = `
+              <button type="button" class="btn btn-locked" disabled style="width: 100%; background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 11px; padding: 8px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; opacity: 0.5; cursor: not-allowed;"><i class="fa-solid fa-lock"></i> Blacklist'e Ekle</button>
+            `;
+          }
+        }
+      }
+      
+      fetchUserCharacters(user.discordId);
+
+      const modal = document.getElementById("user-detail-modal");
+      if (modal) {
+        modal.style.display = "flex";
+      }
+    }
+
+    function closeUserDetailModal() {
+      const modal = document.getElementById("user-detail-modal");
+      if (modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    function getDiscordAccountAge(discordId) {
+      try {
+        const snowflake = BigInt(discordId);
+        const discordEpoch = 1420070400000n;
+        const timestamp = Number((snowflake >> 22n) + discordEpoch);
+        return new Date(timestamp);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    let confirmCount = 0;
+    function handleAddUserSubmit(event) {
+      const discordIdInput = document.getElementById("add-user-discordId").value.trim();
+      
+      if (!/^\d{17,20}$/.test(discordIdInput)) {
+        alert("Lütfen geçerli bir Discord ID girin.");
+        event.preventDefault();
+        return false;
+      }
+
+      const creationDate = getDiscordAccountAge(discordIdInput);
+      if (creationDate) {
+        const threeMonthsAgo = Date.now() - (1000 * 60 * 60 * 24 * 30 * 3);
+        if (creationDate.getTime() > threeMonthsAgo) {
+          if (confirmCount === 0) {
+            const confirm1 = confirm("⚠️ UYARI: Bu Discord hesabı son 3 ay içerisinde oluşturulmuştur!\n\nKayıt tarihi: " + creationDate.toLocaleDateString() + "\n\nEklemek istediğinize emin misiniz?");
+            if (!confirm1) {
+              event.preventDefault();
+              return false;
+            }
+            confirmCount = 1;
+            
+            const confirm2 = confirm("⚠️ UYARI: Hesabın yeni olduğunu onaylıyor ve kesinlikle eklemek istiyor musunuz? (İkinci onay)");
+            if (!confirm2) {
+              confirmCount = 0;
+              event.preventDefault();
+              return false;
+            }
+          }
+        }
+      }
+
+      confirmCount = 0;
+      return true;
+    }
+
+    async function syncWhitelistsFromDiscord() {
+      const btn = document.getElementById("btn-sync-whitelists");
+      if (!btn) return;
+      
+      if (!confirm("Discord üzerindeki whitelist rolüne sahip tüm aktif üyeleri veritabanına eşitlemek istediğinize emin misiniz?")) {
+        return;
+      }
+
+      btn.disabled = true;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Eşitleniyor...';
+
+      try {
+        const response = await fetch("/admin/users/sync-whitelist", {
+          method: "POST"
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message || "Başarıyla eşitlendi.", "success");
+          if (data.whitelistCount !== undefined) {
+            const elWl = document.getElementById("stat-whitelist-users");
+            if (elWl) elWl.innerText = Number(data.whitelistCount).toLocaleString("tr-TR");
+          }
+          fetchUsers(currentUsersPage, true);
+        } else {
+          showAdminToast(data.message || "Eşitleme sırasında bir hata oluştu.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    async function executeQuickAction(action) {
+      const inputEl = document.getElementById("quick-discord-id");
+      const discordId = inputEl ? inputEl.value.trim() : "";
+      if (!/^\d{17,20}$/.test(discordId)) {
+        showAdminToast("Lütfen geçerli bir Discord ID girin.", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch("/admin/users/whitelist/action-by-id", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ discordId, action })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          if (inputEl) inputEl.value = "";
+          if (data.whitelistCount !== undefined) {
+            const elWl = document.getElementById("stat-whitelist-users");
+            if (elWl) elWl.innerText = Number(data.whitelistCount).toLocaleString("tr-TR");
+          }
+          fetchUsers(currentUsersPage, true);
+        } else {
+          showAdminToast(data.message || "İşlem sırasında bir hata oluştu.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function executeQuickVoiceSupport() {
+      const discordId = document.getElementById("quick-discord-id").value.trim();
+      if (!/^\d{17,20}$/.test(discordId)) {
+        showAdminToast("Lütfen geçerli bir Discord ID girin.", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch(`/admin/users/voice-support/toggle/${discordId}`, {
+          method: "POST"
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+        } else {
+          showAdminToast(data.message || "İşlem sırasında bir hata oluştu.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    let selectedUserCharacters = [];
+
+    async function fetchUserCharacters(discordId) {
+      const container = document.getElementById("character-slots-container");
+      const card = document.getElementById("char-inline-detail-card");
+      if (card) card.style.display = "none";
+      if (!container) return;
+      container.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 11px;"><i class="fa-solid fa-spinner fa-spin"></i> Karakterler yükleniyor...</div>';
+      selectedUserCharacters = [];
+
+      try {
+        const res = await fetch(`/api/fivem/user-characters/${discordId}`);
+        const data = await res.json();
+        if (data.success) {
+          selectedUserCharacters = data.characters || [];
+          
+          let html = '';
+          for (let slot = 1; slot <= 5; slot++) {
+            const char = selectedUserCharacters.find(c => c.cid === slot);
+            if (char) {
+              html += `
+                <button type="button" onclick="showCharacterDetails(${slot})" style="background: rgba(0, 113, 227, 0.12); border: 1px solid rgba(0, 113, 227, 0.3); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-size: 12px; transition: all 0.2s;">
+                  <span style="background: #0071e3; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px;">SLOT ${slot}</span>
+                  <strong>${char.firstname} ${char.lastname}</strong>
+                </button>
+              `;
+            } else {
+              html += `
+                <div style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 6px; opacity: 0.5; font-size: 11px; color: var(--text-muted);">
+                  <span>SLOT ${slot}: Boş</span>
+                </div>
+              `;
+            }
+          }
+          container.innerHTML = html;
+
+          // Eğer en az bir karakter varsa otomatik olarak ilk karakterin detaylarını göster
+          if (selectedUserCharacters.length > 0) {
+            showCharacterDetails(selectedUserCharacters[0].cid);
+          }
+        } else {
+          container.innerHTML = '<div style="text-align: center; color: var(--danger); font-size: 11px;">Yükleme başarısız.</div>';
+        }
+      } catch (err) {
+        container.innerHTML = '<div style="text-align: center; color: var(--danger); font-size: 11px;">Hata oluştu.</div>';
+      }
+    }
+
+    window.showCharacterDetails = function(slot) {
+      const char = selectedUserCharacters.find(c => c.cid === slot);
+      if (!char) return;
+
+      document.getElementById("char-detail-fullname").innerText = `${char.firstname || ''} ${char.lastname || ''}`.trim() || 'İsimsiz Karakter';
+      document.getElementById("char-detail-citizenid-badge").innerText = char.citizenid || "-";
+      document.getElementById("char-detail-birthdate").innerText = char.birthdate || "-";
+      document.getElementById("char-detail-cash").innerText = `$${(char.money?.cash || 0).toLocaleString('tr-TR')}`;
+      document.getElementById("char-detail-bank").innerText = `$${(char.money?.bank || 0).toLocaleString('tr-TR')}`;
+      document.getElementById("char-detail-job").innerText = `${char.job?.label || 'Civilian'} (${char.job?.grade || 'Freelancer'})`;
+
+      const invContainer = document.getElementById("char-detail-inventory");
+      if (Array.isArray(char.inventory) && char.inventory.length > 0) {
+        let invHtml = '';
+        char.inventory.forEach(item => {
+          if (item && (item.name || item.label)) {
+            const name = item.name || item.item || '';
+            const label = item.label || name;
+            let imgFile = (item.image && item.image !== '.png') ? item.image : ((item.icon && item.icon !== '.png') ? item.icon : (name ? name + '.png' : 'default.png'));
+            if (imgFile.startsWith('.png')) imgFile = (name || 'default') + '.png';
+            const imgUrl = `https://raw.githubusercontent.com/overextended/ox_inventory/main/web/images/${encodeURIComponent(imgFile)}`;
+
+            invHtml += `
+              <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.04); padding: 4px 0;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <img src="${imgUrl}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/679/679821.png';" style="width: 24px; height: 24px; object-fit: contain; background: rgba(0,0,0,0.3); border-radius: 4px; padding: 2px; border: 1px solid rgba(255,255,255,0.08);" />
+                  <span style="color: #fff; font-weight: 600;">${label}</span>
+                </div>
+                <span style="color: #60a5fa; font-family: monospace; font-weight: 700; background: rgba(59,130,246,0.12); padding: 1px 6px; border-radius: 4px;">x${item.count || item.amount || 1}</span>
+              </div>
+            `;
+          }
+        });
+        invContainer.innerHTML = invHtml;
+      } else {
+        invContainer.innerHTML = '<span style="color: var(--text-muted);">Envanter boş.</span>';
+      }
+
+      const card = document.getElementById("char-inline-detail-card");
+      if (card) {
+        card.style.display = "flex";
+      }
+    };
+
+    // Universal AJAX submit handler for user table & modal actions (prevents iframe reload in Discord Activity)
+    document.addEventListener("submit", async function(e) {
+      const form = e.target;
+      if (!form || !form.action) return;
+      const actionUrl = form.getAttribute("action") || "";
+      if (actionUrl.startsWith("/admin/users/whitelist/") ||
+          actionUrl.startsWith("/admin/users/voice-support/") ||
+          actionUrl.startsWith("/admin/users/tum-rolleri-kaldir/") ||
+          actionUrl.startsWith("/admin/users/delete/") ||
+          actionUrl.startsWith("/admin/users/blacklist/") ||
+          actionUrl.startsWith("/admin/users/update-description/")) {
+        e.preventDefault();
+        try {
+          const formData = new FormData(form);
+          const searchParams = new URLSearchParams();
+          for (const [key, val] of formData.entries()) {
+            searchParams.append(key, val);
+          }
+          const res = await fetch(actionUrl, {
+            method: form.method || "POST",
+            headers: { "Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded" },
+            credentials: "include",
+            body: searchParams.toString()
+          });
+          const data = await res.json().catch(() => ({ success: res.ok }));
+          if (data.success) {
+            if (window.showAdminToast) window.showAdminToast(data.message || "İşlem başarıyla tamamlandı.", "success");
+            if (data.whitelistCount !== undefined) {
+              const elWl = document.getElementById("stat-whitelist-users");
+              if (elWl) elWl.innerText = Number(data.whitelistCount).toLocaleString("tr-TR");
+            }
+          } else {
+            if (window.showAdminToast) window.showAdminToast(data.message || "İşlem sırasında bir hata oluştu.", "error");
+          }
+          if (typeof fetchUsers === "function") {
+            fetchUsers(currentUsersPage, true);
+          }
+          const detailModal = document.getElementById("user-detail-modal");
+          if (detailModal && detailModal.style.display !== "none") {
+            const currentDetailId = detailModal.getAttribute("data-current-user-id");
+            if (currentDetailId) openUserDetailModal(currentDetailId);
+          }
+        } catch (err) {
+          if (window.showAdminToast) window.showAdminToast("Bağlantı hatası: " + err.message, "error");
+        }
+      }
+    });
+  </script>
+<% } %>

@@ -1,0 +1,570 @@
+<% if (userPermissions.manageDonate) { %>
+  <style>
+    /* Premium Glassmorphic Image Uploader & Dropzone Component */
+    .image-upload-group {
+      margin-bottom: 20px !important;
+    }
+
+    .image-upload-group .form-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-display, 'Outfit', sans-serif);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted, #94a3b8);
+      margin-bottom: 12px;
+    }
+
+    .image-uploader-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 4px;
+      border-radius: 12px;
+      gap: 4px;
+      margin-bottom: 14px;
+      width: 100%;
+    }
+
+    .uploader-tab {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 16px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      color: #94a3b8;
+      font-family: var(--font-display, 'Outfit', sans-serif);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      outline: none;
+      user-select: none;
+    }
+
+    .uploader-tab:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .uploader-tab.active {
+      background: linear-gradient(135deg, rgba(224, 169, 139, 0.25) 0%, rgba(224, 169, 139, 0.08) 100%);
+      border-color: rgba(224, 169, 139, 0.4);
+      color: var(--primary, #e0a98b);
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 12px var(--primary-glow, rgba(224, 169, 139, 0.2));
+    }
+
+    .custom-file-dropzone {
+      position: relative;
+      background: radial-gradient(circle at center, rgba(224, 169, 139, 0.05) 0%, rgba(10, 12, 18, 0.75) 100%);
+      border: 2px dashed rgba(224, 169, 139, 0.28);
+      border-radius: 14px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .custom-file-dropzone:hover {
+      border-color: var(--primary, #e0a98b);
+      background: radial-gradient(circle at center, rgba(224, 169, 139, 0.1) 0%, rgba(10, 12, 18, 0.9) 100%);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 25px var(--primary-glow, rgba(224, 169, 139, 0.3));
+      transform: translateY(-2px);
+    }
+
+    .custom-file-dropzone .dropzone-icon {
+      font-size: 32px;
+      color: var(--primary, #e0a98b);
+      margin-bottom: 10px;
+      transition: transform 0.3s ease;
+      filter: drop-shadow(0 0 10px var(--primary-glow, rgba(224, 169, 139, 0.4)));
+    }
+
+    .custom-file-dropzone:hover .dropzone-icon {
+      transform: scale(1.2) translateY(-4px);
+    }
+
+    .dropzone-text {
+      font-family: var(--font-display, 'Outfit', sans-serif);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 4px;
+    }
+
+    .dropzone-subtext {
+      font-size: 11.5px;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .selected-filename {
+      margin-top: 12px;
+      padding: 6px 14px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 20px;
+      color: #34d399;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: monospace;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .url-input-container {
+      position: relative;
+      width: 100%;
+    }
+
+    .url-input-container .url-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--primary, #e0a98b);
+      font-size: 14px;
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    .url-input-container .url-field {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      color: #ffffff !important;
+      padding: 12px 14px 12px 40px !important;
+      border-radius: 10px !important;
+      font-size: 13px !important;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+
+    .url-input-container .url-field:focus {
+      border-color: var(--primary, #e0a98b) !important;
+      box-shadow: 0 0 0 3px var(--primary-glow, rgba(224, 169, 139, 0.2)) !important;
+      background: rgba(0, 0, 0, 0.6) !important;
+    }
+  </style>
+
+  <section id="donate-mgmt-content" class="admin-section-inner">
+    
+    <!-- User Credits Panel -->
+    <div class="main-layout" style="margin-bottom: 30px;">
+      <div class="content-panel" style="grid-column: span 12;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;">
+          <i class="fa-solid fa-users text-sky-400"></i> Kullanıcı Kredi Yönetimi
+        </h3>
+        <div style="overflow-x: auto; max-height: 300px; overflow-y: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Kullanıcı Adı</th>
+                <th>Discord ID</th>
+                <th>Mevcut Kredi</th>
+                <th style="width: 200px;">Krediyi Düzenle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (users && users.length > 0) { %>
+                <% users.forEach(u => { %>
+                  <tr>
+                    <td><strong><%= u.username %></strong></td>
+                    <td style="color: var(--text-muted); font-size: 11px;"><%= u.discordId %></td>
+                    <td style="color: var(--warning); font-weight: 700;"><%= u.credits || 0 %> 🪙</td>
+                    <td>
+                      <form action="/admin/donate/edit-credits" method="POST" style="display: flex; gap: 8px; align-items: center; margin: 0;">
+                        <input type="hidden" name="userId" value="<%= u._id %>">
+                        <input type="number" name="credits" value="<%= u.credits || 0 %>" min="0" class="form-input" style="width: 90px; padding: 6px 10px; font-size: 12px; min-height: unset; height: 30px; border-radius: 6px; margin: 0;" required>
+                        <button type="submit" class="btn btn-primary" style="padding: 6px 10px; font-size: 11px; border-radius: 6px; height: 30px; display: flex; align-items: center; justify-content: center; background: var(--primary); border: none; cursor: pointer;" title="Güncelle">
+                          <i class="fa-solid fa-floppy-disk"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 16px 0;">Kullanıcı bulunamadı.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shop Items Management Panel -->
+    <div class="main-layout" style="margin-bottom: 30px;">
+      
+      <!-- Add Item Form -->
+      <div class="content-panel" style="grid-column: span 5;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;">
+          <i class="fa-solid fa-plus-circle text-sky-400"></i> Yeni Ürün Ekle
+        </h3>
+        <form action="/admin/donate/items/add" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Ürün Adı</label>
+            <input type="text" name="name" placeholder="Örn: Porsche 911 GT3" class="form-input" required style="border-radius: 8px;">
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Açıklama</label>
+            <textarea name="description" placeholder="Ürün açıklaması..." class="form-input" required style="resize: vertical; min-height: 70px; border-radius: 8px;"></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Fiyat (Kredi)</label>
+              <input type="number" name="price" placeholder="Örn: 500" min="1" class="form-input" required style="border-radius: 8px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Kategori</label>
+              <select name="category" class="form-input" required style="border-radius: 8px; background: #0c0d10; color: var(--text-main);">
+                <option value="araba">Araba</option>
+                <option value="motorsiklet">Motorsiklet</option>
+                <option value="isletme">İşletme</option>
+                <option value="illegal">İllegal</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group image-upload-group" style="margin-bottom: 0;">
+            <label class="form-label">Ürün Görseli</label>
+            <div class="image-uploader-tabs">
+              <button type="button" class="uploader-tab active" data-tab="file" onclick="switchUploadTab(this, 'add')">
+                <i class="fa-solid fa-file-image"></i> Dosya Yükle
+              </button>
+              <button type="button" class="uploader-tab" data-tab="url" onclick="switchUploadTab(this, 'add')">
+                <i class="fa-solid fa-link"></i> URL Gir
+              </button>
+            </div>
+            
+            <div class="uploader-content-wrapper">
+              <!-- File Upload Option -->
+              <div class="uploader-content uploader-file-content active" id="add-uploader-file">
+                <div class="custom-file-dropzone" onclick="triggerFileInput('add-file-input')">
+                  <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                  <div class="dropzone-text">Dosya seçmek için tıklayın</div>
+                  <div class="dropzone-subtext">PNG, JPG, JPEG veya GIF (Maks 5MB)</div>
+                  <div class="selected-filename" id="add-filename" style="display: none;">Seçilen dosya yok</div>
+                </div>
+                <input type="file" name="imageFile" id="add-file-input" accept="image/*" style="display: none;" onchange="handleFileSelect(this, 'add-filename')">
+              </div>
+
+              <!-- URL Input Option -->
+              <div class="uploader-content uploader-url-content" id="add-uploader-url" style="display: none;">
+                <div class="url-input-container">
+                  <i class="fa-solid fa-globe url-icon"></i>
+                  <input type="url" name="imageUrl" placeholder="Görsel URL'si (https://...)" class="form-input url-field" style="border-radius: 8px; padding-left: 36px !important;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; background: var(--primary); display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fa-solid fa-floppy-disk"></i> Ürünü Kaydet
+          </button>
+        </form>
+      </div>
+
+      <!-- Items List -->
+      <div class="content-panel" style="grid-column: span 7; overflow-x: auto; padding: 24px; display: flex; flex-direction: column; gap: 32px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-store text-sky-400"></i> Mağaza Ürünleri (Kategorilere Göre)
+        </h3>
+
+        <% 
+          const categories = [
+            { key: 'araba', name: 'Arabalar', icon: 'fa-car', color: 'var(--primary)' },
+            { key: 'motorsiklet', name: 'Motorsikletler', icon: 'fa-motorcycle', color: 'var(--purple)' },
+            { key: 'isletme', name: 'İşletmeler', icon: 'fa-briefcase', color: 'var(--success)' },
+            { key: 'illegal', name: 'İllegaller', icon: 'fa-skull-crossbones', color: 'var(--danger)' }
+          ];
+        %>
+
+        <% categories.forEach(cat => { %>
+          <% const catItems = donateItems ? donateItems.filter(item => item.category === cat.key) : []; %>
+          <div>
+            <h4 style="font-size: 12px; font-weight: 700; color: <%= cat.color %>; margin-bottom: 12px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid <%= cat.icon %>"></i> <%= cat.name %> (<%= catItems.length %>)
+            </h4>
+            <table class="admin-table" style="margin-bottom: 0;">
+              <thead>
+                <tr>
+                  <th style="width: 70px;">Görsel</th>
+                  <th>Ürün Adı</th>
+                  <th style="width: 120px;">Fiyat</th>
+                  <th style="width: 150px;">İşlem</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (catItems.length > 0) { %>
+                  <% catItems.forEach(item => { %>
+                    <tr>
+                      <td>
+                        <img src="<%= item.imageUrl %>" style="width: 50px; height: 30px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color);">
+                      </td>
+                      <td><strong><%= item.name %></strong></td>
+                      <td style="color: var(--warning); font-weight: 700;"><%= item.price %> 🪙</td>
+                      <td>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                          <button type="button" class="btn edit-item-btn" 
+                                  data-id="<%= item._id %>" 
+                                  data-name="<%= item.name %>" 
+                                  data-description="<%= item.description %>" 
+                                  data-price="<%= item.price %>" 
+                                  data-category="<%= item.category %>" 
+                                  data-image="<%= item.imageUrl %>" 
+                                  style="background: rgba(0, 113, 227, 0.1); color: var(--primary); padding: 6px 12px; border-radius: 8px; font-size: 10px; border: 1px solid rgba(0, 113, 227, 0.15); cursor: pointer;">
+                            <i class="fa-solid fa-pen-to-square"></i> Düzenle
+                          </button>
+                          <form action="/admin/donate/items/delete/<%= item._id %>" method="POST" style="margin: 0;">
+                            <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 10px; border: 1px solid rgba(239, 68, 68, 0.15); cursor: pointer;">
+                              <i class="fa-solid fa-trash"></i> Sil
+                            </button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); font-size: 11px; padding: 12px 0;">Bu kategoride ürün bulunmuyor.</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        <% }) %>
+      </div>
+
+    </div>
+
+    <!-- Purchase History Panel -->
+    <div class="main-layout">
+      <div class="content-panel" style="grid-column: span 12;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;">
+          <i class="fa-solid fa-history text-sky-400"></i> Satın Alım Geçmişi (Tüm Sunucu)
+        </h3>
+        <div style="overflow-x: auto; max-height: 350px; overflow-y: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Kullanıcı</th>
+                <th>Satın Alınan Ürün</th>
+                <th>Fiyat</th>
+                <th>Tarih</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (donatePurchases && donatePurchases.length > 0) { %>
+                <% donatePurchases.forEach(p => { %>
+                  <tr>
+                    <td><strong><%= p.username %></strong> <span style="font-size: 10px; color: var(--text-muted); font-weight: normal; margin-left: 5px;">(<%= p.discordId %>)</span></td>
+                    <td><%= p.itemId ? p.itemId.name : 'Silinmiş Ürün' %></td>
+                    <td style="color: var(--warning); font-weight: 700;"><%= p.pricePaid %> 🪙</td>
+                    <td style="color: var(--text-muted); font-size: 11px;"><%= new Date(p.date).toLocaleString('tr-TR') %></td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 16px 0;">Henüz hiçbir satın alım yapılmadı.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Edit Donate Item Modal -->
+  <div id="edit-item-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px);">
+    <div class="content-panel" style="width: 100%; max-width: 500px; padding: 32px; display: flex; flex-direction: column; gap: 24px; position: relative;">
+      <button type="button" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;" onclick="closeEditItemModal()"><i class="fa-solid fa-xmark"></i></button>
+      
+      <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin: 0; color: var(--text-main);">
+        <i class="fa-solid fa-pen-to-square" style="color: var(--primary);"></i> Ürünü Düzenle
+      </h3>
+      
+      <form id="edit-item-form" action="" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Ürün Adı</label>
+          <input type="text" name="name" id="edit-item-name" class="form-input" required style="border-radius: 8px;">
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Açıklama</label>
+          <textarea name="description" id="edit-item-description" class="form-input" required style="resize: vertical; min-height: 70px; border-radius: 8px;"></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Fiyat (Kredi)</label>
+            <input type="number" name="price" id="edit-item-price" min="1" class="form-input" required style="border-radius: 8px;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Kategori</label>
+            <select name="category" id="edit-item-category" class="form-input" required style="border-radius: 8px; background: #0c0d10; color: var(--text-main);">
+              <option value="araba">Araba</option>
+              <option value="motorsiklet">Motorsiklet</option>
+              <option value="isletme">İşletme</option>
+              <option value="illegal">İllegal</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group image-upload-group" style="margin-bottom: 0;">
+          <label class="form-label">Ürün Görseli</label>
+          <div class="image-uploader-tabs">
+            <button type="button" class="uploader-tab active" data-tab="file" onclick="switchUploadTab(this, 'edit')">
+              <i class="fa-solid fa-file-image"></i> Dosya Yükle
+            </button>
+            <button type="button" class="uploader-tab" data-tab="url" onclick="switchUploadTab(this, 'edit')">
+              <i class="fa-solid fa-link"></i> URL Gir
+            </button>
+          </div>
+          
+          <div class="uploader-content-wrapper">
+            <!-- File Upload Option -->
+            <div class="uploader-content uploader-file-content active" id="edit-uploader-file">
+              <div class="custom-file-dropzone" onclick="triggerFileInput('edit-file-input')">
+                <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                <div class="dropzone-text">Dosya seçmek için tıklayın</div>
+                <div class="dropzone-subtext">Yeni bir dosya yüklemek için tıklayın</div>
+                <div class="selected-filename" id="edit-filename" style="display: none;">Seçilen dosya yok</div>
+              </div>
+              <input type="file" name="imageFile" id="edit-file-input" accept="image/*" style="display: none;" onchange="handleFileSelect(this, 'edit-filename')">
+            </div>
+
+            <!-- URL Input Option -->
+            <div class="uploader-content uploader-url-content" id="edit-uploader-url" style="display: none;">
+              <div class="url-input-container">
+                <i class="fa-solid fa-globe url-icon"></i>
+                <input type="url" name="imageUrl" id="edit-item-imageUrl" placeholder="Görsel URL'si (https://...)" class="form-input url-field" style="border-radius: 8px; padding-left: 36px !important;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; background: var(--primary); display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Kaydet
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('.edit-item-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const name = btn.getAttribute('data-name');
+          const description = btn.getAttribute('data-description');
+          const price = btn.getAttribute('data-price');
+          const category = btn.getAttribute('data-category');
+          const image = btn.getAttribute('data-image');
+
+          document.getElementById("edit-item-name").value = name;
+          document.getElementById("edit-item-description").value = description;
+          document.getElementById("edit-item-price").value = price;
+          document.getElementById("edit-item-category").value = category;
+          
+          const isUploadedFile = image && image.startsWith('/uploads/');
+          const fileTabBtn = document.querySelector('#edit-item-form button[data-tab="file"]');
+          const urlTabBtn = document.querySelector('#edit-item-form button[data-tab="url"]');
+          
+          if (isUploadedFile || !image) {
+            switchUploadTab(fileTabBtn, 'edit');
+            document.getElementById("edit-item-imageUrl").value = '';
+            if (image) {
+              const filename = image.split('/').pop();
+              const filenameLabel = document.getElementById("edit-filename");
+              filenameLabel.innerText = filename;
+              filenameLabel.style.display = 'inline-block';
+            } else {
+              document.getElementById("edit-filename").style.display = 'none';
+            }
+          } else {
+            switchUploadTab(urlTabBtn, 'edit');
+            document.getElementById("edit-item-imageUrl").value = image;
+            document.getElementById("edit-filename").style.display = 'none';
+          }
+          
+          document.getElementById("edit-item-form").action = `/admin/donate/items/edit/${id}`;
+          document.getElementById("edit-item-modal").style.display = "flex";
+        });
+      });
+    });
+
+    function closeEditItemModal() {
+      document.getElementById("edit-item-modal").style.display = "none";
+    }
+
+    function switchUploadTab(btn, prefix) {
+      const parent = btn.closest('.image-upload-group');
+      parent.querySelectorAll('.uploader-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+
+      const tabType = btn.getAttribute('data-tab');
+      const fileContent = document.getElementById(`${prefix}-uploader-file`);
+      const urlContent = document.getElementById(`${prefix}-uploader-url`);
+
+      if (tabType === 'file') {
+        fileContent.style.display = 'block';
+        urlContent.style.display = 'none';
+        urlContent.querySelector('input').value = '';
+      } else {
+        fileContent.style.display = 'none';
+        urlContent.style.display = 'block';
+        const fileInput = fileContent.querySelector('input');
+        fileInput.value = '';
+        const filenameLabel = document.getElementById(`${prefix}-filename`);
+        if (filenameLabel) {
+          filenameLabel.style.display = 'none';
+          filenameLabel.innerText = 'Seçilen dosya yok';
+        }
+      }
+    }
+
+    function triggerFileInput(inputId) {
+      document.getElementById(inputId).click();
+    }
+
+    function handleFileSelect(input, labelId) {
+      const label = document.getElementById(labelId);
+      if (!label) return;
+      if (input.files && input.files[0]) {
+        label.innerText = input.files[0].name;
+        label.style.display = 'inline-block';
+      } else {
+        label.innerText = 'Seçilen dosya yok';
+        label.style.display = 'none';
+      }
+    }
+  </script>
+<% } else { %>
+  <div class="locked-overlay">
+    <div class="locked-overlay-icon"><i class="fa-solid fa-lock"></i></div>
+    <h4>Erişim Kısıtlandı</h4>
+    <p>Burayı görüntülemeye yetkiniz yok.</p>
+  </div>
+<% } %>

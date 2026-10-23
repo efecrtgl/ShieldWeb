@@ -1,0 +1,194 @@
+<%- include('partials/header') %>
+
+<main class="container" style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
+  <section class="section" style="background: rgba(12, 13, 16, 0.4); border: 1px solid var(--border-color); border-radius: 16px; padding: 30px; backdrop-filter: blur(20px);">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 30px;">
+      <h2 style="margin: 0; display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; color: #fff;">
+        <i class="fa-solid fa-network-wired" style="color: var(--primary);"></i> API İstek İzleyici (Test Modu)
+      </h2>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span id="connection-indicator" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px #22c55e;"></span>
+        <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Canlı Bağlantı</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 24px; display: flex; gap: 12px; align-items: center;">
+      <button onclick="clearMonitor()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+        <i class="fa-solid fa-trash-can"></i> Ekranı Temizle
+      </button>
+      <span style="font-size: 13px; color: var(--text-muted);">Son 50 istek listelenir.</span>
+    </div>
+
+    <div class="table-responsive" style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border-color); color: #fff; font-weight: 700;">
+            <th style="padding: 12px 16px;">ZAMAN</th>
+            <th style="padding: 12px 16px;">METOD</th>
+            <th style="padding: 12px 16px;">ROTA</th>
+            <th style="padding: 12px 16px;">IP ADRESİ</th>
+            <th style="padding: 12px 16px;">DURUM</th>
+            <th style="padding: 12px 16px;">SÜRE</th>
+            <th style="padding: 12px 16px; text-align: right;">DETAY</th>
+          </tr>
+        </thead>
+        <tbody id="api-log-list">
+          <% if (requests && requests.length > 0) { %>
+            <% requests.forEach((req, idx) => { %>
+              <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); transition: background 0.2s;">
+                <td style="padding: 14px 16px; font-family: monospace;"><%= req.timestamp %></td>
+                <td style="padding: 14px 16px;">
+                  <span style="padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; background: <%= req.method === 'POST' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)' %>; color: <%= req.method === 'POST' ? '#60a5fa' : '#34d399' %>;">
+                    <%= req.method %>
+                  </span>
+                </td>
+                <td style="padding: 14px 16px; color: #fff; font-weight: 600;"><%= req.url %></td>
+                <td style="padding: 14px 16px; font-family: monospace;"><%= req.ip %></td>
+                <td style="padding: 14px 16px;">
+                  <span style="padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; background: <%= req.statusCode >= 400 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)' %>; color: <%= req.statusCode >= 400 ? '#f87171' : '#34d399' %>;">
+                    <%= req.statusCode %>
+                  </span>
+                </td>
+                <td style="padding: 14px 16px; font-family: monospace;"><%= req.duration %>ms</td>
+                <td style="padding: 14px 16px; text-align: right;">
+                  <button onclick="toggleDetails(<%= idx %>)" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                    Göster
+                  </button>
+                </td>
+              </tr>
+              <tr id="details-<%= idx %>" style="display: none; background: rgba(0, 0, 0, 0.2);">
+                <td colspan="7" style="padding: 16px; border-bottom: 1px solid var(--border-color);">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                      <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 12px; font-weight: 700;">Gövde (Request Body)</h4>
+                      <pre style="margin: 0; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; font-family: monospace; font-size: 11px; color: #34d399; overflow-x: auto;"><%= JSON.stringify(req.body, null, 2) %></pre>
+                    </div>
+                    <div>
+                      <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 12px; font-weight: 700;">Başlıklar (Request Headers)</h4>
+                      <pre style="margin: 0; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; font-family: monospace; font-size: 11px; color: #60a5fa; overflow-x: auto;"><%= JSON.stringify(req.headers, null, 2) %></pre>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr id="no-requests-row">
+              <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">Henüz hiçbir API isteği kaydedilmedi.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+  let localRequests = [];
+
+  function toggleDetails(idx) {
+    const el = document.getElementById('details-' + idx);
+    if (el.style.display === 'none') {
+      el.style.display = 'table-row';
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  function clearMonitor() {
+    document.getElementById('api-log-list').innerHTML = `
+      <tr>
+        <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">Ekran temizlendi. Yeni istekler bekleniyor...</td>
+      </tr>
+    `;
+  }
+
+  async function updateMonitor() {
+    try {
+      const res = await fetch('/api/json');
+      if (!res.ok) throw new Error('API request failed');
+      const data = await res.json();
+      localRequests = data;
+
+      const indicator = document.getElementById('connection-indicator');
+      indicator.style.background = '#22c55e';
+      indicator.style.boxShadow = '0 0 10px #22c55e';
+
+      renderLogs(data);
+    } catch (err) {
+      const indicator = document.getElementById('connection-indicator');
+      indicator.style.background = '#ef4444';
+      indicator.style.boxShadow = '0 0 10px #ef4444';
+    }
+  }
+
+  function renderLogs(logs) {
+    const list = document.getElementById('api-log-list');
+    if (!logs || logs.length === 0) {
+      list.innerHTML = `
+        <tr>
+          <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">Henüz hiçbir API isteği kaydedilmedi.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    let html = '';
+    logs.forEach((req, idx) => {
+      const isPost = req.method === 'POST';
+      const isError = req.statusCode >= 400;
+
+      html += `
+        <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); transition: background 0.2s;">
+          <td style="padding: 14px 16px; font-family: monospace;">${req.timestamp}</td>
+          <td style="padding: 14px 16px;">
+            <span style="padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; background: ${isPost ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isPost ? '#60a5fa' : '#34d399'};">
+              ${req.method}
+            </span>
+          </td>
+          <td style="padding: 14px 16px; color: #fff; font-weight: 600;">${req.url}</td>
+          <td style="padding: 14px 16px; font-family: monospace;">${req.ip}</td>
+          <td style="padding: 14px 16px;">
+            <span style="padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; background: ${isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isError ? '#f87171' : '#34d399'};">
+              ${req.statusCode}
+            </span>
+          </td>
+          <td style="padding: 14px 16px; font-family: monospace;">${req.duration}ms</td>
+          <td style="padding: 14px 16px; text-align: right;">
+            <button onclick="toggleDetails(${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+              Göster
+            </button>
+          </td>
+        </tr>
+        <tr id="details-${idx}" style="display: none; background: rgba(0, 0, 0, 0.2);">
+          <td colspan="7" style="padding: 16px; border-bottom: 1px solid var(--border-color);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div>
+                <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 12px; font-weight: 700;">Gövde (Request Body)</h4>
+                <pre style="margin: 0; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; font-family: monospace; font-size: 11px; color: #34d399; overflow-x: auto;">${escapeHtml(JSON.stringify(req.body, null, 2))}</pre>
+              </div>
+              <div>
+                <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 12px; font-weight: 700;">Başlıklar (Request Headers)</h4>
+                <pre style="margin: 0; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; font-family: monospace; font-size: 11px; color: #60a5fa; overflow-x: auto;">${escapeHtml(JSON.stringify(req.headers, null, 2))}</pre>
+              </div>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    list.innerHTML = html;
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  setInterval(updateMonitor, 2000);
+</script>
+
+<%- include('partials/footer') %>

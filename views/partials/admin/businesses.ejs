@@ -1,0 +1,294 @@
+<% if (userPermissions.viewTeams || userPermissions.createTeams || userPermissions.editTeams || userPermissions.manageTeams || userPermissions.isSuperuser) { %>
+  <section id="business-list-content" class="admin-section-inner">
+    <style>
+      .business-stat-card {
+        background: rgba(18, 20, 26, 0.65);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 18px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+    </style>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+      <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-store" style="color: #f59e0b;"></i> İşletme Listesi & Yönetimi</h2>
+      <% if (userPermissions.createTeams || userPermissions.editTeams || userPermissions.manageTeams || userPermissions.isSuperuser) { %>
+        <button class="btn btn-primary" onclick="openAddBusinessModal()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; font-weight: 700;">
+          <i class="fa-solid fa-plus"></i> Yeni İşletme Ekibi Oluştur
+        </button>
+      <% } else { %>
+        <button class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); font-weight: 600; padding: 10px 20px; border-radius: 8px; cursor: not-allowed; opacity: 0.5;">
+          <i class="fa-solid fa-lock"></i> Yeni İşletme Oluştur
+        </button>
+      <% } %>
+    </div>
+
+    <!-- İşletme Arama Çubuğu -->
+    <div style="margin-bottom: 24px; position: relative;">
+      <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; pointer-events: none;"></i>
+      <input type="text" id="business-search-input" class="form-input" placeholder="İşletme adı veya ID ile arayın..." oninput="filterBusinesses()" style="padding-left: 44px; background: rgba(18, 20, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; height: 44px; width: 100%; font-size: 13px; color: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);">
+    </div>
+
+    <!-- İşletme İstatistik Kartları -->
+    <% const currentBusinessTeams = (typeof businesses !== 'undefined' ? businesses : teams.filter(t => t.type === 'business')); %>
+    <div class="team-stats-banner business-stats-banner" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
+      <!-- Toplam İşletme Sayısı -->
+      <div class="business-stat-card">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span id="stat-business-teams" style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;"><%= currentBusinessTeams.length %></span>
+          <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam İşletme Ekibi</span>
+        </div>
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; color: #f59e0b; font-size: 18px;">
+          <i class="fa-solid fa-store"></i>
+        </div>
+      </div>
+
+      <!-- Toplam İşletme Personeli -->
+      <div class="business-stat-card">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span id="stat-business-members" style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;"><%= (typeof teamStats !== 'undefined' && teamStats.business) ? teamStats.business.totalMembers : 0 %></span>
+          <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam İşletme Personeli</span>
+        </div>
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 18px;">
+          <i class="fa-solid fa-user-tie"></i>
+        </div>
+      </div>
+
+      <!-- Toplam İşletme Sahibi (Boss) -->
+      <div class="business-stat-card">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span id="stat-business-bosses" style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;"><%= currentBusinessTeams.filter(t => t.bossId && t.bossId.trim() && t.bossId.trim() !== "none").length %></span>
+          <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam İşletme Sahibi (Boss)</span>
+        </div>
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(224, 169, 139, 0.12); border: 1px solid rgba(224, 169, 139, 0.3); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px;">
+          <i class="fa-solid fa-crown" style="color: var(--primary-light);"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- İşletme Ekipleri Tablosu -->
+    <div class="content-panel" style="padding: 24px; min-height: 350px; overflow-x: auto;">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: #f59e0b; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-briefcase"></i> İşletme Ekipleri (Mekanik / Galeri / Gunshop / Restoran vb.)
+      </h3>
+      
+      <table class="admin-table" style="width: 100%;">
+        <thead>
+          <tr>
+            <th>İşletme Adı</th>
+            <th>İşletme Sahibi (Boss ID)</th>
+            <th>Kişi Limiti & Aktif</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (currentBusinessTeams.length > 0) { %>
+            <% currentBusinessTeams.forEach(t => { %>
+              <tr id="team-row-<%= t._id %>">
+                <td style="font-weight: 600; color: var(--text-main);">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-store" style="color: #f59e0b; font-size: 13px;"></i>
+                    <span><%= t.name %></span>
+                  </div>
+                </td>
+                <td style="font-family: monospace; font-size: 12px; color: var(--text-muted); font-weight: 600;">
+                  <%= t.bossId %>
+                </td>
+                <td>
+                  <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(224, 169, 139, 0.08); border: 1px solid rgba(224, 169, 139, 0.25); border-radius: 8px; padding: 5px 9px; white-space: nowrap;">
+                    <span style="font-family: var(--font-display); font-size: 12px; font-weight: 800; color: #ffffff;">
+                      <%= (t.memberCount !== undefined ? t.memberCount : 0) %> / <%= (t.maxMembers !== undefined ? t.maxMembers : 50) %>
+                    </span>
+                    <span style="color: rgba(255, 255, 255, 0.2); font-weight: 300;">|</span>
+                    <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #34d399;">
+                      <span class="pulse-dot"></span> <%= (t.onlineCount !== undefined ? t.onlineCount : 0) %> Aktif
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div style="display: flex; flex-direction: row; align-items: center; gap: 6px; white-space: nowrap;">
+                    <button class="btn btn-primary btn-sm" title="İşletme Çalışanlarını Görüntüle" onclick="openBusinessMembersModal('<%= t._id %>')" style="background: rgba(224, 169, 139, 0.15); border: 1px solid rgba(224, 169, 139, 0.3); color: #ffffff; width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                      <i class="fa-solid fa-users"></i>
+                    </button>
+                    <% if (userPermissions.editTeams) { %>
+                      <button class="btn btn-secondary btn-sm" title="İşletmeyi Düzenle" onclick="openEditBusinessModal('<%= t._id %>', '<%= t.name %>', '<%= t.bossId %>', '<%= t.color %>', '<%= (t.maxMembers !== undefined ? t.maxMembers : 50) %>')" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
+                    <% } %>
+                    <button class="btn btn-secondary btn-sm" title="Sesli Destek Ver / Al" onclick="toggleBusinessVoiceSupport('<%= t._id %>')" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #22d3ee; width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                      <i class="fa-solid fa-microphone"></i>
+                    </button>
+                    <% if (userPermissions.deleteTeams) { %>
+                      <button class="btn btn-danger btn-sm" title="İşletmeyi Sil" onclick="deleteBusiness('<%= t._id %>')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 24px 0;">Kayıtlı işletme ekibi bulunmuyor.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Dedicated Add Business Modal -->
+    <div id="add-business-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 999999; align-items: center; justify-content: center; padding: 20px;">
+      <div class="content-panel" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; position: relative; background: #0c0d12; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9);">
+        <button type="button" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;" onclick="closeAddBusinessModal()"><i class="fa-solid fa-xmark"></i></button>
+        
+        <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin: 0; color: var(--text-main);">
+          <i class="fa-solid fa-store" style="color: #f59e0b;"></i> Yeni İşletme Ekibi Oluştur
+        </h3>
+
+        <form id="add-business-form" onsubmit="submitAddBusinessForm(event)" style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #fbbf24; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-circle-info" style="font-size: 14px;"></i> <span><b>İşletme Limit Belirleme:</b> Minimum <b>0 Kişi</b>, Maksimum <b>50 Kişi</b> yazabilirsiniz.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">İşletme Adı</label>
+            <input type="text" id="business-name" class="form-input" placeholder="Örn: Mekanik / Galeri / Gunshop / Casino" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">İşletme Sahibi (Boss Discord ID)</label>
+            <input type="text" id="business-bossId" class="form-input" placeholder="Örn: 444578912345678901 (Opsiyonel / Boss ID)">
+            <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 4px;">İşletme sahibinin Discord ID'si. Boş bırakılabilir.</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">İşletme Kişi Sayısı (Maksimum Üye Limiti)</label>
+            <input type="number" id="business-maxMembers" class="form-input" min="0" max="50" value="50" placeholder="0 - 50 arası sayı girin" required>
+            <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 4px;">Minimum 0, maksimum 50 kişi yazılabilir.</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">İşletme Rengi (Discord Rol Rengi)</label>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <input type="color" id="business-color" class="form-input" value="#f59e0b" style="width: 60px; height: 40px; padding: 2px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer;" onchange="document.getElementById('business-color-preview').innerText = this.value">
+              <span id="business-color-preview" style="font-family: monospace; font-size: 13px; color: var(--text-muted);">#f59e0b</span>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
+            <button type="button" class="btn btn-secondary" onclick="closeAddBusinessModal()">İptal</button>
+            <button type="submit" id="btn-submit-business" class="btn btn-primary" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; display: flex; align-items: center; gap: 6px; font-weight: 700;"><i class="fa-solid fa-floppy-disk"></i> Oluştur</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </section>
+
+  <script>
+    function filterBusinesses() {
+      const query = (document.getElementById("business-search-input")?.value || "").toLowerCase().trim();
+      const rows = document.querySelectorAll("tr[id^='team-row-']");
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        if (!query || text.includes(query)) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+
+    function openAddBusinessModal() {
+      const modal = document.getElementById("add-business-modal");
+      if (modal && modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+      }
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = scrollbarWidth + "px";
+      if (modal) modal.style.display = "flex";
+    }
+
+    function closeAddBusinessModal() {
+      document.getElementById("add-business-modal").style.display = "none";
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+      document.getElementById("add-business-form").reset();
+    }
+
+    async function submitAddBusinessForm(event) {
+      event.preventDefault();
+      
+      const name = document.getElementById("business-name").value;
+      const color = document.getElementById("business-color").value;
+      const bossIdElem = document.getElementById("business-bossId");
+      const bossId = bossIdElem ? bossIdElem.value : "none";
+      const maxMembers = parseInt(document.getElementById("business-maxMembers").value, 10);
+      
+      if (isNaN(maxMembers) || maxMembers < 0 || maxMembers > 50) {
+        showAdminToast("İşletme kişi sayısı minimum 0, maksimum 50 olabilir.", "error");
+        return;
+      }
+      
+      const btn = document.getElementById("btn-submit-business");
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> İşleniyor...`;
+      
+      try {
+        const response = await fetch("/admin/businesses/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ name, color, bossId, maxMembers })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          showAdminToast(data.message || "İşletme oluşturulamadı.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    }
+
+    function openBusinessMembersModal(businessId) {
+      if (typeof openTeamMembersModal === 'function') {
+        openTeamMembersModal(businessId, true);
+      }
+    }
+
+    function openEditBusinessModal(id, name, bossId, color, maxMembers) {
+      if (typeof openEditTeamModal === 'function') {
+        openEditTeamModal(id, name, bossId, color, 'business', maxMembers);
+      }
+    }
+
+    function toggleBusinessVoiceSupport(id) {
+      if (typeof toggleTeamVoiceSupport === 'function') {
+        toggleTeamVoiceSupport(id, true);
+      }
+    }
+
+    function deleteBusiness(id) {
+      if (typeof deleteTeam === 'function') {
+        deleteTeam(id, true);
+      }
+    }
+  </script>
+<% } %>

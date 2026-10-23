@@ -1,0 +1,445 @@
+<%- include('partials/header') %>
+
+<style>
+  .faq-page-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding-top: 130px;
+    padding-bottom: 90px;
+  }
+
+  .faq-hero {
+    text-align: center;
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  .faq-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(224, 169, 139, 0.15) 0%, rgba(245, 208, 197, 0.08) 100%);
+    border: 1px solid rgba(224, 169, 139, 0.35);
+    padding: 6px 18px;
+    border-radius: 99px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 20px rgba(224, 169, 139, 0.2);
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--primary-light);
+  }
+
+  .faq-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 4.5vw, 3.2rem);
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 14px;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  .faq-gradient-text {
+    background: linear-gradient(135deg, #ffffff 10%, #f5d0c5 50%, #e0a98b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .faq-hero-subtitle {
+    color: var(--text-muted);
+    font-size: 14.5px;
+    max-width: 620px;
+    margin: 0 auto 32px auto;
+    line-height: 1.7;
+  }
+
+  /* Search Box */
+  .faq-search-wrapper {
+    position: relative;
+    max-width: 580px;
+    margin: 0 auto;
+  }
+
+  .faq-search-input {
+    width: 100%;
+    padding: 16px 20px 16px 52px;
+    background: rgba(13, 16, 26, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: var(--font-body);
+    outline: none;
+    transition: var(--transition);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .faq-search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(224, 169, 139, 0.2), 0 10px 30px rgba(0, 0, 0, 0.5);
+    background: rgba(18, 22, 36, 0.95);
+  }
+
+  .faq-search-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-light);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  /* FAQ List & Items */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .faq-item {
+    background: rgba(13, 16, 26, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .faq-item:hover {
+    border-color: rgba(224, 169, 139, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  }
+
+  .faq-item.active {
+    background: rgba(17, 21, 35, 0.9);
+    border-color: rgba(224, 169, 139, 0.45);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(224, 169, 139, 0.12);
+  }
+
+  .faq-question {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 22px 26px;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    gap: 18px;
+    user-select: none;
+    transition: color 0.2s ease;
+  }
+
+  .faq-question-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+  }
+
+  .faq-q-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(224, 169, 139, 0.12);
+    border: 1px solid rgba(224, 169, 139, 0.25);
+    color: var(--primary-light);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  .faq-item.active .faq-q-icon {
+    background: var(--primary);
+    color: #07080c;
+    box-shadow: 0 0 15px rgba(224, 169, 139, 0.4);
+  }
+
+  .faq-icon-arrow {
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .faq-item.active .faq-icon-arrow {
+    transform: rotate(180deg);
+    color: var(--primary-light);
+  }
+
+  .faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.75;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid transparent;
+  }
+
+  .faq-item.active .faq-answer {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .faq-answer-inner {
+    padding: 20px 26px 24px 72px;
+  }
+
+  @media (max-width: 640px) {
+    .faq-answer-inner {
+      padding: 16px 20px 20px 20px;
+    }
+    .faq-question {
+      padding: 18px 20px;
+      font-size: 14.5px;
+    }
+  }
+
+  /* Support CTA Box */
+  .faq-cta-box {
+    margin-top: 60px;
+    background: linear-gradient(135deg, rgba(224, 169, 139, 0.1) 0%, rgba(13, 16, 26, 0.9) 100%);
+    border: 1px solid rgba(224, 169, 139, 0.3);
+    border-radius: 24px;
+    padding: 36px 40px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(224, 169, 139, 0.1);
+  }
+
+  .faq-cta-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 10px;
+  }
+
+  .faq-cta-desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    max-width: 520px;
+    margin: 0 auto 24px auto;
+    line-height: 1.6;
+  }
+</style>
+
+<main class="container">
+  <div class="faq-page-container">
+    
+    <!-- Hero Header -->
+    <div class="faq-hero">
+      <div class="faq-badge">
+        <i class="fa-solid fa-circle-question"></i> Bilgi &amp; Rehber Merkezi
+      </div>
+      <h1 class="faq-hero-title">
+        Sıkça Sorulan <span class="faq-gradient-text">Sorular</span>
+      </h1>
+      <p class="faq-hero-subtitle">
+        Sunucumuza katılım, whitelist başvuru süreçleri, ekonomi dinamikleri ve genel FiveM kuralları hakkında en çok merak edilen konular.
+      </p>
+
+      <!-- Live Search Box -->
+      <div class="faq-search-wrapper">
+        <i class="fa-solid fa-magnifying-glass faq-search-icon"></i>
+        <input 
+          type="text" 
+          id="faq-search-input" 
+          class="faq-search-input" 
+          placeholder="Soru veya anahtar kelime arayın..." 
+          autocomplete="off"
+        >
+      </div>
+    </div>
+
+    <!-- FAQ Accordion List -->
+    <div class="faq-list" id="faq-items-wrapper">
+      <% if (locals.faqs && faqs.length > 0) { %>
+        <% faqs.forEach((faq, index) => { %>
+          <div class="faq-item" data-search-target="<%= (faq.question + ' ' + faq.answer).toLowerCase() %>">
+            <button class="faq-question" type="button" aria-expanded="false">
+              <div class="faq-question-content">
+                <span class="faq-q-icon">
+                  <i class="fa-solid fa-question"></i>
+                </span>
+                <span><%= faq.question %></span>
+              </div>
+              <i class="fa-solid fa-chevron-down faq-icon-arrow"></i>
+            </button>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">
+                <%= faq.answer %>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <!-- Default Fallback Curated FAQs if database is empty -->
+        <div class="faq-item" data-search-target="sunucuya nasil giris yapabilirim discord whitelist">
+          <button class="faq-question" type="button" aria-expanded="false">
+            <div class="faq-question-content">
+              <span class="faq-q-icon"><i class="fa-solid fa-question"></i></span>
+              <span>Sunucuya nasıl giriş yapabilirim?</span>
+            </div>
+            <i class="fa-solid fa-chevron-down faq-icon-arrow"></i>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Sunucumuza giriş yapabilmek için Discord hesabınızı sitemizle eşleştirip, whitelist başvurusunda bulunmanız gerekmektedir. Başvurunuz yetkili ekibimiz tarafından onaylandıktan sonra oyun sunucumuza anında bağlanabilirsiniz.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item" data-search-target="whitelist basvurulari ne zaman degerlendirilir sure onay">
+          <button class="faq-question" type="button" aria-expanded="false">
+            <div class="faq-question-content">
+              <span class="faq-q-icon"><i class="fa-solid fa-question"></i></span>
+              <span>Whitelist başvuruları ne zaman değerlendirilir?</span>
+            </div>
+            <i class="fa-solid fa-chevron-down faq-icon-arrow"></i>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Başvurular yetkili ekibimiz tarafından düzenli olarak incelenir ve genellikle 24 saat içerisinde sonuçlandırılarak Discord üzerinden otomatik bildirim ile tarafınıza iletilir.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item" data-search-target="sunucu ekonomisi ne durumdadir legal illegal meslek para">
+          <button class="faq-question" type="button" aria-expanded="false">
+            <div class="faq-question-content">
+              <span class="faq-q-icon"><i class="fa-solid fa-question"></i></span>
+              <span>Sunucu ekonomisi ve meslek dengesi ne durumdadır?</span>
+            </div>
+            <i class="fa-solid fa-chevron-down faq-icon-arrow"></i>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Sunucumuzda dengeli ve gerçeğe yakın, emek odaklı bir ekonomi yapısı bulunmaktadır. İllegal oluşumlar ile yasal sivil/devlet meslekleri arasında adil bir gelir dengesi ve dinamik pazar sistemi gözetilmiştir.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item" data-search-target="rol kalitesi ve kurallar nelerdir kural ihlali failrp vdm rdm">
+          <button class="faq-question" type="button" aria-expanded="false">
+            <div class="faq-question-content">
+              <span class="faq-q-icon"><i class="fa-solid fa-question"></i></span>
+              <span>Rol kalitesi ve kural işleyişi nasıldır?</span>
+            </div>
+            <i class="fa-solid fa-chevron-down faq-icon-arrow"></i>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Kaliteli ve keyifli bir rol ortamı oluşturmak amacıyla tüm oyuncularımızın temel FiveM rol terimlerine ve sunucumuza özel kural yönetmeliklerine eksiksiz uyması zorunludur.
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- No Results Message -->
+      <div id="faq-no-results" style="display: none; text-align: center; padding: 40px 20px; color: var(--text-muted);">
+        <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: var(--primary); margin-bottom: 12px; display: inline-block;"></i>
+        <p style="font-size: 15px; margin: 0; font-weight: 600; color: #fff;">Aradığınız kriterlere uygun soru bulunamadı.</p>
+        <span style="font-size: 12.5px;">Lütfen farklı anahtar kelimeler deneyin veya doğrudan Discord destek kanalımızdan yardım alın.</span>
+      </div>
+    </div>
+
+    <!-- Support CTA Card -->
+    <div class="faq-cta-box">
+      <h3 class="faq-cta-title">
+        <i class="fa-solid fa-headset" style="color: var(--primary-light); margin-right: 8px;"></i> Başka bir sorunuz mu var?
+      </h3>
+      <p class="faq-cta-desc">
+        Aradığınız cevaba ulaşamadıysanız veya teknik bir problem yaşıyorsanız 7/24 aktif yetkili ekibimizle iletişime geçebilirsiniz.
+      </p>
+      <a href="https://discord.gg/starv" target="_blank" class="btn btn-primary" style="padding: 12px 28px; font-size: 13.5px; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fa-brands fa-discord" style="font-size: 16px;"></i> Discord Destek Talebi Aç
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  // Accordion Expand / Collapse Logic
+  function setupFaqAccordion() {
+    document.querySelectorAll(".faq-question").forEach(button => {
+      button.onclick = function() {
+        const item = this.closest(".faq-item");
+        const answer = item.querySelector(".faq-answer");
+        const isActive = item.classList.contains("active");
+
+        // Close all other active items
+        document.querySelectorAll(".faq-item.active").forEach(activeItem => {
+          if (activeItem !== item) {
+            activeItem.classList.remove("active");
+            activeItem.querySelector(".faq-question").setAttribute("aria-expanded", "false");
+            activeItem.querySelector(".faq-answer").style.maxHeight = null;
+          }
+        });
+
+        if (!isActive) {
+          item.classList.add("active");
+          this.setAttribute("aria-expanded", "true");
+          answer.style.maxHeight = answer.scrollHeight + 40 + "px";
+        } else {
+          item.classList.remove("active");
+          this.setAttribute("aria-expanded", "false");
+          answer.style.maxHeight = null;
+        }
+      };
+    });
+  }
+
+  // Real-time Search Filter
+  const searchInput = document.getElementById("faq-search-input");
+  const noResultsEl = document.getElementById("faq-no-results");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", function(e) {
+      const term = e.target.value.trim().toLowerCase();
+      const items = document.querySelectorAll(".faq-item");
+      let visibleCount = 0;
+
+      items.forEach(item => {
+        const text = item.getAttribute("data-search-target") || item.innerText.toLowerCase();
+        if (!term || text.includes(term)) {
+          item.style.display = "";
+          visibleCount++;
+        } else {
+          item.style.display = "none";
+          item.classList.remove("active");
+          const ans = item.querySelector(".faq-answer");
+          if (ans) ans.style.maxHeight = null;
+        }
+      });
+
+      if (noResultsEl) {
+        noResultsEl.style.display = visibleCount === 0 ? "block" : "none";
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", setupFaqAccordion);
+  setupFaqAccordion();
+</script>
+
+<%- include('partials/footer') %>

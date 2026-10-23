@@ -1,0 +1,392 @@
+<%- include('partials/header') %>
+
+<main class="container" style="max-width: 1200px; margin: 0 auto; padding-top: 130px; padding-bottom: 90px;">
+  
+  <!-- Header Section -->
+  <div style="text-align: center; margin-bottom: 48px;">
+    <div class="hero-badge" style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+      <span class="hero-badge-dot"></span>
+      <span class="hero-badge-text">SHIELD BAŞVURU & ALIM MERKEZİ</span>
+    </div>
+    <h1 style="font-family: var(--font-display); font-size: 36px; font-weight: 900; color: #fff; margin-bottom: 12px; letter-spacing: -0.02em;">
+      Açık <span style="background: linear-gradient(135deg, #ffffff 0%, #f5d0c5 50%, #e0a98b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Başvuru Formları</span>
+    </h1>
+    <p style="color: var(--text-muted); font-size: 14.5px; max-width: 600px; margin: 0 auto; line-height: 1.6;">
+      EmpireV bünyesinde yetkili kadrosuna, departmanlara veya özel birimlere katılmak için aşağıdaki aktif başvuru formlarını doldurabilirsiniz.
+    </p>
+  </div>
+
+  <style>
+    .applications-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 28px;
+      margin-bottom: 56px;
+    }
+
+    .app-card {
+      background: rgba(13, 16, 26, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .app-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(224, 169, 139, 0.4);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(224, 169, 139, 0.15);
+    }
+
+    .app-card.closed {
+      opacity: 0.75;
+      filter: grayscale(0.2);
+    }
+
+    .app-card-img-wrapper {
+      width: 100%;
+      aspect-ratio: 16 / 6;
+      position: relative;
+      overflow: hidden;
+      background: #07090f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .app-card-img-blur {
+      position: absolute;
+      inset: -12px;
+      background-size: cover;
+      background-position: center;
+      filter: blur(16px) brightness(0.35);
+      opacity: 0.75;
+      transform: scale(1.1);
+      pointer-events: none;
+    }
+
+    .app-card-img {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1;
+      display: block;
+    }
+
+    .app-card:hover .app-card-img {
+      transform: scale(1.03);
+    }
+
+    .app-card-img-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(13, 16, 26, 0.35) 0%, transparent 28%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .app-card-content {
+      padding: 24px 26px 26px 26px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 16px;
+    }
+
+    .app-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .app-card-title {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .app-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+
+    .app-badge.open {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+
+    .app-badge.closed {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #f87171;
+    }
+
+    .app-badge .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulseDot 1.8s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+    }
+
+    .app-card-desc {
+      color: var(--text-secondary);
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin: 0;
+      flex: 1;
+    }
+
+    .app-card-footer {
+      margin-top: auto;
+      padding-top: 8px;
+    }
+
+    .btn-apply {
+      width: 100%;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-apply-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 18px rgba(224, 169, 139, 0.35);
+    }
+
+    .btn-apply-primary:hover {
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+      box-shadow: 0 6px 24px rgba(224, 169, 139, 0.5);
+      transform: translateY(-2px);
+      color: #fff;
+    }
+
+    .btn-apply-discord {
+      background: rgba(88, 101, 242, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(88, 101, 242, 0.3);
+    }
+
+    .btn-apply-discord:hover {
+      background: #5865F2;
+      color: #ffffff;
+      box-shadow: 0 4px 18px rgba(88, 101, 242, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-apply-disabled {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .submissions-table-card {
+      background: rgba(13, 16, 26, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 32px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .table-modern {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;
+    }
+
+    .table-modern th {
+      color: var(--text-muted);
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .table-modern td {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--text-main);
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .table-modern tr td:first-child {
+      border-left: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 12px 0 0 12px;
+    }
+
+    .table-modern tr td:last-child {
+      border-right: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 0 12px 12px 0;
+    }
+
+    .table-modern tr:hover td {
+      background: rgba(224, 169, 139, 0.05);
+      border-color: rgba(224, 169, 139, 0.15);
+    }
+
+    @media (max-width: 768px) {
+      .applications-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <!-- Applications Grid -->
+  <div class="applications-grid">
+    <% if (applications && applications.length > 0) { %>
+      <% applications.forEach(app => { %>
+        <div class="app-card <%= app.status === 'closed' ? 'closed' : '' %>">
+          <% if (app.imageUrl) { %>
+            <div class="app-card-img-wrapper">
+              <div class="app-card-img-blur" style="background-image: url('<%= app.imageUrl %>');"></div>
+              <img src="<%= app.imageUrl %>" alt="<%= app.title %>" class="app-card-img">
+              <div class="app-card-img-overlay"></div>
+            </div>
+          <% } %>
+          
+          <div class="app-card-content">
+            <div class="app-card-header">
+              <h3 class="app-card-title"><%= app.title %></h3>
+              <% if (app.status === 'open') { %>
+                <span class="app-badge open"><span class="badge-dot"></span> AÇIK</span>
+              <% } else { %>
+                <span class="app-badge closed"><i class="fa-solid fa-lock" style="font-size: 10px;"></i> KAPALI</span>
+              <% } %>
+            </div>
+
+            <p class="app-card-desc"><%= app.shortDescription || 'Bu başvuru formu için açıklama bulunmamaktadır.' %></p>
+
+            <div class="app-card-footer">
+              <% if (app.status === 'open') { %>
+                <% if (locals.user) { %>
+                  <a href="/applications/<%= app._id %>" class="btn-apply btn-apply-primary">
+                    <i class="fa-solid fa-pen-to-square"></i> Şimdi Başvur
+                  </a>
+                <% } else { %>
+                  <a href="/auth/login" class="btn-apply btn-apply-discord">
+                    <i class="fa-brands fa-discord"></i> Başvurmak İçin Giriş Yap
+                  </a>
+                <% } %>
+              <% } else { %>
+                <button class="btn-apply btn-apply-disabled" disabled>
+                  <i class="fa-solid fa-lock"></i> Başvurular Kilitli
+                </button>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: rgba(13, 16, 26, 0.6); border: 1px dashed rgba(255, 255, 255, 0.1); border-radius: 20px; color: var(--text-muted);">
+        <i class="fa-solid fa-folder-open" style="font-size: 44px; margin-bottom: 16px; color: rgba(224, 169, 139, 0.4); display: block;"></i>
+        <h4 style="font-size: 16px; color: #fff; margin-bottom: 6px; font-weight: 700;">Aktif Başvuru Bulunamadı</h4>
+        <p style="font-size: 13.5px; margin: 0;">Şu anda açık bir başvuru formu bulunmamaktadır. Lütfen daha sonra tekrar kontrol edin.</p>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- User Submissions History -->
+  <% if (locals.user && submissions && submissions.length > 0) { %>
+    <div class="submissions-table-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 18px;">
+        <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; text-transform: uppercase; color: #fff; margin: 0; display: flex; align-items: center; gap: 10px; letter-spacing: 0.02em;">
+          <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary-light);"></i> Başvuru Geçmişiniz
+        </h3>
+        <span style="font-size: 12px; color: var(--text-muted);">Toplam <%= submissions.length %> başvuru kaydı</span>
+      </div>
+      
+      <div style="overflow-x: auto;">
+        <table class="table-modern">
+          <thead>
+            <tr>
+              <th>Başvuru Formu</th>
+              <th>Gönderim Tarihi</th>
+              <th>Sonuç Durumu</th>
+              <th>Yetkili Açıklaması</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% submissions.forEach(sub => { %>
+              <tr>
+                <td style="font-weight: 700; color: #fff;">
+                  <i class="fa-solid fa-file-lines" style="color: var(--primary-light); margin-right: 8px;"></i>
+                  <%= sub.applicationId ? sub.applicationId.title : 'Silinmiş Başvuru' %>
+                </td>
+                <td style="color: var(--text-muted); font-size: 12.5px;">
+                  <%= new Date(sub.date).toLocaleDateString('tr-TR') %> <%= new Date(sub.date).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
+                </td>
+                <td>
+                  <% if (sub.status === 'pending') { %>
+                    <span style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-hourglass-half fa-spin"></i> DEĞERLENDİRİLİYOR
+                    </span>
+                  <% } else if (sub.status === 'approved') { %>
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-circle-check"></i> ONAYLANDI
+                    </span>
+                  <% } else { %>
+                    <span style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-circle-xmark"></i> REDDEDİLDİ
+                    </span>
+                  <% } %>
+                </td>
+                <td style="color: var(--text-secondary); font-size: 12.5px; max-width: 320px; word-wrap: break-word;">
+                  <%= sub.reviewerNotes || 'Henüz bir not girilmedi.' %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+
+</main>
+
+<%- include('partials/footer') %>

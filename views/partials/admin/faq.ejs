@@ -1,0 +1,60 @@
+<% if (userPermissions.manageWebsite) { %>
+  <section id="faq-settings-content" class="admin-section-inner">
+    <div class="main-layout">
+      <div class="content-panel" style="grid-column: span 6;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;"><i class="fa-solid fa-plus-circle text-sky-400"></i> SSS Ekle</h3>
+        <form action="/admin/website/faq/add" method="POST" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="form-group">
+            <label class="form-label">Soru</label>
+            <input type="text" name="question" placeholder="Soru başlığı" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cevap</label>
+            <textarea name="answer" placeholder="Cevap içeriği..." class="form-input" required style="resize: none; min-height: 120px;"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sıralama (Order)</label>
+            <input type="number" name="order" value="0" class="form-input" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-floppy-disk"></i> Soruyu Kaydet</button>
+        </form>
+      </div>
+      <div class="content-panel" style="grid-column: span 6; overflow-x: auto; padding: 24px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;"><i class="fa-solid fa-list-ol text-sky-400"></i> SSS Listesi</h3>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Soru</th>
+              <th>Sıra</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (faqs && faqs.length > 0) { %>
+              <% faqs.forEach(item => { %>
+                <tr>
+                  <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><%= item.question %></td>
+                  <td><%= item.order %></td>
+                  <td>
+                    <form action="/admin/website/faq/delete/<%= item._id %>" method="POST">
+                      <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 10px;"><i class="fa-solid fa-trash"></i> Sil</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="3" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 16px 0;">Soru bulunmuyor.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+<% } else { %>
+  <div class="locked-overlay">
+    <div class="locked-overlay-icon"><i class="fa-solid fa-lock"></i></div>
+    <h4>Erişim Kısıtlandı</h4>
+    <p>Burayı görüntülemeye yetkiniz yok.</p>
+  </div>
+<% } %>

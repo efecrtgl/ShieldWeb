@@ -1,0 +1,244 @@
+<%- include('partials/header') %>
+
+<main class="container" style="padding-top: 130px; padding-bottom: 90px;">
+  
+  <!-- Hero Section -->
+  <div style="text-align: center; margin-bottom: 56px; position: relative;">
+    <div class="hero-badge" style="background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.3); box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);">
+      <span class="hero-badge-dot" style="background: #38bdf8; box-shadow: 0 0 10px #38bdf8;"></span>
+      <span class="hero-badge-text" style="color: #38bdf8;">SHIELD KARAKTER MERKEZİ</span>
+    </div>
+    <h1 class="hero-title">
+      Karakter Listesi &amp; Oyuncu Rehberi
+    </h1>
+    <p class="hero-subtitle">
+      Sunucumuzda kayıtlı FiveM karakterlerinizi görüntüleyin, meslek, ekonomi ve envanter detaylarını anlık olarak inceleyin.
+    </p>
+
+    <!-- Global Search Bar -->
+    <div style="max-width: 650px; margin: 0 auto; position: relative;">
+      <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--primary-light); font-size: 16px; z-index: 2;"></i>
+      <input type="text" id="character-search-input" oninput="handleCharacterSearch()" placeholder="Karakter adı, citizen ID veya meslek ara..." style="width: 100%; height: 56px; background: rgba(13, 16, 26, 0.85); backdrop-filter: blur(20px); border: 1px solid var(--panel-border); border-radius: 18px; padding: 0 54px 0 54px; color: #fff; font-size: 14.5px; font-weight: 500; outline: none; transition: var(--transition); box-shadow: var(--shadow-sm);">
+      <button id="search-clear-btn" onclick="clearCharacterSearch()" style="display: none; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); width: 28px; height: 28px; border-radius: 50%; color: var(--text-muted); font-size: 12px; cursor: pointer; transition: var(--transition);">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <% if (locals.user && Array.isArray(myCharacters) && myCharacters.length > 0) { %>
+    <!-- My Characters Section -->
+    <div style="margin-bottom: 72px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(224, 169, 139, 0.15); border: 1px solid rgba(224, 169, 139, 0.3); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px var(--primary-glow);">
+            <i class="fa-solid fa-id-card-clip" style="color: var(--primary-light); font-size: 18px;"></i>
+          </div>
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin: 0; letter-spacing: 0.02em;">Benim Karakterlerim</h2>
+            <span style="font-size: 12.5px; color: var(--text-muted);"><%= user.username %> hesabınıza bağlı <%= myCharacters.length %> aktif karakter</span>
+          </div>
+        </div>
+        <span class="badge badge-primary"><i class="fa-solid fa-shield-check"></i> Doğrulanmış</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px;">
+        <% myCharacters.forEach(function(char) { %>
+          <div class="glass-card" style="padding: 24px; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: var(--primary-glow); border-radius: 50%; filter: blur(35px); pointer-events: none;"></div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+              <div>
+                <span style="font-size: 10px; font-weight: 800; color: var(--primary-light); text-transform: uppercase; letter-spacing: 0.1em; background: rgba(224, 169, 139, 0.1); padding: 2px 8px; border-radius: 4px; margin-bottom: 6px; display: inline-block;">SLOT #<%= char.cid || 1 %></span>
+                <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin: 0;">
+                  <%= char.firstname || 'İsimsiz' %> <%= char.lastname || 'Karakter' %>
+                </h3>
+              </div>
+              <span style="font-size: 11px; font-family: var(--font-mono); background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-secondary); padding: 4px 8px; border-radius: 6px;">
+                <%= char.citizenid %>
+              </span>
+            </div>
+
+            <!-- Stats Pills -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+              <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px 14px;">
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.05em;"><i class="fa-solid fa-briefcase" style="color: #38bdf8;"></i> Meslek</div>
+                <div style="font-size: 13.5px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <%= (char.job && char.job.label) ? char.job.label : 'Sivil' %>
+                </div>
+                <div style="font-size: 11px; color: #38bdf8; margin-top: 2px;"><%= (char.job && char.job.grade) ? char.job.grade : 'Derecesiz' %></div>
+              </div>
+
+              <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px 14px;">
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.05em;"><i class="fa-solid fa-wallet" style="color: #10b981;"></i> Toplam Varlık</div>
+                <div style="font-size: 14px; font-family: var(--font-mono); font-weight: 800; color: #34d399;">
+                  $<%= (((char.money && char.money.cash) || 0) + ((char.money && char.money.bank) || 0)).toLocaleString('tr-TR') %>
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                  Nakit: $<%= ((char.money && char.money.cash) || 0).toLocaleString('tr-TR') %>
+                </div>
+              </div>
+            </div>
+
+            <!-- Extra Info -->
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; font-weight: 500; color: var(--text-muted); padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.06); margin-top: auto;">
+              <span title="Oynama Süresi" style="display: flex; align-items: center; gap: 6px;"><i class="fa-regular fa-clock" style="color: #ffffff;"></i> <%= Math.floor((char.playtime || 0) / 60) %>s <%= (char.playtime || 0) % 60 %>dk</span>
+              <span title="Envanter" style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-box-open" style="color: #f59e0b;"></i> <%= Array.isArray(char.inventory) ? char.inventory.length : 0 %> Eşya</span>
+              <span title="Doğum Tarihi" style="display: flex; align-items: center; gap: 6px;"><i class="fa-regular fa-calendar" style="color: #38bdf8;"></i> <%= char.birthdate || 'Bilinmiyor' %></span>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  <% } else if (!locals.user) { %>
+    <div class="glass-card" style="text-align: center; margin-bottom: 72px; max-width: 600px; margin-left: auto; margin-right: auto; padding: 48px;">
+      <i class="fa-brands fa-discord" style="font-size: 48px; color: #5865f2; margin-bottom: 20px; display: inline-block; filter: drop-shadow(0 0 15px rgba(88, 101, 242, 0.4));"></i>
+      <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 12px;">Karakterlerinizi Görmek İçin Giriş Yapın</h3>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.6;">Discord hesabınızla giriş yaparak sunucudaki karakterlerinizin anlık finansal ve mesleki durumunu görüntüleyebilirsiniz.</p>
+      <a href="/auth/login" class="nav-btn-discord" style="padding: 12px 28px; font-size: 13px;">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> Discord ile Giriş Yap
+      </a>
+    </div>
+  <% } %>
+
+  <!-- All Server Characters Showcase -->
+  <div>
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 16px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);">
+          <i class="fa-solid fa-users" style="color: #38bdf8; font-size: 18px;"></i>
+        </div>
+        <div>
+          <h2 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin: 0; letter-spacing: 0.02em;">Karakter Rehberi</h2>
+          <span style="font-size: 12.5px; color: var(--text-muted);">Sunucuda aktif rol yapan vatandaşlar</span>
+        </div>
+      </div>
+      <div id="search-status-text" class="badge badge-success">
+        Toplam <%= (allCharacters && allCharacters.length) || 0 %> Vatandaş
+      </div>
+    </div>
+
+    <!-- Character Grid Container -->
+    <div id="character-grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px;">
+      <% if (Array.isArray(allCharacters) && allCharacters.length > 0) { %>
+        <% allCharacters.forEach(function(char) { %>
+          <div class="glass-card" style="padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">
+                <%= char.firstname || 'Bilinmeyen' %> <%= char.lastname || '' %>
+              </h3>
+              <span style="font-size: 10px; font-family: var(--font-mono); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); padding: 3px 8px; border-radius: 6px;">
+                <%= char.citizenid %>
+              </span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; font-weight: 500;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                <span style="color: var(--text-muted); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-briefcase" style="color: #38bdf8;"></i> Meslek</span>
+                <span style="color: #e2e8f0; font-weight: 700;"><%= (char.job && char.job.label) ? char.job.label : 'Sivil' %></span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                <span style="color: var(--text-muted); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-cake-candles" style="color: #f59e0b;"></i> Doğum</span>
+                <span style="color: #e2e8f0;"><%= char.birthdate || '—' %></span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--text-muted); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-clock" style="color: #ffffff;"></i> Süre</span>
+                <span style="color: #e2e8f0;"><%= Math.floor((char.playtime || 0) / 60) %> saat</span>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+          <i class="fa-solid fa-users-slash" style="font-size: 42px; margin-bottom: 16px; opacity: 0.3;"></i>
+          <p style="margin: 0; font-size: 15px;">Henüz senkronize edilmiş bir karakter bulunmuyor.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+</main>
+
+<style>
+  #search-clear-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+  }
+</style>
+
+<script>
+  let searchTimeout = null;
+  function handleCharacterSearch() {
+    const val = document.getElementById('character-search-input').value.trim();
+    const clearBtn = document.getElementById('search-clear-btn');
+    if (val.length > 0) {
+      clearBtn.style.display = 'block';
+    } else {
+      clearBtn.style.display = 'none';
+    }
+
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/characters/search?q=' + encodeURIComponent(val));
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.characters)) {
+          renderCharacters(data.characters);
+        }
+      } catch (e) {
+        console.error('Character search error:', e);
+      }
+    }, 250);
+  }
+
+  function clearCharacterSearch() {
+    document.getElementById('character-search-input').value = '';
+    document.getElementById('search-clear-btn').style.display = 'none';
+    handleCharacterSearch();
+  }
+
+  function renderCharacters(chars) {
+    const container = document.getElementById('character-grid-container');
+    const statusText = document.getElementById('search-status-text');
+    statusText.innerHTML = '<i class="fa-solid fa-users"></i> Toplam ' + chars.length + ' Vatandaş';
+
+    if (chars.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+          <i class="fa-solid fa-magnifying-glass" style="font-size: 42px; margin-bottom: 16px; opacity: 0.3;"></i>
+          <p style="margin: 0; font-size: 15px;">Aramanıza uygun karakter bulunamadı.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = chars.map(char => `
+      <div class="glass-card" style="padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">
+            ${(char.firstname || 'Bilinmeyen')} ${(char.lastname || '')}
+          </h3>
+          <span style="font-size: 10px; font-family: var(--font-mono); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); padding: 3px 8px; border-radius: 6px;">
+            ${char.citizenid || ''}
+          </span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; font-weight: 500;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+            <span style="color: var(--text-muted); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-briefcase" style="color: #38bdf8;"></i> Meslek</span>
+            <span style="color: #e2e8f0; font-weight: 700;">${(char.job && char.job.label) ? char.job.label : 'Sivil'}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+            <span style="color: var(--text-muted); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-cake-candles" style="color: #f59e0b;"></i> Doğum</span>
+            <span style="color: #e2e8f0;">${char.birthdate || '—'}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-muted); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-clock" style="color: #ffffff;"></i> Süre</span>
+            <span style="color: #e2e8f0;">${Math.floor((char.playtime || 0) / 60)} saat</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+</script>
+
+<%- include('partials/footer') %>

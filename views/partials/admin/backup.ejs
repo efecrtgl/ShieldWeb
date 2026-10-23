@@ -1,0 +1,129 @@
+<section id="backup-settings-content" class="admin-section-inner">
+  <h2 class="panel-title"><i class="fa-solid fa-download"></i> Yedekleme Merkezi</h2>
+
+  <div class="main-layout" style="margin-bottom: 30px;">
+    <div class="content-panel" style="grid-column: span 12; padding: 24px;">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; color: #fff;">
+        <i class="fa-solid fa-download text-primary" style="margin-right: 6px;"></i> Sistem Yedekleme Merkezi
+      </h3>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 24px; line-height: 1.5;">
+        Web sitesi veritabanını, Discord rol yapılandırmalarını ve web sitesi dosyalarını (node_modules hariç) güvenli bir şekilde yedekleyip bilgisayarınıza indirebilirsiniz.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        <!-- Database Backup Card -->
+        <div style="background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px; justify-content: space-between;">
+          <div>
+            <h4 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-database text-success"></i> Veritabanı Yedeklemesi
+            </h4>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 6px 0 0 0; line-height: 1.4;">
+              Tüm veritabanı koleksiyonlarını (Kullanıcılar, Cezalar, Başvurular vb.) JSON formatında içeren bir zip arşivi oluşturup indirir.
+            </p>
+          </div>
+          <button onclick="downloadBackup('database')" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; background: var(--success); color: #fff; border: none;">
+            <i class="fa-solid fa-lock" style="color: #fbbf24;"></i> <i class="fa-solid fa-download"></i> Veritabanını Yedekle (Kilitli)
+          </button>
+        </div>
+
+        <!-- Discord Role Backup Card -->
+        <div style="background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px; justify-content: space-between;">
+          <div>
+            <h4 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-brands fa-discord" style="color: #5865F2;"></i> Discord Rol Yedeklemesi
+            </h4>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 6px 0 0 0; line-height: 1.4;">
+              Discord sunucusundaki tüm rolleri (isimler, renkler, izinler, konumlar vb.) detaylı bir JSON yedek dosyası olarak indirir.
+            </p>
+          </div>
+          <button onclick="downloadBackup('discord-roles')" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; font-size: 12px; font-weight: 700; border-radius: 8px; background-color: #5865F2; color: #fff; border: none; cursor: pointer;">
+            <i class="fa-solid fa-download"></i> Rolleri Yedekle
+          </button>
+        </div>
+
+        <!-- Website Files Backup Card -->
+        <div style="background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px; justify-content: space-between;">
+          <div>
+            <h4 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-file-zipper text-warning"></i> Web Sitesi Dosya Yedeklemesi
+            </h4>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 6px 0 0 0; line-height: 1.4;">
+              Proje kaynak kodlarını, resimleri ve ayar dosyalarını (`node_modules` hariç tutularak) tek bir ZIP arşivi halinde yedekler.
+            </p>
+          </div>
+          <button onclick="downloadBackup('website-files')" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; background: var(--warning); color: #000; border: none;">
+            <i class="fa-solid fa-download"></i> Dosyaları Yedekle
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-layout" style="margin-bottom: 30px;">
+    <div class="content-panel" style="grid-column: span 12; padding: 24px;">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; color: #fff;">
+        <i class="fa-solid fa-upload text-warning" style="margin-right: 6px;"></i> Yedek Geri Yükleme
+      </h3>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 24px; line-height: 1.5;">
+        Daha önce indirmiş olduğunuz Discord Rol yedek dosyasını (`.json`) buraya yükleyerek, üyelerin yedeklendiği tarihteki rollerini otomatik olarak geri yükleyebilirsiniz.
+      </p>
+
+      <form id="restore-roles-form" onsubmit="restoreRoles(event)" style="display: flex; flex-direction: column; gap: 16px; max-width: 500px;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-size: 11px; margin-bottom: 8px;">Discord Rol Yedek Dosyası (.json)</label>
+          <input type="file" id="restore-backup-file" accept=".json" class="form-input" style="padding: 10px; border-radius: 8px; border: 1.5px solid var(--border-color); background: rgba(0,0,0,0.1); color: #fff; width: 100%;" required>
+        </div>
+        <button type="submit" class="btn btn-warning" style="width: fit-content; display: flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">
+          <i class="fa-solid fa-rotate-left"></i> Rolleri Geri Yükle
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+  async function downloadBackup(type) {
+    showAdminToast("Yedek dosyası hazırlanıyor, lütfen bekleyin...", 'info');
+    try {
+      window.location.href = `/admin/developer/backup/${type}`;
+      setTimeout(() => {
+        showAdminToast("Yedekleme işlemi başlatıldı.", 'success');
+      }, 1500);
+    } catch (err) {
+      showAdminToast("Yedek oluşturulurken bir hata oluştu.", 'error');
+    }
+  }
+
+  async function restoreRoles(event) {
+    event.preventDefault();
+    const fileInput = document.getElementById("restore-backup-file");
+    if (!fileInput || !fileInput.files.length) {
+      showAdminToast("Lütfen bir yedek dosyası seçin.", 'error');
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append("backupFile", file);
+
+    showAdminToast("Yedek dosyası yükleniyor ve işleniyor...", 'info');
+
+    try {
+      const response = await fetch("/admin/developer/backup/restore-roles", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        showAdminToast(data.message, 'success');
+        fileInput.value = "";
+      } else {
+        showAdminToast(data.message || "Geri yükleme başarısız.", 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showAdminToast("İstek gönderilirken hata oluştu.", 'error');
+    }
+  }
+</script>

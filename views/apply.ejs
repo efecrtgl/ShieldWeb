@@ -1,0 +1,587 @@
+<%- include('partials/header') %>
+
+<main class="container" style="max-width: 900px; margin: 0 auto; padding-top: 120px; padding-bottom: 90px;">
+  
+  <!-- Back Button -->
+  <div style="margin-bottom: 28px;">
+    <a href="/applications" class="btn-back-pill">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Tüm Başvurulara Dön</span>
+    </a>
+  </div>
+
+  <style>
+    .btn-back-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 99px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-back-pill:hover {
+      background: rgba(168, 85, 247, 0.12);
+      border-color: rgba(168, 85, 247, 0.35);
+      color: #fff;
+      transform: translateX(-4px);
+    }
+
+    .app-hero-card {
+      background: rgba(13, 16, 26, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      margin-bottom: 36px;
+      position: relative;
+    }
+
+    .app-hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #e0a98b, #f5d0c5, #ffffff);
+    }
+
+    .app-hero-img-wrap {
+      width: 100%;
+      aspect-ratio: 16 / 5.5;
+      max-height: 280px;
+      position: relative;
+      overflow: hidden;
+      background: #080a12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .app-hero-img-blur {
+      position: absolute;
+      inset: -15px;
+      background-size: cover;
+      background-position: center;
+      filter: blur(16px) brightness(0.35);
+      opacity: 0.75;
+      transform: scale(1.1);
+      pointer-events: none;
+    }
+
+    .app-hero-img {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      z-index: 1;
+      display: block;
+    }
+
+    .app-hero-img-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(13, 16, 26, 0.35) 0%, transparent 28%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .app-hero-body {
+      padding: 32px 36px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .app-hero-body.with-img {
+      margin-top: 0;
+    }
+
+    .app-hero-title {
+      font-family: var(--font-display);
+      font-size: 30px;
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 16px;
+      line-height: 1.25;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .rich-text-content {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 14.5px;
+      line-height: 1.8;
+      word-break: break-word;
+    }
+
+    .rich-text-content ul {
+      list-style-type: disc;
+      margin-left: 24px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .rich-text-content ol {
+      list-style-type: decimal;
+      margin-left: 24px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .rich-text-content li {
+      margin-bottom: 6px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .rich-text-content a {
+      color: #ffffff;
+      text-decoration: underline;
+      transition: color 0.2s ease;
+    }
+
+    .rich-text-content a:hover {
+      color: var(--primary-light);
+    }
+
+    .rich-text-content b, .rich-text-content strong {
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .rich-text-content u {
+      text-decoration: underline;
+    }
+
+    .rich-text-content i, .rich-text-content em {
+      font-style: italic;
+    }
+
+    /* Form Card Styles */
+    .form-main-card {
+      background: rgba(13, 16, 26, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 36px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .form-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 20px;
+    }
+
+    .form-header-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0;
+    }
+
+    .form-header-title i {
+      color: #ffffff;
+      font-size: 22px;
+    }
+
+    .form-header-badge {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 6px 14px;
+      border-radius: 99px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* Questions List */
+    .questions-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .q-card {
+      background: rgba(18, 23, 37, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 18px;
+      padding: 24px 28px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .q-card:focus-within {
+      background: rgba(22, 28, 45, 0.85);
+      border-color: rgba(224, 169, 139, 0.4);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(224, 169, 139, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .q-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .q-badge-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(224, 169, 139, 0.2), rgba(245, 208, 197, 0.2));
+      border: 1px solid rgba(224, 169, 139, 0.4);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .q-label {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.5;
+      margin: 0;
+      flex: 1;
+    }
+
+    .q-required-tag {
+      color: #f87171;
+      font-size: 11.5px;
+      font-weight: 700;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-left: 8px;
+      vertical-align: middle;
+      letter-spacing: 0.02em;
+    }
+
+    /* Inputs & Textareas */
+    .q-input, .q-textarea, .q-select {
+      width: 100%;
+      background: rgba(6, 9, 16, 0.7);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: #f8fafc;
+      font-size: 14px;
+      font-family: var(--font-body);
+      transition: all 0.25s ease;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    .q-input:focus, .q-textarea:focus, .q-select:focus {
+      background: rgba(8, 12, 22, 0.95);
+      border-color: #e0a98b;
+      box-shadow: 0 0 0 3.5px rgba(224, 169, 139, 0.22), 0 0 15px rgba(224, 169, 139, 0.15);
+      color: #ffffff;
+    }
+
+    .q-input::placeholder, .q-textarea::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 13.5px;
+    }
+
+    .q-textarea {
+      min-height: 120px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .q-select {
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23e0a98b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      background-size: 16px;
+      padding-right: 44px;
+    }
+
+    .q-select option {
+      background: #0f1422;
+      color: #fff;
+      padding: 10px;
+    }
+
+    /* Options Pill Grid (Radio & Checkbox) */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .option-pill-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 18px;
+      background: rgba(6, 9, 16, 0.6);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .option-pill-label:hover {
+      background: rgba(224, 169, 139, 0.08);
+      border-color: rgba(224, 169, 139, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .option-pill-label:has(input:checked) {
+      background: rgba(224, 169, 139, 0.15);
+      border-color: #e0a98b;
+      box-shadow: 0 0 15px rgba(224, 169, 139, 0.2);
+    }
+
+    .option-pill-label input[type="radio"],
+    .option-pill-label input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      accent-color: #e0a98b;
+      cursor: pointer;
+    }
+
+    .option-pill-text {
+      color: #e2e8f0;
+      font-size: 13.5px;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .option-pill-label:has(input:checked) .option-pill-text {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    /* Form Actions Footer */
+    .form-footer-actions {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-submit-apply {
+      padding: 14px 36px;
+      font-size: 14px;
+      font-weight: 800;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #e0a98b 0%, #cf9272 100%);
+      color: #07080c;
+      border: none;
+      box-shadow: 0 6px 25px rgba(224, 169, 139, 0.4);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-submit-apply:hover {
+      background: linear-gradient(135deg, #f5d0c5 0%, #e0a98b 100%);
+      box-shadow: 0 8px 30px rgba(224, 169, 139, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .btn-cancel-apply {
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-cancel-apply:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    @media (max-width: 640px) {
+      .form-main-card {
+        padding: 24px 20px;
+      }
+      .q-card {
+        padding: 20px 18px;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-footer-actions {
+        flex-direction: column-reverse;
+        width: 100%;
+      }
+      .btn-submit-apply, .btn-cancel-apply {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+
+  <!-- Application Header Card -->
+  <div class="app-hero-card">
+    <% if (application.imageUrl) { %>
+      <div class="app-hero-img-wrap">
+        <div class="app-hero-img-blur" style="background-image: url('<%= application.imageUrl %>');"></div>
+        <img src="<%= application.imageUrl %>" alt="<%= application.title %>" class="app-hero-img">
+        <div class="app-hero-img-fade"></div>
+      </div>
+    <% } %>
+    
+    <div class="app-hero-body <%= application.imageUrl ? 'with-img' : '' %>">
+      <h1 class="app-hero-title"><%= application.title %></h1>
+      <div class="rich-text-content">
+        <%- application.description %>
+      </div>
+    </div>
+  </div>
+
+  <% if (application.status === 'open') { %>
+    <!-- Main Form Card -->
+    <form action="/applications/<%= application._id %>/apply" method="POST" class="form-main-card">
+      
+      <div class="form-header-bar">
+        <h2 class="form-header-title">
+          <i class="fa-solid fa-file-signature"></i>
+          <span>Başvuru Formu</span>
+        </h2>
+        <span class="form-header-badge">
+          <i class="fa-solid fa-list-check" style="color: #ffffff; margin-right: 6px;"></i>
+          <%= application.questions.length %> Soru
+        </span>
+      </div>
+
+      <div class="questions-wrapper">
+        <% application.questions.forEach((q, index) => { %>
+          <div class="q-card">
+            <div class="q-header">
+              <span class="q-badge-num"><%= index + 1 %></span>
+              <div class="q-label">
+                <%= q.label %>
+                <% if (q.required) { %>
+                  <span class="q-required-tag">Zorunlu</span>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Hidden input to store question label for the backend -->
+            <input type="hidden" name="questionLabels[<%= q.id %>]" value="<%= q.label %>">
+
+            <% if (q.type === 'short') { %>
+              <input type="text" name="answers[<%= q.id %>]" class="q-input" placeholder="Cevabınızı buraya yazınız..." <%= q.required ? 'required' : '' %>>
+            
+            <% } else if (q.type === 'long') { %>
+              <textarea name="answers[<%= q.id %>]" class="q-textarea" placeholder="Detaylı cevabınızı buraya yazınız..." <%= q.required ? 'required' : '' %>></textarea>
+            
+            <% } else if (q.type === 'select') { %>
+              <select name="answers[<%= q.id %>]" class="q-select" <%= q.required ? 'required' : '' %>>
+                <option value="" disabled selected>Lütfen bir seçenek belirleyin...</option>
+                <% q.options.forEach(opt => { %>
+                  <option value="<%= opt %>"><%= opt %></option>
+                <% }) %>
+              </select>
+            
+            <% } else if (q.type === 'radio') { %>
+              <div class="options-grid">
+                <% q.options.forEach((opt) => { %>
+                  <label class="option-pill-label">
+                    <input type="radio" name="answers[<%= q.id %>]" value="<%= opt %>" <%= q.required ? 'required' : '' %>>
+                    <span class="option-pill-text"><%= opt %></span>
+                  </label>
+                <% }) %>
+              </div>
+
+            <% } else if (q.type === 'checkbox') { %>
+              <div class="options-grid">
+                <% q.options.forEach((opt) => { %>
+                  <label class="option-pill-label">
+                    <input type="checkbox" name="answers[<%= q.id %>]" value="<%= opt %>" class="checkbox-input-<%= q.id %>">
+                    <span class="option-pill-text"><%= opt %></span>
+                  </label>
+                <% }) %>
+                <input type="hidden" id="checkbox-required-<%= q.id %>" value="<%= q.required ? 'true' : 'false' %>">
+              </div>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+
+      <div class="form-footer-actions">
+        <a href="/applications" class="btn-cancel-apply">Vazgeç</a>
+        <button type="submit" class="btn-submit-apply" onclick="return validateCheckboxes()">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Başvuruyu Gönder</span>
+        </button>
+      </div>
+    </form>
+
+  <% } else { %>
+    <div class="form-main-card" style="text-align: center; padding: 60px 40px;">
+      <div style="width: 80px; height: 80px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto; box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);">
+        <i class="fa-solid fa-lock" style="font-size: 32px; color: var(--danger);"></i>
+      </div>
+      <h3 style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 12px;">Bu Başvuru Formu Kilitlenmiştir</h3>
+      <p style="color: var(--text-muted); font-size: 14.5px; max-width: 500px; margin: 0 auto 32px auto; line-height: 1.6;">
+        Bu başvuru formu şu anda yetkililer tarafından geçici olarak alımlara kapatılmıştır. Lütfen daha sonra tekrar kontrol edin.
+      </p>
+      <a href="/applications" class="btn-back-pill" style="padding: 12px 32px; display: inline-flex;">Başvurulara Dön</a>
+    </div>
+  <% } %>
+
+</main>
+
+<script>
+  function validateCheckboxes() {
+    let isValid = true;
+    const requiredCheckboxes = document.querySelectorAll("input[id^='checkbox-required-']");
+    
+    requiredCheckboxes.forEach(reqInput => {
+      if (reqInput.value === 'true') {
+        const qId = reqInput.id.replace('checkbox-required-', '');
+        const checkedCount = document.querySelectorAll(`.checkbox-input-${qId}:checked`).length;
+        if (checkedCount === 0) {
+          alert("Lütfen tüm zorunlu alanları doldurunuz (Çoktan seçmeli sorularda en az bir seçenek işaretlenmelidir).");
+          isValid = false;
+        }
+      }
+    });
+    
+    return isValid;
+  }
+</script>
+
+<%- include('partials/footer') %>

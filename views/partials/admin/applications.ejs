@@ -1,0 +1,283 @@
+<section id="applications-mgmt-content" class="admin-section-inner">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+    <h2 class="panel-title" style="margin-bottom: 0;"><i class="fa-solid fa-file-signature"></i> Başvuru Yönetimi</h2>
+    <button type="button" class="btn btn-primary" onclick="openCreateAppModal()" style="padding: 8px 18px; font-size: 12px; display: inline-flex; align-items: center; gap: 8px;">
+      <i class="fa-solid fa-plus"></i> Yeni Şablon Oluştur
+    </button>
+  </div>
+
+  <!-- Analytics Metrics -->
+  <% 
+    let totalTemplates = applications.length;
+    let totalSubmissions = submissions.length;
+    let pendingSubmissions = submissions.filter(s => s.status === 'pending').length;
+    let approvedSubmissions = submissions.filter(s => s.status === 'approved').length;
+    let rejectedSubmissions = submissions.filter(s => s.status === 'rejected').length;
+  %>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 32px;">
+    <!-- Card 1: Toplam Şablon -->
+    <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+      <div>
+        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); letter-spacing: -0.5px;"><%= totalTemplates %></div>
+        <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Toplam Şablon</div>
+      </div>
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(0, 113, 227, 0.1); border: 1.5px solid rgba(0, 113, 227, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(0, 113, 227, 0.15);">
+        <i class="fa-solid fa-file-invoice" style="color: var(--primary); font-size: 19px;"></i>
+      </div>
+    </div>
+    
+    <!-- Card 2: Toplam Başvuru -->
+    <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(139, 92, 246, 0.8)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+      <div>
+        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); letter-spacing: -0.5px;"><%= totalSubmissions %></div>
+        <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Toplam Başvuru</div>
+      </div>
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); border: 1.5px solid rgba(139, 92, 246, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(139, 92, 246, 0.15);">
+        <i class="fa-solid fa-inbox" style="color: var(--purple); font-size: 19px;"></i>
+      </div>
+    </div>
+    
+    <!-- Card 3: Bekleyen Başvuru -->
+    <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(245, 158, 11, 0.8)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+      <div>
+        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); letter-spacing: -0.5px;"><%= pendingSubmissions %></div>
+        <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Bekleyen Başvuru</div>
+      </div>
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); border: 1.5px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(245, 158, 11, 0.15);">
+        <i class="fa-solid fa-clock" style="color: var(--warning); font-size: 19px;"></i>
+      </div>
+    </div>
+    
+    <!-- Card 4: Onaylanan -->
+    <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(16, 185, 129, 0.8)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+      <div>
+        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); letter-spacing: -0.5px;"><%= approvedSubmissions %></div>
+        <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Onaylanan</div>
+      </div>
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); border: 1.5px solid rgba(16, 185, 129, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);">
+        <i class="fa-solid fa-circle-check" style="color: var(--success); font-size: 19px;"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-layout" style="gap: 32px;">
+    <!-- Left Column: Submissions (Gelen Başvurular) -->
+    <div class="content-panel" style="grid-column: span 8; padding: 24px; overflow-x: auto;">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-envelope-open-text text-sky-400"></i> Gelen Başvurular
+      </h3>
+      
+      <% 
+        // Group submissions by application title
+        const groupedSubmissions = {};
+        submissions.forEach(sub => {
+          const appTitle = sub.applicationId ? sub.applicationId.title : 'Silinmiş Başvuru';
+          if (!groupedSubmissions[appTitle]) {
+            groupedSubmissions[appTitle] = [];
+          }
+          groupedSubmissions[appTitle].push(sub);
+        });
+      %>
+
+      <% if (Object.keys(groupedSubmissions).length > 0) { %>
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          <% Object.entries(groupedSubmissions).forEach(([appTitle, subList]) => { %>
+            <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; background: rgba(255,255,255,0.01);">
+              <h4 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; color: var(--text-main);">
+                <span><%= appTitle %></span>
+                <span class="status-badge connecting" style="font-size: 10px; padding: 2px 6px; border-radius: 4px;"><%= subList.filter(s => s.status === 'pending').length %> Bekleyen</span>
+              </h4>
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Kullanıcı</th>
+                    <th>Tarih</th>
+                    <th>Durum</th>
+                    <th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% subList.forEach(sub => { %>
+                    <tr>
+                      <td style="font-weight: 600;"><%= sub.username %> <span style="font-size: 11px; color: var(--text-muted); font-family: monospace;">(<%= sub.discordId %>)</span></td>
+                      <td style="color: var(--text-muted); font-size: 12px;"><%= new Date(sub.date).toLocaleDateString('tr-TR') %></td>
+                      <td>
+                        <% if (sub.status === 'pending') { %>
+                          <span class="status-badge connecting" style="font-size: 10px;">● BEKLEMEDE</span>
+                        <% } else if (sub.status === 'approved') { %>
+                          <span class="status-badge online" style="font-size: 10px;">✔ ONAYLANDI</span>
+                        <% } else { %>
+                          <span class="status-badge error" style="font-size: 10px;">✖ REDDEDİLDİ</span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                          <button type="button" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 10px;" data-sub="<%= Buffer.from(JSON.stringify(sub)).toString('base64') %>" onclick="openReviewModalFromBtn(this)">
+                            <i class="fa-solid fa-magnifying-glass"></i> İncele
+                          </button>
+                          <form action="/admin/submissions/delete/<%= sub._id %>" method="POST" style="display: inline;" onsubmit="return confirm('Bu başvuruyu kalıcı olarak silmek istediğinize emin misiniz?')">
+                            <button type="submit" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 10px; background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3);" title="Başvuruyu Sil">
+                              <i class="fa-solid fa-trash-can"></i> Sil
+                            </button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div style="padding: 48px; text-align: center; color: var(--text-muted);">
+          <i class="fa-solid fa-inbox" style="font-size: 36px; margin-bottom: 12px; color: rgba(255, 255, 255, 0.05);"></i>
+          <p style="font-size: 13px;">Henüz yapılmış bir başvuru bulunmuyor.</p>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Right Column: Existing Templates (Mevcut Şablonlar) -->
+    <div class="content-panel" style="grid-column: span 4; padding: 24px; overflow-x: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 8px; margin: 0;">
+          <i class="fa-solid fa-file-invoice text-sky-400"></i> Mevcut Şablonlar
+        </h3>
+      </div>
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">
+        <i class="fa-solid fa-arrows-up-down" style="color: var(--primary);"></i> Şablonları sürükleyip bırakarak veya yukarı/aşağı butonlarıyla sıralayabilirsiniz.
+      </p>
+      
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width: 24px; text-align: center;"></th>
+            <th>Şablon</th>
+            <th>Durum</th>
+            <th style="text-align: right;">Sıra & İşlem</th>
+          </tr>
+        </thead>
+        <tbody id="app-templates-tbody">
+          <% if (applications && applications.length > 0) { %>
+            <% applications.forEach((app, appIdx) => { %>
+              <tr draggable="true" data-id="<%= app._id %>" style="cursor: grab; transition: background 0.2s ease;">
+                <td class="drag-handle" style="color: var(--text-muted); text-align: center; font-size: 13px; cursor: grab;" title="Sürükleyerek sırasını değiştirin">
+                  <i class="fa-solid fa-grip-vertical"></i>
+                </td>
+                <td style="font-weight: 700; font-size: 12.5px;"><%= app.title %></td>
+                <td>
+                  <% if (app.status === 'open') { %>
+                    <span class="status-badge online" style="font-size: 9px; padding: 2px 6px;">AÇIK</span>
+                  <% } else { %>
+                    <span class="status-badge error" style="font-size: 9px; padding: 2px 6px;">KAPALI</span>
+                  <% } %>
+                </td>
+                <td>
+                  <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                    <!-- Up / Down Reorder Buttons -->
+                    <form action="/admin/applications/move/<%= app._id %>/up" method="POST" style="display: inline;">
+                      <button type="submit" class="btn" <%= appIdx === 0 ? 'disabled' : '' %> style="background: rgba(255, 255, 255, 0.05); color: <%= appIdx === 0 ? 'rgba(255,255,255,0.2)' : 'var(--text-muted)' %>; padding: 5px 7px; border-radius: 6px; font-size: 10px;" title="Yukarı Taşı">
+                        <i class="fa-solid fa-chevron-up"></i>
+                      </button>
+                    </form>
+                    <form action="/admin/applications/move/<%= app._id %>/down" method="POST" style="display: inline;">
+                      <button type="submit" class="btn" <%= appIdx === applications.length - 1 ? 'disabled' : '' %> style="background: rgba(255, 255, 255, 0.05); color: <%= appIdx === applications.length - 1 ? 'rgba(255,255,255,0.2)' : 'var(--text-muted)' %>; padding: 5px 7px; border-radius: 6px; font-size: 10px;" title="Aşağı Taşı">
+                        <i class="fa-solid fa-chevron-down"></i>
+                      </button>
+                    </form>
+
+                    <!-- Edit Button -->
+                    <button type="button" class="btn" data-app="<%= Buffer.from(JSON.stringify(app)).toString('base64') %>" onclick="editApplicationFromBtn(this)" style="background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 5px 8px; border-radius: 6px; font-size: 10px;" title="Düzenle"><i class="fa-solid fa-edit"></i></button>
+                    
+                    <!-- Toggle Visibility -->
+                    <form action="/admin/applications/toggle/<%= app._id %>" method="POST" style="display: inline;">
+                      <button type="submit" class="btn" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); padding: 5px 8px; border-radius: 6px; font-size: 10px;" title="<%= app.status === 'open' ? 'Kapat' : 'Aç' %>">
+                        <i class="fa-solid <%= app.status === 'open' ? 'fa-eye-slash' : 'fa-eye' %>"></i>
+                      </button>
+                    </form>
+                    
+                    <!-- Delete Button -->
+                    <form action="/admin/applications/delete/<%= app._id %>" method="POST" style="display: inline;" onsubmit="return confirm('Bu şablonu silmek istediğinize emin misiniz? Tüm başvurular da silinecektir.')">
+                      <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 5px 8px; border-radius: 6px; font-size: 10px;" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 16px 0;">Şablon bulunmuyor.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function initAppDragAndDrop() {
+    function setup() {
+      const tableBody = document.getElementById("app-templates-tbody");
+      if (!tableBody) return;
+      
+      let dragEl = null;
+
+      tableBody.querySelectorAll("tr[draggable='true']").forEach(row => {
+        row.addEventListener("dragstart", (e) => {
+          dragEl = row;
+          e.dataTransfer.effectAllowed = "move";
+          row.style.opacity = "0.4";
+          row.style.background = "rgba(168, 85, 247, 0.1)";
+        });
+
+        row.addEventListener("dragend", () => {
+          if (dragEl) {
+            dragEl.style.opacity = "1";
+            dragEl.style.background = "";
+          }
+          saveAppOrder();
+        });
+
+        row.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+
+          const target = e.target.closest("tr");
+          if (target && target !== dragEl && target.parentNode === tableBody) {
+            const rect = target.getBoundingClientRect();
+            const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+            tableBody.insertBefore(dragEl, next ? target.nextSibling : target);
+          }
+        });
+      });
+
+      function saveAppOrder() {
+        const rows = tableBody.querySelectorAll("tr[draggable='true']");
+        const ids = Array.from(rows).map(row => row.getAttribute("data-id")).filter(Boolean);
+        if (ids.length === 0) return;
+
+        fetch("/admin/applications/reorder", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ ids })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.success) {
+            console.log("Başvuru sırası kaydedildi.");
+          }
+        })
+        .catch(err => console.error("Sıralama kaydetme hatası:", err));
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", setup);
+    } else {
+      setup();
+    }
+  })();
+</script>

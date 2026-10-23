@@ -1,0 +1,470 @@
+<% if (userPermissions.manageDeveloper) { %>
+  <section id="developer-settings-content" class="admin-section-inner">
+    <div class="main-layout" style="margin-bottom: 30px;">
+      <div class="content-panel" style="grid-column: span 12;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase;">
+          <i class="fa-solid fa-code text-sky-400"></i> Modül Yönetimi (Geliştirici Ayarları)
+        </h3>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 24px; line-height: 1.5;">
+          Web sitesindeki belirli özellikleri ve sayfaları dinamik olarak kapatıp açabilir, pasif duruma getirilen modüllerin davranışını (yönlendirme veya yapım aşaması ekranı) yapılandırabilirsiniz. <strong style="color: var(--primary);">Tüm değişiklikler anında kaydedilir.</strong>
+        </p>
+
+        <!-- Modules List Card Grid Layout -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; margin-bottom: 24px;">
+          <% if (locals.siteModules && siteModules.length > 0) { %>
+            <% siteModules.forEach(m => { %>
+              <div class="content-panel module-card <%= m.isEnabled ? 'active' : '' %>" id="card-<%= m.key %>" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px; transition: all 0.3s ease; position: relative; margin: 0; box-shadow: none;">
+                
+                <!-- Header: Icon, Name, Switch -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+                  <div style="display: flex; gap: 12px; align-items: center;">
+                    <div class="module-icon-wrap" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: <%= m.isEnabled ? 'rgba(0, 113, 227, 0.1)' : 'rgba(255,255,255,0.03)' %>; color: <%= m.isEnabled ? 'var(--primary)' : 'var(--text-muted)' %>; border: 1px solid <%= m.isEnabled ? 'rgba(0, 113, 227, 0.2)' : 'var(--border-color)' %>; font-size: 16px; transition: all 0.3s ease;">
+                      <% if (m.key === 'applications') { %>
+                        <i class="fa-solid fa-file-signature"></i>
+                      <% } else if (m.key === 'donate') { %>
+                        <i class="fa-solid fa-coins"></i>
+                      <% } else if (m.key === 'gallery') { %>
+                        <i class="fa-solid fa-images"></i>
+                      <% } else if (m.key === 'stats') { %>
+                        <i class="fa-solid fa-chart-simple"></i>
+                      <% } else if (m.key === 'team') { %>
+                        <i class="fa-solid fa-users"></i>
+                      <% } else if (m.key === 'faq') { %>
+                        <i class="fa-solid fa-circle-question"></i>
+                      <% } else if (m.key === 'rules') { %>
+                        <i class="fa-solid fa-gavel"></i>
+                      <% } else if (m.key === 'penalties') { %>
+                        <i class="fa-solid fa-scale-balanced"></i>
+                      <% } else if (m.key === 'admin_overview') { %>
+                        <i class="fa-solid fa-gauge-high"></i>
+                      <% } else if (m.key === 'admin_users') { %>
+                        <i class="fa-solid fa-user-check"></i>
+                      <% } else if (m.key === 'admin_teams') { %>
+                        <i class="fa-solid fa-users-gear"></i>
+                      <% } else if (m.key === 'admin_punishments') { %>
+                        <i class="fa-solid fa-gavel"></i>
+                      <% } else if (m.key === 'admin_banned') { %>
+                        <i class="fa-solid fa-user-slash"></i>
+                      <% } else if (m.key === 'admin_blacklist') { %>
+                        <i class="fa-solid fa-user-shield"></i>
+                      <% } else if (m.key === 'admin_applications') { %>
+                        <i class="fa-solid fa-file-signature"></i>
+                      <% } else if (m.key === 'admin_updates') { %>
+                        <i class="fa-solid fa-newspaper"></i>
+                      <% } else if (m.key === 'admin_donate') { %>
+                        <i class="fa-solid fa-coins"></i>
+                      <% } else if (m.key === 'admin_ranks') { %>
+                        <i class="fa-solid fa-shield-halved"></i>
+                      <% } else if (m.key === 'admin_bots') { %>
+                        <i class="fa-brands fa-discord"></i>
+                      <% } else if (m.key === 'admin_faq') { %>
+                        <i class="fa-solid fa-circle-question"></i>
+                      <% } else if (m.key === 'admin_gallery') { %>
+                        <i class="fa-solid fa-images"></i>
+                      <% } else if (m.key === 'admin_theme') { %>
+                        <i class="fa-solid fa-palette"></i>
+                      <% } else if (m.key === 'admin_logos') { %>
+                        <i class="fa-solid fa-compass-drafting"></i>
+                      <% } else if (m.key === 'maintenance') { %>
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                      <% } else { %>
+                        <i class="fa-solid fa-gear"></i>
+                      <% } %>
+                    </div>
+                    <div>
+                      <h4 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 6px;">
+                        <%= m.name %>
+                        <% if (m.key === 'maintenance') { %>
+                          <span style="font-size: 8px; padding: 2px 6px; border-radius: 4px; background: rgba(239, 68, 68, 0.15); color: var(--danger); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Kritik</span>
+                        <% } %>
+                      </h4>
+                      <span class="module-status-badge" style="font-size: 9px; font-weight: 700; color: <%= m.isEnabled ? 'var(--success)' : 'var(--text-muted)' %>; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <span style="width: 5px; height: 5px; border-radius: 50%; background: <%= m.isEnabled ? 'var(--success)' : 'var(--text-muted)' %>;"></span>
+                        <%= m.isEnabled ? 'Aktif' : 'Pasif' %>
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <label class="switch" style="position: relative; display: inline-block; width: 38px; height: 20px; flex-shrink: 0;">
+                    <input type="checkbox" class="module-toggle-input" data-key="<%= m.key %>" data-name="<%= m.name %>" <%= m.isEnabled ? 'checked' : '' %> style="opacity: 0; width: 0; height: 0;">
+                    <span class="slider" style="position: absolute; cursor: pointer; inset: 0; background-color: #2c2d30; transition: .3s; border-radius: 20px;"></span>
+                  </label>
+                </div>
+
+                <!-- Description -->
+                <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4; margin: 0; min-height: 32px;"><%= m.description %></p>
+
+                <!-- Settings Area (Auto-saves on change) -->
+                <div style="border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; margin-top: auto;">
+                  <% if (m.key === 'maintenance') { %>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                      <label class="form-label" style="font-size: 10px; opacity: 0.7; margin: 0;">Bakım Mesajı</label>
+                      <textarea id="msg-<%= m.key %>" class="form-input module-auto-input" data-key="<%= m.key %>" style="min-height: 80px; resize: vertical;" placeholder="Bakım mesajını girin..."><%= m.customMessage || "Sizlere daha iyi bir deneyim sunabilmek amacıyla sitemizde güncellemeler ve bakım çalışmaları yapıyoruz. Çok yakında tekrar çevrimiçi olacağız!" %></textarea>
+                      <span style="font-size: 9px; color: var(--text-muted);"><i class="fa-solid fa-cloud-arrow-up"></i> Değişiklikler anında kaydedilir.</span>
+                    </div>
+                  <% } else { %>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                      <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label class="form-label" style="font-size: 10px; opacity: 0.7; margin: 0;">Pasif Durum Davranışı</label>
+                        <select id="behavior-<%= m.key %>" class="form-input module-auto-select" data-key="<%= m.key %>" style="background: #0c0d10; width: 100%;">
+                          <option value="redirect" <%= m.behavior === 'redirect' ? 'selected' : '' %>>Ana Sayfaya Yönlendir</option>
+                          <option value="preloader" <%= m.behavior === 'preloader' ? 'selected' : '' %>>Yapım Aşaması (Preloader)</option>
+                        </select>
+                      </div>
+                      <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label class="form-label" style="font-size: 10px; opacity: 0.7; margin: 0;">Yapım Aşaması Mesajı</label>
+                        <input type="text" id="msg-<%= m.key %>" class="form-input module-auto-input" data-key="<%= m.key %>" value="<%= m.customMessage %>" placeholder="Bu bölüm yapım aşamasındadır.">
+                      </div>
+                      <span style="font-size: 9px; color: var(--text-muted);"><i class="fa-solid fa-cloud-arrow-up"></i> Değişiklikler anında kaydedilir.</span>
+                    </div>
+                  <% } %>
+                </div>
+
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 20px 0;">
+              Modül bulunamadı.
+            </div>
+          <% } %>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Discord Role Settings -->
+    <div class="main-layout" style="margin-bottom: 30px; margin-top: 30px;">
+      <div class="content-panel" style="grid-column: span 12;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase;">
+          <i class="fa-brands fa-discord" style="color: #5865F2;"></i> Discord Rol Ayarları
+        </h3>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 24px; line-height: 1.5;">
+          Sunucu yönetim, uyarı ve ceza Discord rol ID'lerini buradan yapılandırabilirsiniz. <strong style="color: var(--primary);">Tüm değişiklikler anında kaydedilir.</strong>
+        </p>
+
+        <form id="discord-roles-form" onsubmit="event.preventDefault()" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Error Mode Toggle -->
+          <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: rgba(239, 68, 68, 0.04); border: 1px dashed rgba(239, 68, 68, 0.2); border-radius: 10px;">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i> Sistem Hata Modu (Error Mode)
+              </h4>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 0 0;">Bu mod aktif edildiğinde tüm Discord botlarının durumları "⚠️ Hata Bulunuyor!" ve durum tipi "Rahatsız Etmeyin" olur.</p>
+            </div>
+            <label class="switch" style="position: relative; display: inline-block; width: 38px; height: 20px; flex-shrink: 0; margin: 0;">
+              <input type="checkbox" id="setting-errorMode" class="setting-auto-save" <%= stats.errorMode ? 'checked' : '' %> style="opacity: 0; width: 0; height: 0;">
+              <span class="slider" style="position: absolute; cursor: pointer; inset: 0; background-color: #2c2d30; transition: .3s; border-radius: 20px;"></span>
+            </label>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Sunucu ID (Guild ID)</label>
+              <input type="text" id="setting-guildId" class="form-input setting-auto-save" value="<%= stats.guildId || '' %>" placeholder="Örn: 1502209084881895504" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Logger Sunucu ID (Logger Guild ID)</label>
+              <input type="text" id="setting-loggerGuildId" class="form-input setting-auto-save" value="<%= stats.loggerGuildId || '' %>" placeholder="Örn: 1502209084881895504" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Whitelist Rol ID</label>
+              <input type="text" id="setting-whitelistRoleId" class="form-input setting-auto-save" value="<%= stats.whitelistRoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Kayıtsız Rol ID</label>
+              <input type="text" id="setting-unregisteredRoleId" class="form-input setting-auto-save" value="<%= stats.unregisteredRoleId || '' %>" placeholder="Örn: 1521293367496147034" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Yetkili Rol ID</label>
+              <input type="text" id="setting-staffRoleId" class="form-input setting-auto-save" value="<%= stats.staffRoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Sesli Destek Rol ID</label>
+              <input type="text" id="setting-voiceSupportRoleId" class="form-input setting-auto-save" value="<%= stats.voiceSupportRoleId || '' %>" placeholder="Örn: 1521293529421320275" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">İllegal Kategori ID</label>
+              <input type="text" id="setting-illegalCategoryId" class="form-input setting-auto-save" value="<%= stats.illegalCategoryId || '' %>" placeholder="Örn: 1521293366883258380" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Legal Kategori ID</label>
+              <input type="text" id="setting-legalCategoryId" class="form-input setting-auto-save" value="<%= stats.legalCategoryId || '' %>" placeholder="Örn: 1521293366883258380" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">İşletme Kategori ID</label>
+              <input type="text" id="setting-businessCategoryId" class="form-input setting-auto-save" value="<%= stats.businessCategoryId || '1502209685468610620' %>" placeholder="Örn: 1502209685468610620" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Ekip Boss Rol ID</label>
+              <input type="text" id="setting-bossRoleId" class="form-input setting-auto-save" value="<%= stats.bossRoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">High Command Rol ID</label>
+              <input type="text" id="setting-highCommandRoleId" class="form-input setting-auto-save" value="<%= stats.highCommandRoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Karakter Onay Rol ID</label>
+              <input type="text" id="setting-characterApprovalRoleId" class="form-input setting-auto-save" value="<%= stats.characterApprovalRoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">WL Cezalı Rol ID</label>
+              <input type="text" id="setting-wlPunishedRoleId" class="form-input setting-auto-save" value="<%= stats.wlPunishedRoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Uyarı 1 Rol ID</label>
+              <input type="text" id="setting-warning1RoleId" class="form-input setting-auto-save" value="<%= stats.warning1RoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Uyarı 2 Rol ID</label>
+              <input type="text" id="setting-warning2RoleId" class="form-input setting-auto-save" value="<%= stats.warning2RoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Uyarı 3 Rol ID</label>
+              <input type="text" id="setting-warning3RoleId" class="form-input setting-auto-save" value="<%= stats.warning3RoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Uyarı 4 Rol ID</label>
+              <input type="text" id="setting-warning4RoleId" class="form-input setting-auto-save" value="<%= stats.warning4RoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Uyarı 5 Rol ID</label>
+              <input type="text" id="setting-warning5RoleId" class="form-input setting-auto-save" value="<%= stats.warning5RoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Uyarı 6 Rol ID</label>
+              <input type="text" id="setting-warning6RoleId" class="form-input setting-auto-save" value="<%= stats.warning6RoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Uyarı 7 Rol ID</label>
+              <input type="text" id="setting-warning7RoleId" class="form-input setting-auto-save" value="<%= stats.warning7RoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Uyarı 8 Rol ID</label>
+              <input type="text" id="setting-warning8RoleId" class="form-input setting-auto-save" value="<%= stats.warning8RoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Uyarı 9 Rol ID</label>
+              <input type="text" id="setting-warning9RoleId" class="form-input setting-auto-save" value="<%= stats.warning9RoleId || '' %>" placeholder="Örn: 1521293367151956009" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Başvuru Onay/Red Log Kanal ID</label>
+              <input type="text" id="setting-applicationLogChannelId" class="form-input setting-auto-save" value="<%= stats.applicationLogChannelId || '' %>" placeholder="Örn: 1537288949712560148" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Ceza / Uyarı Log Kanal ID</label>
+              <input type="text" id="setting-punishmentLogChannelId" class="form-input setting-auto-save" value="<%= stats.punishmentLogChannelId || '' %>" placeholder="Örn: 1532361071967600720" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Yayıncı Canlı Yayın Duyuru Kanal ID</label>
+              <input type="text" id="setting-streamerAnnounceChannelId" class="form-input setting-auto-save" value="<%= stats.streamerAnnounceChannelId || '' %>" placeholder="Örn: 1556073949010460702" required>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Switch Toggles Auto-save
+      document.querySelectorAll(".module-toggle-input").forEach(input => {
+        input.addEventListener("change", async (e) => {
+          const key = input.getAttribute("data-key");
+          const name = input.getAttribute("data-name");
+          const isEnabled = input.checked;
+          const card = document.getElementById(`card-${key}`);
+          
+          input.disabled = true;
+          
+          try {
+            const response = await fetch("/admin/developer/modules/toggle", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ key, isEnabled })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+              showAdminToast(`${name} başarıyla ${isEnabled ? 'aktif edildi' : 'devre dışı bırakıldı'}.`, 'success');
+              if (card) {
+                if (isEnabled) card.classList.add("active");
+                else card.classList.remove("active");
+                
+                // Update badge and icon colors
+                const badge = card.querySelector(".module-status-badge");
+                if (badge) {
+                  badge.style.color = isEnabled ? "var(--success)" : "var(--text-muted)";
+                  badge.innerHTML = `<span style="width: 5px; height: 5px; border-radius: 50%; background: ${isEnabled ? 'var(--success)' : 'var(--text-muted)'};"></span>${isEnabled ? 'Aktif' : 'Pasif'}`;
+                }
+                const iconWrap = card.querySelector(".module-icon-wrap");
+                if (iconWrap) {
+                  iconWrap.style.background = isEnabled ? "rgba(0, 113, 227, 0.1)" : "rgba(255,255,255,0.03)";
+                  iconWrap.style.color = isEnabled ? "var(--primary)" : "var(--text-muted)";
+                  iconWrap.style.borderColor = isEnabled ? "rgba(0, 113, 227, 0.2)" : "var(--border-color)";
+                }
+              }
+            } else {
+              showAdminToast(data.message || "Bir hata oluştu.", 'error');
+              input.checked = !isEnabled;
+            }
+          } catch (error) {
+            showAdminToast("Bağlantı hatası oluştu.", 'error');
+            input.checked = !isEnabled;
+          } finally {
+            input.disabled = false;
+          }
+        });
+      });
+
+      // Debounce Yardımcı Fonksiyonu
+      function debounce(func, delay) {
+        let timeout;
+        return function (...args) {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+      }
+
+      const debouncedSaveModuleSettings = debounce((key) => {
+        saveModuleSettings(key);
+      }, 500);
+
+      // 2. Module Settings Auto-save
+      // Select elementleri için anında kaydet
+      document.querySelectorAll(".module-auto-select").forEach(el => {
+        el.addEventListener("change", () => {
+          const key = el.getAttribute("data-key");
+          saveModuleSettings(key);
+        });
+      });
+
+      // Yazı alanları (input/textarea) için hem yazarken (input) hem de odak kaybolduğunda (change) kaydet
+      document.querySelectorAll(".module-auto-input").forEach(el => {
+        el.addEventListener("input", () => {
+          const key = el.getAttribute("data-key");
+          debouncedSaveModuleSettings(key);
+        });
+        
+        el.addEventListener("change", () => {
+          const key = el.getAttribute("data-key");
+          saveModuleSettings(key);
+        });
+      });
+
+      // 3. Discord Roles Auto-save (triggers on any change/blur in settings inputs)
+      document.querySelectorAll(".setting-auto-save").forEach(input => {
+        input.addEventListener("change", () => {
+          saveDiscordRoles();
+        });
+      });
+    });
+
+    async function saveModuleSettings(key) {
+      const behaviorSelect = document.getElementById(`behavior-${key}`);
+      const msgInput = document.getElementById(`msg-${key}`);
+      
+      const behavior = behaviorSelect ? behaviorSelect.value : 'redirect';
+      const customMessage = msgInput ? msgInput.value : '';
+      
+      try {
+        const response = await fetch("/admin/developer/modules/update-settings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ key, behavior, customMessage })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast("Ayarlar otomatik olarak kaydedildi.", 'success');
+        } else {
+          showAdminToast(data.message || "Ayarlar kaydedilirken hata oluştu.", 'error');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function saveDiscordRoles() {
+      const guildId = document.getElementById("setting-guildId").value;
+      const loggerGuildId = document.getElementById("setting-loggerGuildId").value;
+      const whitelistRoleId = document.getElementById("setting-whitelistRoleId").value;
+      const unregisteredRoleId = document.getElementById("setting-unregisteredRoleId").value;
+      const staffRoleId = document.getElementById("setting-staffRoleId").value;
+      const voiceSupportRoleId = document.getElementById("setting-voiceSupportRoleId").value;
+      const illegalCategoryId = document.getElementById("setting-illegalCategoryId").value;
+      const legalCategoryId = document.getElementById("setting-legalCategoryId").value;
+      const businessCategoryId = document.getElementById("setting-businessCategoryId") ? document.getElementById("setting-businessCategoryId").value : "1502209685468610620";
+      const bossRoleId = document.getElementById("setting-bossRoleId").value;
+      const highCommandRoleId = document.getElementById("setting-highCommandRoleId").value;
+      const characterApprovalRoleId = document.getElementById("setting-characterApprovalRoleId").value;
+      const wlPunishedRoleId = document.getElementById("setting-wlPunishedRoleId").value;
+      const warning1RoleId = document.getElementById("setting-warning1RoleId").value;
+      const warning2RoleId = document.getElementById("setting-warning2RoleId").value;
+      const warning3RoleId = document.getElementById("setting-warning3RoleId").value;
+      const warning4RoleId = document.getElementById("setting-warning4RoleId").value;
+      const warning5RoleId = document.getElementById("setting-warning5RoleId").value;
+      const warning6RoleId = document.getElementById("setting-warning6RoleId").value;
+      const warning7RoleId = document.getElementById("setting-warning7RoleId").value;
+      const warning8RoleId = document.getElementById("setting-warning8RoleId").value;
+      const warning9RoleId = document.getElementById("setting-warning9RoleId").value;
+      const applicationLogChannelId = document.getElementById("setting-applicationLogChannelId") ? document.getElementById("setting-applicationLogChannelId").value : "";
+      const punishmentLogChannelId = document.getElementById("setting-punishmentLogChannelId") ? document.getElementById("setting-punishmentLogChannelId").value : "";
+      const streamerAnnounceChannelId = document.getElementById("setting-streamerAnnounceChannelId") ? document.getElementById("setting-streamerAnnounceChannelId").value : "";
+      
+      const errorModeCheckbox = document.getElementById("setting-errorMode");
+      const errorMode = errorModeCheckbox ? errorModeCheckbox.checked : false;
+      
+      try {
+        const response = await fetch("/admin/developer/discord-roles", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ guildId, loggerGuildId, whitelistRoleId, unregisteredRoleId, staffRoleId, voiceSupportRoleId, illegalCategoryId, legalCategoryId, businessCategoryId, bossRoleId, highCommandRoleId, characterApprovalRoleId, wlPunishedRoleId, warning1RoleId, warning2RoleId, warning3RoleId, warning4RoleId, warning5RoleId, warning6RoleId, warning7RoleId, warning8RoleId, warning9RoleId, applicationLogChannelId, punishmentLogChannelId, streamerAnnounceChannelId, errorMode })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast("Discord rol ayarları otomatik olarak kaydedildi.", 'success');
+        } else {
+          showAdminToast(data.message || "Ayarlar kaydedilirken hata oluştu.", 'error');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  </script>
+
+  <style>
+    /* Premium Slider Switch CSS */
+    .switch input:checked + .slider {
+      background-color: var(--primary) !important;
+    }
+    .switch input:checked + .slider:before {
+      transform: translateX(18px) !important;
+      background-color: #ffffff !important;
+    }
+    .slider:before {
+      position: absolute !important;
+      content: "" !important;
+      height: 12px !important;
+      width: 12px !important;
+      left: 4px !important;
+      bottom: 4px !important;
+      background-color: #94a3b8 !important;
+      transition: .3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      border-radius: 50% !important;
+    }
+    .module-card.active {
+      border-color: rgba(0, 113, 227, 0.4) !important;
+      box-shadow: 0 0 15px rgba(0, 113, 227, 0.05);
+    }
+  </style>
+<% } %>

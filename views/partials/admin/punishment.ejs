@@ -1,0 +1,972 @@
+<% if (userPermissions.managePunishments) { %>
+  <style>
+    .punish-scroll-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .punish-scroll-container::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.01);
+      border-radius: 4px;
+    }
+    .punish-scroll-container::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .punish-scroll-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .punish-checkbox-custom {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: #0c0d10;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.2s ease-in-out;
+    }
+    .punish-checkbox-custom:checked {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .punish-checkbox-custom:checked::after {
+      content: "\f00c";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: #fff;
+      font-size: 10px;
+    }
+    .punish-checkbox-custom:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
+    }
+
+    .sicil-timeline {
+      position: relative;
+      padding-left: 24px;
+      margin-left: 12px;
+      border-left: 2px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .sicil-timeline-item {
+      position: relative;
+    }
+    .sicil-timeline-badge {
+      position: absolute;
+      left: -33px;
+      top: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--border-color);
+      border: 3px solid #14151a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .sicil-timeline-item.warning .sicil-timeline-badge {
+      background: #ffb703;
+      box-shadow: 0 0 8px rgba(255, 183, 3, 0.4);
+    }
+    .sicil-timeline-item.wl .sicil-timeline-badge {
+      background: #219ebc;
+      box-shadow: 0 0 8px rgba(33, 157, 188, 0.4);
+    }
+    .sicil-timeline-item.perma .sicil-timeline-badge {
+      background: var(--danger);
+      box-shadow: 0 0 8px rgba(235, 94, 40, 0.4);
+    }
+    .sicil-timeline-item.pardon .sicil-timeline-badge {
+      background: var(--success);
+      box-shadow: 0 0 8px rgba(46, 196, 182, 0.4);
+    }
+    
+    .sicil-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.25s ease;
+    }
+    .sicil-card:hover {
+      border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .warning-steps {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .warning-step {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+    .warning-step.active {
+      background: #ffb703;
+      box-shadow: 0 0 6px rgba(255, 183, 3, 0.5);
+    }
+  </style>
+
+  <section id="punishment-mgmt-content" class="admin-section-inner">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+      <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-gavel"></i> Cezalandırma & Sicil Sistemi</h2>
+    </div>
+
+    <div class="main-layout" style="gap: 30px; margin-bottom: 30px;">
+      
+      <!-- Left side: Apply Punishment -->
+      <div class="content-panel" style="grid-column: span 8; padding: 24px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: var(--danger); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-triangle-exclamation"></i> Ceza Uygula
+        </h3>
+        
+        <form id="punishment-form" onsubmit="submitPunishmentForm(event)" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="form-group">
+            <label class="form-label">Kullanıcı Discord ID'leri (Toplu giriş için virgülle veya yeni satırla ayırın)</label>
+            <textarea id="punish-discordIds" class="form-input" style="height: 100px; resize: vertical; font-family: monospace;" placeholder="Örn: 444578261494661122, 1243266940873740381" required></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+            <!-- OOC / Topluluk Rules -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
+              <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; color: var(--primary);">OOC & Topluluk İhlalleri</h4>
+              <div class="punish-scroll-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 6px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Yetkilileri Kandırmak / Yalan Beyan" data-wl-days="1"> Yetkilileri Kandırmak (1 Gün WL)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Destekte Saygısızlık" data-wl-days="1"> Destekte Saygısızlık (1 Gün WL)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Genel Sohbette Tartışmak" data-warnings="2"> Genel Sohbette Tartışmak (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Gereksiz Yere Yetkili Etiketlemek" data-warnings="1"> Gereksiz Yere Yetkili Etiketlemek (1X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Report / Ticket Suistimali" data-warnings="2"> Report / Ticket Suistimali (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Yönetici Talimatına Uymamak" data-warnings="2"> Yönetici Talimatına Uymamak (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Zorunlu POV İbraz Etmemek" data-warnings="2"> Zorunlu POV İbraz Etmemek (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Reklam / Sunucu Tanıtımı" data-perma="true"> Reklam / Sunucu Tanıtımı (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Ban Atlatma (Alt Hesap)" data-perma="true"> Ban Atlatma (Alt Hesap) (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Hesap Satışı / Paylaşımı" data-perma="true"> Hesap Satışı / Paylaşımı (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="OOC Irkçılık / Nefret Söylemi" data-perma="true"> OOC Irkçılık / Nefret Söylemi (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="OOC Taciz / Harassment" data-perma="true"> OOC Taciz / Harassment (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Cinsel Taciz" data-perma="true"> Cinsel Taciz (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Doxxing / Kişisel Bilgi İfşası" data-perma="true"> Doxxing / Kişisel Bilgi İfşası (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Gerçek Hayat Tehdidi" data-perma="true"> Gerçek Hayat Tehdidi (Perma)
+                </label>
+              </div>
+            </div>
+
+            <!-- IC / Roleplay Rules -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
+              <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; color: #60a5fa;">IC & Roleplay İhlalleri</h4>
+              <div class="punish-scroll-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 6px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Hatalı /do–/me Kullanımı" data-warnings="1"> Hatalı /do–/me Kullanımı (1X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Rolsüz Araç Çalmak" data-warnings="1"> Rolsüz Araç Çalmak (1X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Çatışmada Emote Atmak" data-warnings="1"> Çatışmada Emote Atmak (1X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Non-RP Driving" data-warnings="2"> Non-RP Driving (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Refuse RP" data-warnings="2"> Refuse RP (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Kaza Rolüne Girmemek" data-warnings="2"> Kaza Rolüne Girmemek (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Role Check İhlali" data-warnings="2"> Role Check İhlali (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Trolling / Mic Spam / Soundboard" data-warnings="2"> Trolling / Mic Spam / Soundboard (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Ölü/Düşmüş Kişiyi İzinsiz Loot" data-warnings="2"> Ölü/Düşmüş Kişiyi İzinsiz Loot (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Fresh Char Abuse" data-warnings="2"> Fresh Char Abuse (2X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Low RP" data-warnings="3"> Low RP (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Ölüye Trashtalk" data-warnings="3"> Ölüye Trashtalk (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Gereksiz Agresif Rol" data-warnings="3"> Gereksiz Agresif Rol (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Fail-RP" data-warnings="3"> Fail-RP (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Power Gaming" data-warnings="3"> Power Gaming (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="IC-OOC Mixing" data-warnings="3"> IC-OOC Mixing (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Character Mixing" data-warnings="3"> Character Mixing (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Force RP" data-warnings="3"> Force RP (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Fear-RP İhlali" data-warnings="3"> Fear-RP İhlali (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="No Value of Life" data-warnings="3"> No Value of Life (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="NLR İhlali" data-warnings="3"> NLR İhlali (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Revenge Kill" data-warnings="3"> Revenge Kill (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Rol Block (RP-Crashing)" data-warnings="3"> Rol Block (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="OOC Çıkmak (Breaking Character)" data-warnings="3"> OOC Çıkmak (3X Uyarı)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Güvenli Bölge İhlali" data-wl-days="1"> Güvenli Bölge İhlali (1 Gün WL)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Ağır Cop-Bait" data-wl-days="1"> Ağır Cop-Bait (1 Gün WL)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Combat Log" data-wl-days="1"> Combat Log (1 Gün WL)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Bug Abuse" data-wl-days="1"> Bug Abuse (1 Gün WL)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Absürt / Gayri Ciddi Rol" data-wl-days="1"> Absürt / Gayri Ciddi Rol (1 Gün WL)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Stream Sniping" data-wl-days="2"> Stream Sniping (2 Gün WL)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Meta Gaming" data-wl-days="2"> Meta Gaming (2 Gün WL)
+                </label>
+              </div>
+            </div>
+
+            <!-- Redline & Sensitive Rules -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
+              <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; color: var(--danger);">Kırmızı Çizgi & Hassas İçerik</h4>
+              <div class="punish-scroll-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 6px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="RDM (Kasıtlı)" data-perma="true"> RDM (Kasıtlı) (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="VDM (Kasıtlı)" data-perma="true"> VDM (Kasıtlı) (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Dupe" data-perma="true"> Dupe (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Hile / Cheat / Third-Party" data-perma="true"> Hile / Cheat / Aimbot (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Ağır Exploit" data-perma="true"> Ağır Exploit (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="DDK (Dini Değerlere Küfür)" data-perma="true"> DDK (Dini Değerlere Küfür) (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="ADK (Ailevi Değerlere Küfür)" data-wl-days="3"> ADK (Ailevi Değerlere Küfür) (3 Gün WL)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="TT / OOC Toksiklik" data-wl-days="1"> TT / OOC Toksiklik (1 Gün WL)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Rıza Dışı Cinsel İçerik / ERP Dayatması" data-perma="true"> Rıza Dışı ERP / Cinsel İçerik (Perma)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                  <input type="checkbox" class="punish-checkbox-custom punish-checkbox" data-name="Minör Temalı Uygunsuz İçerik" data-perma="true"> Minör Temalı Uygunsuz İçerik (Perma)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Special Options -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-size: 12px; color: var(--text-main);">Cop Bait Seçeneği</label>
+              <select id="punish-copbait" class="form-input">
+                <option value="0">Uygulama (Seçilmedi)</option>
+                <option value="2">Cop Bait - Hafif (2X Uyarı)</option>
+                <option value="4">Cop Bait - Ağır rol bölme (4X Uyarı)</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-size: 12px; color: var(--text-main);">Şikayetçi Taraf (Discord ID)</label>
+              <input type="text" id="punish-complainant" class="form-input sensitive-data" style="height: 38px; font-size: 12px; background: #0c0d10; color: var(--text-main); padding: 0 12px;" placeholder="Örn: 658238817010057256 (Opsiyonel)">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-size: 12px; color: var(--text-main);">İnisiyatif (Uyarı Ekle/Eksilt)</label>
+              <input type="number" id="punish-initiative-warnings" class="form-input" value="0" style="height: 38px; font-size: 12px; background: #0c0d10; color: var(--text-main); padding: 0 12px;" placeholder="Örn: -2 veya 2">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-size: 12px; color: var(--text-main);">İnisiyatif (WL Gün Ekle/Eksilt)</label>
+              <input type="number" id="punish-initiative-wl" class="form-input" value="0" style="height: 38px; font-size: 12px; background: #0c0d10; color: var(--text-main); padding: 0 12px;" placeholder="Örn: -1 veya 1">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px; padding-top: 24px;">
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer; user-select: none;">
+                <input type="checkbox" id="punish-tt" class="punish-checkbox-custom punish-checkbox" data-name="TT (Toxic Behavior)" data-tt="true"> TT Cezası Uygula (1. Tekrarda 1 Gün WL / Sicil varsa 1 Hafta WL)
+              </label>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
+            <button type="submit" id="btn-submit-punishment" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-gavel"></i> Cezayı Uygula</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right side: Calculation summary -->
+      <div class="content-panel" style="grid-column: span 4; padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 0px; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-calculator"></i> Ceza Özeti (Hesaplayıcı)
+        </h3>
+        
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 16px; flex-grow: 1;">
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+            <span style="font-size: 12px; color: var(--text-muted);">Toplam Uyarı:</span>
+            <span id="summary-warnings" style="font-size: 13px; font-weight: 700; color: #ffb703;">0X</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+            <span style="font-size: 12px; color: var(--text-muted);">Direkt WL Günü:</span>
+            <span id="summary-wl-days" style="font-size: 13px; font-weight: 700; color: #219ebc;">0 Gün</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+            <span style="font-size: 12px; color: var(--text-muted);">Kalıcı Engelleme:</span>
+            <span id="summary-perma" style="font-size: 13px; font-weight: 700; color: var(--danger);">Yok</span>
+          </div>
+
+          <div style="background: rgba(0, 113, 227, 0.05); border: 1px solid rgba(0, 113, 227, 0.1); border-radius: 6px; padding: 12px; margin-top: 10px;">
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Tahmini Net Ceza Kararı:</div>
+            <div id="summary-decision" style="font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px;">Seçim Yapılmadı</div>
+            <div id="summary-selected-items" style="font-size: 11px; color: var(--text-muted); margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px; display: none; flex-direction: column; gap: 4px;"></div>
+          </div>
+          
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: auto;">
+            <i class="fa-regular fa-lightbulb" style="color: var(--primary); margin-right: 4px;"></i> <strong>Bilgilendirme:</strong> Toplam uyarı puanı 4x ve üzerine ulaştığında, sistem otomatik olarak uyarıları sıfırlayıp WL cezasına dönüştürür (4x: 1G, 5x: 2G, 6x: 3G, 7x: 4G, 8x+: 5G+).
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Punishment Clear Section -->
+    <div class="content-panel" style="padding: 24px; margin-bottom: 30px;">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; color: var(--success); display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-hands-holding-child"></i> Hızlı Ceza Kaldırma & Affetme Sistemi
+      </h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+        Buradan kullanıcıların aktif süreli veya kalıcı (perma) cezalarını anında kaldırabilirsiniz. Ceza kaldırıldığında kullanıcının Discord üzerindeki <strong>Karakter Onay rolü</strong> geri yüklenir, <strong>Cezalı rolü</strong> kaldırılır ve uyarı puanları sıfırlanır.
+      </p>
+
+      <form id="quick-clear-form" onsubmit="submitQuickClearForm(event)" style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 280px;">
+          <textarea id="quick-clear-discordIds" class="form-input" style="height: 44px; min-height: 44px; resize: vertical; font-family: monospace; font-size: 12px; padding: 10px 14px;" placeholder="Discord ID (Toplu işlem için virgül veya yeni satır ile ayırın...)" required></textarea>
+        </div>
+        <button type="submit" id="btn-quick-clear-submit" class="btn" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; font-size: 13px; height: 44px; padding: 0 24px; border-radius: 8px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-style: solid; white-space: nowrap;">
+          <i class="fa-solid fa-circle-check"></i> Cezayı Kaldır & Whitelist Ver
+        </button>
+      </form>
+    </div>
+
+    <!-- Bottom Section: Sicil Sorgula & Son Cezalar -->
+    <div class="main-layout" style="gap: 30px;">
+      
+      <!-- Lookup Sicil Timeline (Premium Design) -->
+      <div class="content-panel" style="grid-column: span 7; padding: 24px; min-height: 480px; display: flex; flex-direction: column;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-address-card"></i> Kullanıcı Sicil Sorgulama & Detaylar
+        </h3>
+        
+        <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+          <input type="text" id="sicil-search-id" class="form-input" placeholder="Discord ID girin..." style="height: 38px; font-size: 13px; flex-grow: 1;">
+          <button class="btn btn-primary" onclick="queryUserSicil()" style="height: 38px; padding: 0 16px;"><i class="fa-solid fa-magnifying-glass"></i> Sorgula</button>
+        </div>
+
+        <div id="sicil-active-status-container" style="margin-bottom: 20px; display: none;"></div>
+
+        <div id="sicil-results-container" style="flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; background: rgba(0,0,0,0.15); max-height: 400px; overflow-y: auto;" class="punish-scroll-container">
+          <div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 60px 0;">
+            <i class="fa-solid fa-search-plus" style="font-size: 20px; margin-bottom: 10px; display: block; color: var(--text-muted);"></i>
+            Sorgulanacak kullanıcının Discord ID'sini girip "Sorgula" butonuna tıklayın.
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Punishments list -->
+      <div class="content-panel" style="grid-column: span 5; padding: 24px; min-height: 480px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-clock-rotate-left"></i> Son Verilen Cezalar
+        </h3>
+        
+        <div style="overflow-x: auto; max-height: 380px; overflow-y: auto;" class="punish-scroll-container">
+          <table class="admin-table" style="font-size: 12px;">
+            <thead>
+              <tr>
+                <th>Kullanıcı</th>
+                <th>Ceza Detayı</th>
+                <th>Eklenen</th>
+                <th>Yetkili</th>
+                <th style="text-align: right;">İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (typeof recentPunishments !== 'undefined' && recentPunishments.length > 0) { %>
+                <% recentPunishments.slice(0, 10).forEach(r => { %>
+                  <tr>
+                    <td>
+                      <div style="font-weight: 600;"><%= r.username %></div>
+                      <div style="font-size: 10px; color: var(--text-muted); font-family: monospace;"><%= r.discordId %></div>
+                    </td>
+                    <td style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= r.punishments.join(", ") %>">
+                      <%= r.punishments.join(", ") %>
+                    </td>
+                    <td>
+                      <% if (r.isPerma) { %>
+                        <span class="status-badge offline" style="font-size: 10px;">Perma</span>
+                      <% } else if (r.wlDaysAdded > 0) { %>
+                        <span class="status-badge online" style="font-size: 10px; background: rgba(33, 157, 188, 0.15); color: #219ebc; border: 1px solid rgba(33, 157, 188, 0.3);"><%= r.wlDaysAdded %>G WL</span>
+                      <% } else { %>
+                        <span class="status-badge online" style="font-size: 10px; background: rgba(255, 183, 3, 0.15); color: #ffb703; border: 1px solid rgba(255, 183, 3, 0.3);"><%= r.warningsAdded %>X Uyarı</span>
+                      <% } %>
+                    </td>
+                    <td><%= r.executorUsername %></td>
+                    <td style="text-align: right;">
+                      <button onclick="clearUserPunishments('<%= r.discordId %>')" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;" title="Cezayı Kaldır">
+                        <i class="fa-solid fa-hands-holding-child"></i> Kaldır
+                      </button>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="5" style="text-align: center; color: var(--text-muted); font-size: 11px; padding: 40px 0;">Henüz ceza kaydı bulunmuyor.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    function initPunishments() {
+      const form = document.getElementById("punishment-form");
+      if (form) {
+        form.querySelectorAll(".punish-checkbox").forEach(cb => {
+          cb.addEventListener("change", recalculateSummary);
+        });
+        
+        const copbait = document.getElementById("punish-copbait");
+        if (copbait) {
+          copbait.addEventListener("change", recalculateSummary);
+        }
+
+        const initWarnings = document.getElementById("punish-initiative-warnings");
+        if (initWarnings) {
+          initWarnings.addEventListener("input", recalculateSummary);
+        }
+
+        const initWl = document.getElementById("punish-initiative-wl");
+        if (initWl) {
+          initWl.addEventListener("input", recalculateSummary);
+        }
+        recalculateSummary();
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initPunishments);
+    } else {
+      initPunishments();
+    }
+
+    function recalculateSummary() {
+      try {
+        let totalWarnings = 0;
+        let totalWlDays = 0;
+        let isPerma = false;
+        let isTT = false;
+
+        // Checkboxes
+        document.querySelectorAll(".punish-checkbox:checked").forEach(cb => {
+          if (cb.getAttribute("data-perma") === "true") {
+            isPerma = true;
+          }
+          if (cb.getAttribute("data-tt") === "true") {
+            isTT = true;
+          }
+          const warningsVal = parseInt(cb.getAttribute("data-warnings")) || 0;
+          const wlDaysVal = parseInt(cb.getAttribute("data-wl-days")) || 0;
+          
+          totalWarnings += warningsVal;
+          totalWlDays += wlDaysVal;
+        });
+
+        // Copbait dropdown
+        const copbaitEl = document.getElementById("punish-copbait");
+        if (copbaitEl) {
+          const copbait = copbaitEl.value;
+          if (copbait === "2") {
+            totalWarnings += 2;
+          } else if (copbait === "4") {
+            totalWarnings += 4;
+          }
+        }
+
+        // Initiative inputs
+        const initWarningsEl = document.getElementById("punish-initiative-warnings");
+        const initWlEl = document.getElementById("punish-initiative-wl");
+        
+        const initWarningsVal = initWarningsEl ? (parseInt(initWarningsEl.value) || 0) : 0;
+        const initWlVal = initWlEl ? (parseInt(initWlEl.value) || 0) : 0;
+        totalWarnings += initWarningsVal;
+        totalWlDays += initWlVal;
+
+        const summaryWarningsEl = document.getElementById("summary-warnings");
+        if (summaryWarningsEl) summaryWarningsEl.innerText = totalWarnings + "X";
+        
+        const summaryWlDaysEl = document.getElementById("summary-wl-days");
+        if (summaryWlDaysEl) summaryWlDaysEl.innerText = totalWlDays + " Gün";
+        
+        const summaryPermaEl = document.getElementById("summary-perma");
+        if (summaryPermaEl) summaryPermaEl.innerText = isPerma ? "Aktif" : "Yok";
+
+        // Formulate decision
+        let decisionText = "";
+        if (isPerma) {
+          decisionText = "Kalıcı Yasaklama (Perma Ban)";
+        } else {
+          let finalWlDays = totalWlDays;
+          let finalWarnings = totalWarnings;
+
+          // Auto warning conversion
+          if (finalWarnings >= 4) {
+            let convertedWlDays = 0;
+            if (finalWarnings === 4) convertedWlDays = 1;
+            else if (finalWarnings === 5) convertedWlDays = 2;
+            else if (finalWarnings === 6) convertedWlDays = 3;
+            else if (finalWarnings === 7) convertedWlDays = 4;
+            else convertedWlDays = 5 + (finalWarnings - 8);
+
+            finalWlDays += convertedWlDays;
+            finalWarnings = 0;
+          }
+
+          const parts = [];
+          if (finalWlDays !== 0) {
+            parts.push((finalWlDays > 0 ? "+" : "") + finalWlDays + " Gün WL Cezası");
+          }
+          if (finalWarnings !== 0) {
+            parts.push((finalWarnings > 0 ? "+" : "") + finalWarnings + "X Uyarı");
+          }
+          if (isTT) parts.push("+ TT Cezası (Duruma Göre)");
+
+          decisionText = parts.length > 0 ? parts.join(" + ") : "Seçim Yapılmadı";
+        }
+
+        const summaryDecisionEl = document.getElementById("summary-decision");
+        if (summaryDecisionEl) summaryDecisionEl.innerText = decisionText;
+
+        const selectedItemsContainer = document.getElementById("summary-selected-items");
+        if (selectedItemsContainer) {
+          selectedItemsContainer.innerHTML = "";
+          const itemsList = [];
+
+          document.querySelectorAll(".punish-checkbox:checked").forEach(cb => {
+            let weightStr = "";
+            if (cb.getAttribute("data-perma") === "true") weightStr = "Perma";
+            else if (cb.getAttribute("data-wl-days")) weightStr = cb.getAttribute("data-wl-days") + "G WL";
+            else if (cb.getAttribute("data-warnings")) weightStr = cb.getAttribute("data-warnings") + "X Uyarı";
+            else weightStr = "Özel";
+            itemsList.push({ name: cb.getAttribute("data-name"), weight: weightStr });
+          });
+
+          if (copbaitEl) {
+            const copbaitVal = copbaitEl.value;
+            if (copbaitVal === "2") {
+              itemsList.push({ name: "Cop Bait - Hafif", weight: "2X Uyarı" });
+            } else if (copbaitVal === "4") {
+              itemsList.push({ name: "Cop Bait - Ağır", weight: "4X Uyarı" });
+            }
+          }
+
+          if (initWarningsVal !== 0) {
+            itemsList.push({ name: "Yetkili İnisiyatifi (Uyarı)", weight: (initWarningsVal > 0 ? "+" : "") + initWarningsVal + "X Uyarı" });
+          }
+          if (initWlVal !== 0) {
+            itemsList.push({ name: "Yetkili İnisiyatifi (WL)", weight: (initWlVal > 0 ? "+" : "") + initWlVal + "G WL" });
+          }
+
+          if (itemsList.length > 0) {
+            selectedItemsContainer.style.display = "flex";
+            itemsList.forEach(item => {
+              const itemDiv = document.createElement("div");
+              itemDiv.style = "display: flex; justify-content: space-between; gap: 8px;";
+              itemDiv.innerHTML = `<span>• ${item.name}</span><strong style="color: #fff;">${item.weight}</strong>`;
+              selectedItemsContainer.appendChild(itemDiv);
+            });
+          } else {
+            selectedItemsContainer.style.display = "none";
+          }
+        }
+      } catch (err) {
+        console.error("recalculateSummary error:", err);
+      }
+    }
+
+    async function submitPunishmentForm(event) {
+      event.preventDefault();
+      
+      const idsStr = document.getElementById("punish-discordIds").value;
+      const discordIds = idsStr.split(/[\n,]+/).map(s => s.trim()).filter(s => /^\d{17,20}$/.test(s));
+      
+      if (discordIds.length === 0) {
+        showAdminToast("Lütfen geçerli Discord ID'leri girin.", "error");
+        return;
+      }
+
+      const punishments = [];
+      document.querySelectorAll(".punish-checkbox:checked").forEach(cb => {
+        punishments.push({
+          name: cb.getAttribute("data-name"),
+          warnings: cb.getAttribute("data-warnings") || 0,
+          wlDays: cb.getAttribute("data-wl-days") || 0,
+          perma: cb.getAttribute("data-perma") === "true",
+          isTT: cb.getAttribute("data-tt") === "true"
+        });
+      });
+
+      const copbait = document.getElementById("punish-copbait").value;
+      if (copbait === "2") {
+        punishments.push({ name: "Cop Bait (2X Uyarı)", warnings: 2, wlDays: 0, perma: false });
+      } else if (copbait === "4") {
+        punishments.push({ name: "Cop Bait - Ağır rol bölme (4X Uyarı)", warnings: 4, wlDays: 0, perma: false });
+      }
+
+      const initWarnings = parseInt(document.getElementById("punish-initiative-warnings").value) || 0;
+      const initWl = parseInt(document.getElementById("punish-initiative-wl").value) || 0;
+
+      if (initWarnings !== 0) {
+        punishments.push({ name: `Yetkili İnisiyatifi (${initWarnings > 0 ? "+" : ""}${initWarnings}X Uyarı)`, warnings: initWarnings, wlDays: 0, perma: false });
+      }
+      if (initWl !== 0) {
+        punishments.push({ name: `Yetkili İnisiyatifi (${initWl > 0 ? "+" : ""}${initWl} Gün WL)`, warnings: 0, wlDays: initWl, perma: false });
+      }
+
+      if (punishments.length === 0) {
+        showAdminToast("Lütfen en az bir ceza seçin.", "error");
+        return;
+      }
+
+      if (!confirm(`${discordIds.length} kullanıcıya seçilen cezayı uygulamak istediğinize emin misiniz?`)) {
+        return;
+      }
+
+      const btn = document.getElementById("btn-submit-punishment");
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> İşleniyor...`;
+
+      const complainant = (document.getElementById("punish-complainant")?.value || "").trim();
+
+      try {
+        const response = await fetch("/admin/users/punish", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ discordIds, punishments, complainant })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          showAdminToast(data.message || "İşlem sırasında hata oluştu.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    }
+
+    async function queryUserSicil() {
+      const searchId = document.getElementById("sicil-search-id").value.trim();
+      const resultsContainer = document.getElementById("sicil-results-container");
+      const activeStatusContainer = document.getElementById("sicil-active-status-container");
+      
+      if (!/^\d{17,20}$/.test(searchId)) {
+        showAdminToast("Lütfen geçerli bir Discord ID girin.", "error");
+        return;
+      }
+
+      resultsContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 40px 0;"><i class="fa-solid fa-circle-notch fa-spin"></i> Sicil verileri çekiliyor...</div>`;
+      activeStatusContainer.style.display = "none";
+      activeStatusContainer.innerHTML = "";
+
+      try {
+        const response = await fetch("/admin/users/punish/history/" + searchId);
+        const data = await response.json();
+        
+        if (data.success) {
+          activeStatusContainer.style.display = "block";
+          let avatarUrl = "/img/default-avatar.png";
+          let username = "Bilinmeyen Kullanıcı";
+          let warnings = 0;
+          let wlCezaBitis = null;
+          let isPermaBanned = false;
+
+          if (data.user) {
+            username = data.user.username || username;
+            if (data.user.avatarUrl) avatarUrl = data.user.avatarUrl;
+            warnings = data.user.warnings || 0;
+            wlCezaBitis = data.user.wlCezaBitis ? new Date(data.user.wlCezaBitis) : null;
+            isPermaBanned = data.user.isPermaBanned || false;
+          }
+
+          let wlStatusHtml = `<span class="status-badge online" style="background: rgba(46,196,182,0.15); color: var(--success); border: 1px solid rgba(46,196,182,0.3); font-size: 10px;">Temiz</span>`;
+          if (isPermaBanned) {
+            wlStatusHtml = `<span class="status-badge offline" style="font-size: 10px;">Kalıcı Yasaklı (Perma)</span>`;
+          } else if (wlCezaBitis && wlCezaBitis > new Date()) {
+            wlStatusHtml = `<span class="status-badge offline" style="font-size: 10px; background: rgba(235,94,40,0.15); color: var(--danger); border: 1px solid rgba(235,94,40,0.3);">Yasaklı (Bitiş: ${wlCezaBitis.toLocaleString("tr-TR")})</span>`;
+          }
+
+          let warningStepsHtml = "";
+          for (let i = 1; i <= 9; i++) {
+            warningStepsHtml += `<div class="warning-step ${warnings >= i ? 'active' : ''}"></div>`;
+          }
+
+          activeStatusContainer.innerHTML = `
+            <div class="sicil-card" style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <img src="${avatarUrl}" alt="avatar" style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--border-color);">
+                  <div>
+                    <div style="font-weight: 700; color: #fff; font-size: 13px;">${username}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); font-family: monospace;">ID: ${searchId}</div>
+                  </div>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="clearUserPunishments('${searchId}')" style="font-size: 11px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; border-color: rgba(46,196,182,0.3); color: var(--success); height: auto;">
+                  <i class="fa-solid fa-hands-holding-child"></i> Cezaları Kaldır (Affet)
+                </button>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <div>
+                  <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Aktif Uyarı Derecesi: <strong style="color: #ffb703;">${warnings}/9</strong></div>
+                  <div class="warning-steps">${warningStepsHtml}</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">WL Durumu:</div>
+                  <div>${wlStatusHtml}</div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          if (!data.history || data.history.length === 0) {
+            resultsContainer.innerHTML = `
+              <div style="text-align: center; color: var(--text-muted); font-size: 11px; padding: 50px 0;">
+                <i class="fa-solid fa-folder-open" style="font-size: 20px; display: block; margin-bottom: 8px; color: var(--text-muted);"></i>
+                Bu kullanıcının geçmiş ceza sicil kaydı bulunmuyor.
+              </div>
+            `;
+            return;
+          }
+
+          let timelineHtml = `<div class="sicil-timeline">`;
+          data.history.forEach(h => {
+            const dateStr = new Date(h.date).toLocaleString("tr-TR");
+            let typeClass = "warning";
+            let actionBadgeText = "";
+            
+            if (h.punishments && h.punishments.join(", ").includes("Affedildi")) {
+              typeClass = "pardon";
+              actionBadgeText = `<span style="font-size: 10px; background: rgba(46,196,182,0.15); color: var(--success); border: 1px solid rgba(46,196,182,0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">Affedildi</span>`;
+            } else if (h.isPerma) {
+              typeClass = "perma";
+              actionBadgeText = `<span style="font-size: 10px; background: rgba(235,94,40,0.15); color: var(--danger); border: 1px solid rgba(235,94,40,0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">Perma</span>`;
+            } else if (h.wlDaysAdded > 0) {
+              typeClass = "wl";
+              actionBadgeText = `<span style="font-size: 10px; background: rgba(33, 157, 188, 0.15); color: #219ebc; border: 1px solid rgba(33, 157, 188, 0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">+${h.wlDaysAdded}G WL</span>`;
+            } else if (h.warningsAdded !== 0) {
+              typeClass = "warning";
+              actionBadgeText = `<span style="font-size: 10px; background: rgba(255, 183, 3, 0.15); color: #ffb703; border: 1px solid rgba(255, 183, 3, 0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">${h.warningsAdded > 0 ? "+" : ""}${h.warningsAdded}X Uyarı</span>`;
+            }
+
+            timelineHtml += `
+              <div class="sicil-timeline-item ${typeClass}">
+                <div class="sicil-timeline-badge"></div>
+                <div class="sicil-card" style="padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-muted); flex-wrap: wrap; gap: 6px;">
+                    <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i>${dateStr}</span>
+                    <span><i class="fa-solid fa-user-shield" style="margin-right: 4px;"></i>${h.executorUsername}</span>
+                  </div>
+                  <div style="font-size: 12px; font-weight: 600; color: #fff; line-height: 1.4; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <span>${h.punishments.join(", ")}</span>
+                    ${actionBadgeText}
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          timelineHtml += `</div>`;
+          resultsContainer.innerHTML = timelineHtml;
+        } else {
+          resultsContainer.innerHTML = `<div style="text-align: center; color: var(--danger); font-size: 12px; padding: 40px 0;"><i class="fa-solid fa-triangle-exclamation"></i> Veriler alınamadı: ${data.message || 'Bilinmeyen hata'}</div>`;
+        }
+      } catch (err) {
+        console.error("queryUserSicil error:", err);
+        resultsContainer.innerHTML = `<div style="text-align: center; color: var(--danger); font-size: 12px; padding: 40px 0;"><i class="fa-solid fa-triangle-exclamation"></i> Bağlantı hatası oluştu.</div>`;
+      }
+    }
+
+    async function clearUserPunishments(discordId) {
+      if (!confirm("Bu kullanıcının sunucudaki tüm aktif cezalarını ve uyarı rollerini kaldırmak, siciline affedilme kaydı işlemek istediğinize emin misiniz?")) {
+        return;
+      }
+      
+      try {
+        const response = await fetch("/admin/users/punish/clear/" + discordId, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showAdminToast(data.message, "success");
+          setTimeout(() => {
+            if (typeof queryUserSicil === 'function' && document.getElementById("sicil-search-id") && document.getElementById("sicil-search-id").value) {
+              queryUserSicil();
+            } else {
+              window.location.reload();
+            }
+          }, 1500);
+        } else {
+          showAdminToast(data.message || "İşlem sırasında hata oluştu.", "error");
+        }
+      } catch (err) {
+        showAdminToast("Bağlantı hatası oluştu.", "error");
+      }
+    }
+
+    async function submitQuickClearForm(event) {
+      event.preventDefault();
+      const idsStr = document.getElementById("quick-clear-discordIds").value;
+      const discordIds = idsStr.split(/[\n,]+/).map(s => s.trim()).filter(s => /^\d{17,20}$/.test(s));
+      
+      if (discordIds.length === 0) {
+        showAdminToast("Lütfen geçerli Discord ID'leri girin.", "error");
+        return;
+      }
+
+      if (!confirm(`${discordIds.length} kullanıcının tüm aktif cezalarını kaldırmak, Cezalı rolünü çekip Karakter Onay rollerini geri yüklemek istediğinize emin misiniz?`)) {
+        return;
+      }
+
+      const btn = document.getElementById("btn-quick-clear-submit");
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> İşleniyor...`;
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const dId of discordIds) {
+        try {
+          const res = await fetch("/admin/users/punish/clear/" + dId, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
+          const data = await res.json();
+          if (data.success) successCount++;
+          else failCount++;
+        } catch (e) {
+          failCount++;
+        }
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+
+      if (successCount > 0) {
+        showAdminToast(`${successCount} kullanıcının cezası başarıyla kaldırıldı.${failCount > 0 ? ` (${failCount} başarısız)` : ''}`, "success");
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        showAdminToast("Ceza kaldırma işlemi başarısız oldu.", "error");
+      }
+    }
+  </script>
+<% } else { %>
+  <div class="locked-overlay">
+    <div class="locked-overlay-icon"><i class="fa-solid fa-lock"></i></div>
+    <h4>Erişim Kısıtlandı</h4>
+    <p>Burayı görüntülemeye yetkiniz yok.</p>
+  </div>
+<% } %>

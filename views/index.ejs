@@ -1,0 +1,127 @@
+<%- include('partials/header') %>
+
+  <main class="container">
+    <section id="about" class="hero">
+      <h1 class="hero-title">
+        Empire<span style="margin-left: 4px; display: inline-block; background: linear-gradient(135deg, #ffffff 0%, #f5d0c5 50%, #e0a98b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">V</span><span style="margin-left: 0.35em; display: inline-block; background: linear-gradient(135deg, #ffffff 0%, #f5d0c5 50%, #e0a98b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">RolePlay</span>
+      </h1>
+      <p class="hero-subtitle">
+        Özel scriptler, yüksek FPS optimizasyonu, dengeli ekonomi ve profesyonel yönetim kadrosuyla kendinizi benzersiz bir FiveM rol dünyasının merkezinde bulun.
+      </p>
+
+      <div class="hero-actions" style="margin-bottom: 56px;">
+        <a href="https://discord.gg/starv" target="_blank" class="btn btn-primary">
+          <i class="fa-brands fa-discord" style="font-size: 16px;"></i> Discord Topluluğuna Katıl
+        </a>
+        <% if (!locals.user) { %>
+          <a href="/auth/login" class="btn btn-secondary">
+            <i class="fa-solid fa-file-signature" style="font-size: 15px; color: var(--primary-light);"></i> Whitelist Başvurusu
+          </a>
+        <% } else if (user.isSuperuser) { %>
+          <a href="/admin/dashboard" class="btn btn-secondary">
+            <i class="fa-solid fa-gauge" style="font-size: 15px; color: var(--primary-light);"></i> Yönetim Paneli
+          </a>
+        <% } else { %>
+          <span class="btn btn-secondary" style="cursor: default; background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); color: #34d399;">
+            <i class="fa-solid fa-user-check"></i> Whitelist Onaylı Oyuncu
+          </span>
+        <% } %>
+      </div>
+
+      <!-- Features Cards Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto 80px auto;">
+        <div class="glass-card" style="text-align: left; padding: 28px;">
+          <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(224, 169, 139, 0.15); border: 1px solid rgba(224, 169, 139, 0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 18px;">
+            <i class="fa-solid fa-microchip" style="font-size: 20px; color: var(--primary-light);"></i>
+          </div>
+          <h3 style="font-family: var(--font-display); font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 8px;">Özel Script Altyapısı</h3>
+          <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6; margin: 0;">
+            EmpireV ekibi tarafından özel olarak geliştirilen, sıfır gecikmeli ve yüksek performanslı scriptler.
+          </p>
+        </div>
+
+        <div class="glass-card" style="text-align: left; padding: 28px;">
+          <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 18px;">
+            <i class="fa-solid fa-coins" style="font-size: 20px; color: #60a5fa;"></i>
+          </div>
+          <h3 style="font-family: var(--font-display); font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 8px;">Dengeli Ekonomi</h3>
+          <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6; margin: 0;">
+            Legal ve illegal meslekler arasında tam adalet sağlayan, uzun soluklu ve gerçekçi finansal altyapı.
+          </p>
+        </div>
+
+        <div class="glass-card" style="text-align: left; padding: 28px;">
+          <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 18px;">
+            <i class="fa-solid fa-headset" style="font-size: 20px; color: #34d399;"></i>
+          </div>
+          <h3 style="font-family: var(--font-display); font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 8px;">7/24 Kesintisiz Destek</h3>
+          <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6; margin: 0;">
+            Taleplerinize anında yanıt veren yetkili ve teknik destek ekibiyle güvenli oyun ortamı.
+          </p>
+        </div>
+      </div>
+
+      <!-- About Section Card -->
+      <div class="content-panel" style="text-align: left; max-width: 900px; margin: 0 auto 80px auto; padding: 40px;">
+        <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; margin-bottom: 16px; text-transform: uppercase; color: #fff; display: flex; align-items: center; gap: 10px; letter-spacing: 0.04em;">
+          <i class="fa-solid fa-circle-info" style="color: var(--primary-light);"></i> Karakterinizin Hikayesi Burada Başlıyor
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.8; margin-bottom: 16px;">
+          EmpireV, rol kalitesini ve oyuncu memnuniyetini en üst seviyede tutmak için tasarlanmış seçkin bir FiveM topluluğudur.
+          Sunucumuzda yer alan özel legal/illegal meslek dalları, çete ve holding mekanikleri sayesinde kendi hikayenizi özgürce çizebilirsiniz.
+        </p>
+        <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.8; margin: 0;">
+          Her saniyesinden keyif alacağınız rol ortamını, gelişmiş teknik altyapımız ve kesintisiz sunucu optimizasyonlarımızla destekliyoruz.
+        </p>
+      </div>
+
+      <!-- Changelog Section -->
+      <div class="changelog-container" style="max-width: 900px; margin: 0 auto; text-align: left;">
+        <div class="changelog-header" style="margin-bottom: 36px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end;">
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; margin-bottom: 6px; text-transform: uppercase; color: #fff; display: flex; align-items: center; gap: 10px;">
+              <i class="fa-solid fa-bullhorn" style="color: var(--primary-light);"></i> Güncelleme Notları
+            </h3>
+            <p style="color: var(--text-muted); font-size: 13px; margin: 0;">Sistem güncellemeleri ve sunucu yenilikleri</p>
+          </div>
+          <span class="badge badge-primary"><i class="fa-solid fa-clock-rotate-left"></i> Son Güncellemeler</span>
+        </div>
+
+        <div class="timeline-wrapper">
+          <div class="timeline-line"></div>
+
+          <% if (updates && updates.length > 0) { %>
+            <% updates.forEach((update, index) => { %>
+              <div class="timeline-item">
+                <div class="timeline-dot-container">
+                  <div class="timeline-dot <%= index === 0 ? 'active' : '' %>"></div>
+                </div>
+
+                <div class="timeline-content-card">
+                  <div class="timeline-card-header">
+                    <div class="timeline-version-badge">
+                      <i class="fa-solid fa-code-commit" style="font-size: 13px; margin-right: 6px;"></i><%= update.title %>
+                    </div>
+                    <span class="timeline-date"><i class="fa-regular fa-calendar-days"></i>
+                      <%= new Date(update.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                    </span>
+                  </div>
+
+                  <div class="timeline-card-body">
+                    <%- update.description %>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="glass-card" style="text-align: center; padding: 40px; color: var(--text-muted);">
+              <i class="fa-solid fa-hourglass-empty" style="font-size: 32px; color: var(--primary-light); margin-bottom: 12px; display: inline-block;"></i>
+              <p style="margin: 0; font-size: 14px;">Henüz yayınlanmış güncelleme notu bulunmuyor.</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<%- include('partials/footer') %>

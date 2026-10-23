@@ -1,0 +1,381 @@
+<div class="content-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+    <div>
+      <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i> Sistem & Kullanıcı Logları
+        <span style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase;">
+          <i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i> Kurucu Özel
+        </span>
+      </h3>
+      <p style="color: var(--text-muted); font-size: 12px; margin: 4px 0 0 0;">
+        Veritabanına kaydedilen tüm web paneli, Discord botu ve FiveM köprüsü eylem kayıtları. JSON verilerini detaylıca inceleyebilirsiniz.
+      </p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button onclick="fetchSystemLogs(1)" class="btn-secondary" style="font-size: 12px; padding: 8px 14px; display: flex; align-items: center; gap: 6px; border-radius: 8px;">
+        <i class="fa-solid fa-rotate-right"></i> Yenile
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters & Search Bar -->
+  <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px;">
+      <!-- Search Input -->
+      <div>
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
+          <i class="fa-solid fa-magnifying-glass" style="color: var(--primary-light);"></i> Arama Yap (Kullanıcı, ID, IP)
+        </label>
+        <div style="position: relative;">
+          <input type="text" id="sys-log-search" class="form-input" placeholder="örn: cnarreall, 444578, 127.0.0.1..." onkeyup="if(event.key==='Enter') fetchSystemLogs(1)" style="padding-right: 36px;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 12px; pointer-events: none;"></i>
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div>
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
+          <i class="fa-solid fa-filter" style="color: var(--primary-light);"></i> Kategori
+        </label>
+        <select id="sys-log-category" class="form-input" onchange="fetchSystemLogs(1)">
+          <option value="all">Tüm Kategoriler</option>
+          <option value="fivem">🎮 FiveM &amp; Karakter İşlemleri</option>
+          <option value="user_auth">🔑 Kullanıcı Giriş &amp; Oturum</option>
+          <option value="team">👥 Ekip Yönetimi</option>
+          <option value="punishment">⚖️ Ceza &amp; Yaptırımlar</option>
+          <option value="bot">🤖 Discord Bot Operasyonları</option>
+          <option value="gambling">🎰 Eğlence &amp; Şans Oyunları</option>
+          <option value="admin_actions">⚙️ Yönetici / Sistem İşlemleri</option>
+        </select>
+      </div>
+
+      <!-- Action Type Filter -->
+      <div>
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
+          <i class="fa-solid fa-list-check" style="color: var(--primary-light);"></i> Özel Eylem Türü
+        </label>
+        <select id="sys-log-action-type" class="form-input" onchange="fetchSystemLogs(1)">
+          <option value="all">Tüm Eylemler</option>
+        </select>
+      </div>
+
+      <!-- Date Range Filter -->
+      <div>
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
+          <i class="fa-solid fa-calendar-days" style="color: var(--primary-light);"></i> Tarih Aralığı
+        </label>
+        <select id="sys-log-date-range" class="form-input" onchange="fetchSystemLogs(1)">
+          <option value="all">Tüm Zamanlar</option>
+          <option value="today">Bugün</option>
+          <option value="7days">Son 7 Gün</option>
+          <option value="30days">Son 30 Gün</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px;">
+      <div id="sys-log-stats-badge" style="font-size: 11px; color: var(--text-muted); font-family: monospace;">
+        Yükleniyor...
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="resetSystemLogFilters()" class="btn-secondary" style="font-size: 11px; padding: 6px 12px; border-radius: 6px;">
+          <i class="fa-solid fa-xmark" style="margin-right: 4px;"></i> Filtreleri Sıfırla
+        </button>
+        <button onclick="fetchSystemLogs(1)" class="btn-primary" style="font-size: 11px; padding: 6px 16px; border-radius: 6px;">
+          <i class="fa-solid fa-magnifying-glass" style="margin-right: 4px;"></i> Filtrele ve Ara
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logs Table -->
+  <div style="overflow-x: auto; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 12px;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12px;">
+      <thead>
+        <tr style="background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border-color); color: var(--text-muted); text-transform: uppercase; font-size: 10px; letter-spacing: 1px;">
+          <th style="padding: 12px 16px; width: 140px;">Tarih / Saat</th>
+          <th style="padding: 12px 16px; width: 180px;">Eylemi Yapan</th>
+          <th style="padding: 12px 16px; width: 160px;">Eylem Türü</th>
+          <th style="padding: 12px 16px; width: 160px;">Hedef</th>
+          <th style="padding: 12px 16px;">Açıklama & Detay</th>
+          <th style="padding: 12px 16px; width: 110px;">Bağlam</th>
+          <th style="padding: 12px 16px; width: 100px; text-align: right;">JSON</th>
+        </tr>
+      </thead>
+      <tbody id="sys-logs-tbody">
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted); font-style: italic;">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Loglar yükleniyor...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 16px;">
+    <div style="font-size: 12px; color: var(--text-muted);" id="sys-log-pagination-info">
+      Sayfa 1 / 1
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button id="sys-log-prev-btn" onclick="changeSysLogPage(-1)" class="btn-secondary" style="font-size: 11px; padding: 6px 12px; border-radius: 6px;" disabled>
+        <i class="fa-solid fa-chevron-left" style="margin-right: 4px;"></i> Önceki
+      </button>
+      <button id="sys-log-next-btn" onclick="changeSysLogPage(1)" class="btn-secondary" style="font-size: 11px; padding: 6px 12px; border-radius: 6px;" disabled>
+        Sonraki <i class="fa-solid fa-chevron-right" style="margin-left: 4px;"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- JSON Inspector Modal -->
+<div id="sys-log-json-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10005; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(6px);">
+  <div class="content-panel" style="width: 100%; max-width: 750px; max-height: 85vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; position: relative;">
+    <button type="button" onclick="closeSysLogJsonModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer;">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-code" style="color: #a78bfa;"></i> Eylem JSON Detayları
+        <span id="json-modal-action-tag" style="background: rgba(167, 139, 250, 0.15); color: #a78bfa; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-family: monospace;"></span>
+      </h3>
+      <button onclick="copySysLogJson()" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+        <i class="fa-solid fa-copy"></i> JSON Kopyala
+      </button>
+    </div>
+
+    <div style="background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; max-height: 500px; overflow-y: auto;">
+      <pre id="sys-log-json-content" style="margin: 0; font-family: monospace; font-size: 11px; color: #34d399; white-space: pre-wrap; word-break: break-word;"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+  let sysLogCurrentPage = 1;
+  let sysLogTotalPages = 1;
+  let sysLogCachedList = [];
+
+  let sysLogsLoaded = false;
+  document.addEventListener("DOMContentLoaded", function() {
+    const sec = document.getElementById("system-logs");
+    function ensureLogsLoaded() {
+      if (!sysLogsLoaded) {
+        sysLogsLoaded = true;
+        loadSysLogActionTypes();
+        fetchSystemLogs(1);
+      }
+    }
+    if (sec) {
+      const obs = new MutationObserver(() => {
+        if (sec.classList.contains("active")) {
+          ensureLogsLoaded();
+        }
+      });
+      obs.observe(sec, { attributes: true, attributeFilter: ["class"] });
+    }
+    if (window.location.hash === "#system-logs") {
+      ensureLogsLoaded();
+    }
+  });
+
+  async function loadSysLogActionTypes() {
+    try {
+      const res = await fetch("/admin/api/system-logs/action-types");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.actionTypes)) {
+        const select = document.getElementById("sys-log-action-type");
+        if (!select) return;
+        select.innerHTML = '<option value="all">Tüm Eylemler</option>';
+        data.actionTypes.sort().forEach(act => {
+          const opt = document.createElement("option");
+          opt.value = act;
+          opt.textContent = act;
+          select.appendChild(opt);
+        });
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  async function fetchSystemLogs(page = 1) {
+    sysLogCurrentPage = page;
+    const tbody = document.getElementById("sys-logs-tbody");
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted); font-style: italic;">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> Loglar çekiliyor...
+        </td>
+      </tr>
+    `;
+
+    const search = document.getElementById("sys-log-search").value.trim();
+    const category = document.getElementById("sys-log-category").value;
+    const actionType = document.getElementById("sys-log-action-type").value;
+    const dateRange = document.getElementById("sys-log-date-range").value;
+
+    const queryParams = new URLSearchParams({
+      page: sysLogCurrentPage,
+      limit: 25,
+      search: search,
+      category: category,
+      actionType: actionType,
+      dateRange: dateRange
+    });
+
+    try {
+      const res = await fetch(`/admin/api/system-logs?${queryParams.toString()}`);
+      const data = await res.json();
+
+      if (data.success) {
+        sysLogCachedList = data.logs || [];
+        sysLogTotalPages = data.totalPages || 1;
+
+        document.getElementById("sys-log-stats-badge").innerText = `Toplam ${data.totalCount.toLocaleString()} kayıt bulundu (Sayfa ${data.page} / ${data.totalPages})`;
+        document.getElementById("sys-log-pagination-info").innerText = `Sayfa ${data.page} / ${data.totalPages} (Toplam ${data.totalCount.toLocaleString()} eylem)`;
+
+        document.getElementById("sys-log-prev-btn").disabled = (data.page <= 1);
+        document.getElementById("sys-log-next-btn").disabled = (data.page >= data.totalPages);
+
+        if (sysLogCachedList.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted); font-style: italic;">
+                Arama kriterlerine uygun eylem kaydı bulunamadı.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        let html = "";
+        sysLogCachedList.forEach((log, index) => {
+          const dt = new Date(log.timestamp);
+          const dateStr = !isNaN(dt.getTime()) 
+            ? `${String(dt.getDate()).padStart(2,'0')}.${String(dt.getMonth()+1).padStart(2,'0')}.${dt.getFullYear()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}:${String(dt.getSeconds()).padStart(2,'0')}`
+            : "-";
+
+          const actionBadgeColor = getActionBadgeColor(log.actionType);
+
+          const execName = log.executorUsername || "Sistem";
+          const execId = log.executorId || "-";
+          const execIp = log.executorIp ? `<span style="background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 1px 5px; border-radius: 4px; font-size: 10px; font-family: monospace;">${log.executorIp}</span>` : "";
+
+          const targetName = log.targetUsername || log.targetId || "-";
+
+          html += `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.2s;" onmouseenter="this.style.background='rgba(255,255,255,0.02)'" onmouseleave="this.style.background='transparent'">
+              <td style="padding: 10px 16px; font-family: monospace; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
+                ${dateStr}
+              </td>
+              <td style="padding: 10px 16px;">
+                <div style="font-weight: 700; color: #fff;">${execName}</div>
+                <div style="font-size: 10px; color: var(--text-muted); font-family: monospace;">ID: ${execId} ${execIp}</div>
+              </td>
+              <td style="padding: 10px 16px;">
+                <span style="background: ${actionBadgeColor.bg}; border: 1px solid ${actionBadgeColor.border}; color: ${actionBadgeColor.color}; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; font-family: monospace; display: inline-block;">
+                  ${log.actionType}
+                </span>
+              </td>
+              <td style="padding: 10px 16px;">
+                <div style="font-weight: 600; color: #e5e7eb; font-size: 11px;">${targetName}</div>
+                ${log.targetId && log.targetUsername ? `<div style="font-size: 10px; color: var(--text-muted); font-family: monospace;">ID: ${log.targetId}</div>` : ''}
+              </td>
+              <td style="padding: 10px 16px; color: #d1d5db; word-break: break-word; max-width: 350px;">
+                ${log.details || "-"}
+              </td>
+              <td style="padding: 10px 16px;">
+                <span style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: var(--text-muted); padding: 2px 6px; border-radius: 4px; font-size: 10px;">
+                  ${log.context || 'Web Panel'}
+                </span>
+              </td>
+              <td style="padding: 10px 16px; text-align: right;">
+                <button onclick="inspectSysLogJson(${index})" style="background: rgba(167, 139, 250, 0.12); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.3); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer;">
+                  <i class="fa-solid fa-code" style="margin-right: 3px;"></i> JSON
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      } else {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 32px; color: #f87171;">
+              ${data.message || 'Loglar yüklenirken hata oluştu.'}
+            </td>
+          </tr>
+        `;
+      }
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 32px; color: #f87171;">
+            Sunucuya erişilemedi.
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  function changeSysLogPage(delta) {
+    const newPage = sysLogCurrentPage + delta;
+    if (newPage >= 1 && newPage <= sysLogTotalPages) {
+      fetchSystemLogs(newPage);
+    }
+  }
+
+  function resetSystemLogFilters() {
+    document.getElementById("sys-log-search").value = "";
+    document.getElementById("sys-log-category").value = "all";
+    document.getElementById("sys-log-action-type").value = "all";
+    document.getElementById("sys-log-date-range").value = "all";
+    fetchSystemLogs(1);
+  }
+
+  function inspectSysLogJson(index) {
+    const log = sysLogCachedList[index];
+    if (!log) return;
+    document.getElementById("json-modal-action-tag").textContent = log.actionType || "LOG";
+    const raw = log.rawData || log;
+    document.getElementById("sys-log-json-content").textContent = JSON.stringify(raw, null, 2);
+    
+    const modal = document.getElementById("sys-log-json-modal");
+    if (modal) {
+      if (modal.parentElement !== document.body) document.body.appendChild(modal);
+      modal.style.display = "flex";
+    }
+  }
+
+  function closeSysLogJsonModal() {
+    const modal = document.getElementById("sys-log-json-modal");
+    if (modal) modal.style.display = "none";
+  }
+
+  function copySysLogJson() {
+    const text = document.getElementById("sys-log-json-content").textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      if (typeof showToast === 'function') showToast('JSON ham veri panoya kopyalandı.', 'success');
+    });
+  }
+
+  function getActionBadgeColor(act) {
+    if (!act) return { bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.1)", color: "#9ca3af" };
+    if (act.startsWith("userLogin") || act.startsWith("userRegister")) {
+      return { bg: "rgba(16, 185, 129, 0.12)", border: "rgba(16, 185, 129, 0.3)", color: "#34d399" };
+    } else if (act.startsWith("fivem") || act === "giveitem" || act === "givemoney") {
+      return { bg: "rgba(59, 130, 246, 0.12)", border: "rgba(59, 130, 246, 0.3)", color: "#60a5fa" };
+    } else if (act.startsWith("team")) {
+      return { bg: "rgba(167, 139, 250, 0.12)", border: "rgba(167, 139, 250, 0.3)", color: "#a78bfa" };
+    } else if (act.includes("punish") || act.includes("Ban") || act.includes("Wipe")) {
+      return { bg: "rgba(239, 68, 68, 0.12)", border: "rgba(239, 68, 68, 0.3)", color: "#f87171" };
+    } else if (act.includes("Spin") || act.includes("Bet") || act.includes("Bonus")) {
+      return { bg: "rgba(245, 158, 11, 0.12)", border: "rgba(245, 158, 11, 0.3)", color: "#fbbf24" };
+    }
+    return { bg: "rgba(6, 182, 212, 0.12)", border: "rgba(6, 182, 212, 0.3)", color: "#22d3ee" };
+  }
+</script>

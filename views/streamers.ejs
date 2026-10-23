@@ -1,0 +1,472 @@
+<%- include('partials/header') %>
+
+  <main class="container" style="max-width: 1400px; padding: 130px 20px 80px 20px;">
+
+    <!-- Hero Section -->
+    <div style="text-align: center; margin-bottom: 50px; position: relative;">
+      <div
+        style="display: inline-flex; justify-content: center; align-items: center; width: 68px; height: 68px; background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(34, 197, 94, 0.2)); border-radius: 22px; border: 1px solid rgba(255, 255, 255, 0.15); margin-bottom: 20px; box-shadow: 0 0 35px rgba(168, 85, 247, 0.3);">
+        <i class="fa-solid fa-headset"
+          style="font-size: 30px; background: linear-gradient(135deg, #a855f7, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+      </div>
+      <h1
+        style="font-family: var(--font-display); font-size: clamp(2.4rem, 5vw, 3.5rem); font-weight: 900; margin-bottom: 14px; color: #fff; letter-spacing: -0.02em;">
+        EmpireV <span
+          style="background: linear-gradient(135deg, #a855f7, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Streamer's</span>
+      </h1>
+      <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 700px; margin: 0 auto; line-height: 1.7;">
+        EmpireV evrenindeki maceralarını canlı yayınlarla topluluğumuzla paylaşan tüm resmi yayıncılarımız. Kick
+        ve Twitch canlı yayınlarına katılın!
+      </p>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div
+      style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px 24px; margin-bottom: 40px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; backdrop-filter: blur(12px);">
+      <!-- Platform Filters -->
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+        <button class="streamer-filter-btn active" data-filter="all">
+          <i class="fa-solid fa-layer-group"></i> Tümü (<span id="count-all"><%= streamers ? streamers.length : 0 %></span>)
+        </button>
+        <button class="streamer-filter-btn" data-filter="live" style="--btn-color: #ef4444;">
+          <span class="live-pulse-dot"></span> Canlıda (<span id="count-live"><%= streamers ? streamers.filter(s => s.isLive).length : 0 %></span>)
+        </button>
+        <button class="streamer-filter-btn" data-filter="kick" style="--btn-color: #53FC18;">
+          <i class="fa-brands fa-kickstarter" style="color: #53FC18;"></i> Kick (<span id="count-kick"><%= streamers ? streamers.filter(s => s.kickUrl).length : 0 %></span>)
+        </button>
+        <button class="streamer-filter-btn" data-filter="twitch" style="--btn-color: #9146FF;">
+          <i class="fa-brands fa-twitch" style="color: #9146FF;"></i> Twitch (<span id="count-twitch"><%= streamers ? streamers.filter(s => s.twitchUrl).length : 0 %></span>)
+        </button>
+      </div>
+
+      <!-- Search Input -->
+      <div style="position: relative; min-width: 260px; flex: 1; max-width: 380px;">
+        <i class="fa-solid fa-magnifying-glass"
+          style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px;"></i>
+        <input type="text" id="streamer-search-input" placeholder="Yayıncı veya karakter ara..."
+          style="width: 100%; background: #0c0d10; border: 1px solid var(--border-color); color: #fff; padding: 10px 16px 10px 38px; border-radius: 10px; font-size: 13px; outline: none; transition: border-color 0.3s ease;">
+      </div>
+    </div>
+
+    <!-- Streamers Cards Grid -->
+    <div id="streamers-grid"
+      style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px;">
+      <% if (streamers && streamers.length> 0) { %>
+        <% streamers.forEach(s=> { %>
+          <div class="streamer-card glass-card <%= s.isLive ? 'is-live' : '' %>"
+            data-name="<%= (s.name || '').toLowerCase() %>"
+            data-character="<%= (s.characterName || '').toLowerCase() %>"
+            data-has-live="<%= s.isLive ? 'true' : 'false' %>" data-has-kick="<%= s.kickUrl ? 'true' : 'false' %>"
+            data-has-twitch="<%= s.twitchUrl ? 'true' : 'false' %>">
+
+            <!-- Banner Header -->
+            <div class="streamer-banner"
+              style="<%= s.bannerUrl ? 'background-image: url(' + s.bannerUrl + ');' : '' %>">
+              <% if (s.isLive) { %>
+                <div class="live-badge">
+                  <span class="live-dot"></span> CANLI YAYINDA
+                  <% if (s.viewerCount) { %>
+                    <span style="opacity: 0.9; margin-left: 2px;">• <%= s.viewerCount %> izleyici</span>
+                    <% } %>
+                </div>
+                <% } %>
+            </div>
+
+            <!-- Body -->
+            <div class="streamer-body">
+              <!-- Avatar -->
+              <div class="streamer-avatar-wrap">
+                <img src="<%= s.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="<%= s.name %>"
+                  class="streamer-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                <% if (s.isLive) { %>
+                  <span class="avatar-live-ring"></span>
+                  <% } %>
+              </div>
+
+              <!-- Titles -->
+              <div style="margin-top: 14px; text-align: center; width: 100%;">
+                <h3
+                  style="font-family: var(--font-display); font-size: 19px; font-weight: 800; color: #fff; margin: 0 0 4px 0; letter-spacing: -0.01em;">
+                  <%= s.name %>
+                </h3>
+                <% if (s.characterName) { %>
+                  <span
+                    style="font-size: 12px; font-weight: 600; color: var(--primary-light); display: inline-flex; align-items: center; gap: 5px;">
+                    <i class="fa-solid fa-id-badge" style="font-size: 11px;"></i> IC: <%= s.characterName %>
+                  </span>
+                  <% } %>
+              </div>
+
+              <!-- Live Stream Title (if currently streaming) -->
+              <% if (s.isLive && s.streamTitle) { %>
+                <div
+                  style="margin: 10px 0 0 0; padding: 6px 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; width: 100%; text-align: center;">
+                  <div
+                    style="font-size: 11px; color: #fca5a5; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                    title="<%= s.streamTitle %>">
+                    <i class="fa-solid fa-play" style="font-size: 9px; margin-right: 4px;"></i>
+                    <%= s.streamTitle %>
+                  </div>
+                </div>
+                <% } %>
+
+                  <!-- Bio -->
+                  <p
+                    style="color: var(--text-muted); font-size: 12.5px; line-height: 1.6; text-align: center; margin: 14px 0 18px 0; min-height: 40px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    <%= s.bio || "EmpireV resmi yayıncısı." %>
+                  </p>
+
+                  <!-- Tags -->
+                  <% if (s.tags && s.tags.length> 0) { %>
+                    <div
+                      style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 20px;">
+                      <% s.tags.forEach(t=> { %>
+                        <span
+                          style="font-size: 10px; font-weight: 700; background: rgba(255, 255, 255, 0.04); color: var(--text-muted); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                          #<%= t.replace('#', '' ) %>
+                        </span>
+                        <% }) %>
+                    </div>
+                    <% } %>
+
+                      <!-- Platform Channels / Action Buttons -->
+                      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: auto; width: 100%;">
+                        <% if (s.kickUrl) { %>
+                          <a href="<%= s.kickUrl %>" target="_blank" rel="noopener noreferrer"
+                            class="platform-btn kick-btn <%= (s.isLive && s.livePlatform === 'kick') ? 'active-live-btn' : '' %>">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                              <i class="fa-brands fa-kickstarter" style="font-size: 15px;"></i>
+                              <span>Kick Kanalı</span>
+                              <% if (s.isLive && s.livePlatform==='kick' ) { %>
+                                <span class="live-tag">CANLI</span>
+                                <% } %>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square"
+                              style="font-size: 11px; opacity: 0.7;"></i>
+                          </a>
+                          <% } %>
+
+                            <% if (s.twitchUrl) { %>
+                              <a href="<%= s.twitchUrl %>" target="_blank" rel="noopener noreferrer"
+                                class="platform-btn twitch-btn <%= (s.isLive && s.livePlatform === 'twitch') ? 'active-live-btn' : '' %>">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                  <i class="fa-brands fa-twitch" style="font-size: 15px;"></i>
+                                  <span>Twitch Kanalı</span>
+                                  <% if (s.isLive && s.livePlatform==='twitch' ) { %>
+                                    <span class="live-tag">CANLI</span>
+                                    <% } %>
+                                </div>
+                                <i class="fa-solid fa-arrow-up-right-from-square"
+                                  style="font-size: 11px; opacity: 0.7;"></i>
+                              </a>
+                              <% } %>
+                      </div>
+
+            </div>
+          </div>
+          <% }) %>
+            <% } else { %>
+              <div id="no-streamers-msg"
+                style="grid-column: 1 / -1; text-align: center; padding: 80px 20px; background: rgba(255, 255, 255, 0.01); border: 1px dashed var(--border-color); border-radius: 20px;">
+                <div
+                  style="width: 70px; height: 70px; border-radius: 50%; background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+                  <i class="fa-solid fa-video" style="font-size: 28px; color: #a855f7;"></i>
+                </div>
+                <h3
+                  style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px;">
+                  Henüz Yayıncı Eklenmemiş</h3>
+                <p style="color: var(--text-muted); font-size: 14px; max-width: 480px; margin: 0 auto 24px auto;">
+                  Sunucumuzda canlı yayın yapan içerik üreticileri ve yayıncılar çok yakında bu sayfada listelenecektir.
+                </p>
+              </div>
+              <% } %>
+    </div>
+
+  </main>
+
+  <style>
+    /* Filter Buttons */
+    .streamer-filter-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .streamer-filter-btn:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .streamer-filter-btn.active {
+      background: var(--btn-color, var(--primary));
+      color: #fff;
+      border-color: var(--btn-color, var(--primary));
+      box-shadow: 0 4px 15px rgba(0, 113, 227, 0.3);
+    }
+
+    .streamer-filter-btn.active span {
+      color: #fff;
+    }
+
+    /* Live Pulse */
+    .live-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      display: inline-block;
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      animation: livePulse 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+    }
+
+    @keyframes livePulse {
+      to {
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+      }
+    }
+
+    /* Streamer Card */
+    .streamer-card {
+      background: rgba(18, 20, 29, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .streamer-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .streamer-card.is-live {
+      border-color: rgba(239, 68, 68, 0.45);
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.18);
+    }
+
+    /* Banner */
+    .streamer-banner {
+      height: 105px;
+      width: 100%;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(0, 113, 227, 0.3)), #131622;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .live-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(239, 68, 68, 0.92);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+      backdrop-filter: blur(8px);
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    /* Body */
+    .streamer-body {
+      padding: 0 22px 24px 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      position: relative;
+    }
+
+    .streamer-avatar-wrap {
+      margin-top: -45px;
+      position: relative;
+      width: 86px;
+      height: 86px;
+    }
+
+    .streamer-avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #12141d;
+      background: #0d101a;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s ease;
+    }
+
+    .streamer-card:hover .streamer-avatar {
+      transform: scale(1.06);
+    }
+
+    .avatar-live-ring {
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 2px solid #ef4444;
+      animation: liveRingPulse 2s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes liveRingPulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.08);
+        opacity: 0.4;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Platform Buttons */
+    .platform-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .kick-btn {
+      background: rgba(83, 252, 24, 0.08);
+      color: #53FC18;
+      border: 1px solid rgba(83, 252, 24, 0.25);
+    }
+
+    .kick-btn:hover {
+      background: #53FC18;
+      color: #000;
+      box-shadow: 0 0 20px rgba(83, 252, 24, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .twitch-btn {
+      background: rgba(145, 70, 255, 0.08);
+      color: #a970ff;
+      border: 1px solid rgba(145, 70, 255, 0.25);
+    }
+
+    .twitch-btn:hover {
+      background: #9146FF;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(145, 70, 255, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .live-tag {
+      font-size: 9px;
+      font-weight: 800;
+      background: #ef4444;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+      animation: livePulse 2s infinite;
+    }
+
+    .active-live-btn {
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+      border-color: #ef4444 !important;
+    }
+  </style>
+
+  <script>
+    // Filter and Search Logic
+    document.addEventListener("DOMContentLoaded", () => {
+      const filterBtns = document.querySelectorAll(".streamer-filter-btn");
+      const searchInput = document.getElementById("streamer-search-input");
+      const cards = document.querySelectorAll(".streamer-card");
+      let currentFilter = "all";
+      let currentSearch = "";
+
+      function filterCards() {
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+          const name = card.getAttribute("data-name") || "";
+          const charName = card.getAttribute("data-character") || "";
+          const hasLive = card.getAttribute("data-has-live") === "true";
+          const hasKick = card.getAttribute("data-has-kick") === "true";
+          const hasTwitch = card.getAttribute("data-has-twitch") === "true";
+
+          let matchesFilter = false;
+          if (currentFilter === "all") matchesFilter = true;
+          else if (currentFilter === "live" && hasLive) matchesFilter = true;
+          else if (currentFilter === "kick" && hasKick) matchesFilter = true;
+          else if (currentFilter === "twitch" && hasTwitch) matchesFilter = true;
+
+          let matchesSearch = true;
+          if (currentSearch) {
+            matchesSearch = name.includes(currentSearch) || charName.includes(currentSearch);
+          }
+
+          if (matchesFilter && matchesSearch) {
+            card.style.display = "flex";
+            visibleCount++;
+          } else {
+            card.style.display = "none";
+          }
+        });
+
+        const noMsg = document.getElementById("no-streamers-msg");
+        if (noMsg) {
+          noMsg.style.display = visibleCount === 0 ? "block" : "none";
+        }
+      }
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          filterBtns.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentFilter = btn.getAttribute("data-filter");
+          filterCards();
+        });
+      });
+
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          currentSearch = e.target.value.toLowerCase().trim();
+          filterCards();
+        });
+      }
+    });
+  </script>
+
+  <%- include('partials/footer') %>

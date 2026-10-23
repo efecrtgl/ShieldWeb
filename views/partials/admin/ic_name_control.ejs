@@ -1,0 +1,218 @@
+<div class="content-panel">
+  <div class="panel-header">
+    <h3 class="panel-title"><i class="fa-solid fa-user-shield"></i> İC İSİM Kontrol Sistemi</h3>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Discord Duplicate Names Scan -->
+    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 24px;">
+      <h4 style="color: #fff; margin-bottom: 12px;"><i class="fa-brands fa-discord" style="color: #5865F2;"></i> Discord Üzerindeki İsimleri Analiz Et</h4>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        Discord sunucusundaki tüm kayıtlı kullanıcıların İC isimlerini analiz ederek aynı ismi birden fazla kişinin kullanıp kullanmadığını tespit eder.
+      </p>
+      
+      <div class="form-group">
+        <label class="form-label">Özel İsim Arat (Opsiyonel)</label>
+        <input type="text" id="discord-name-input" class="form-input" placeholder="Tüm çakışmaları görmek için boş bırakın..." style="background: rgba(13, 16, 26, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; width: 100%; color: white; margin-bottom: 12px;">
+      </div>
+
+      <button onclick="scanDuplicateNames()" class="btn" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; width: 100%;">
+        <i class="fa-solid fa-magnifying-glass"></i> İsimleri Tarat
+      </button>
+      <div id="duplicate-names-results" style="margin-top: 24px; display: none;">
+        <h5 style="color: #fca5a5; margin-bottom: 16px; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-users-viewfinder"></i> Tarama Sonuçları:</h5>
+        <div id="duplicate-names-list" style="max-height: 400px; overflow-y: auto; padding-right: 8px;">
+          <!-- Results will be injected here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Gemini AI Scan -->
+    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 24px;">
+      <h4 style="color: #fff; margin-bottom: 12px;"><i class="fa-solid fa-robot" style="color: #a855f7;"></i> Yapay Zeka (Gemini) Ünlü Kontrolü</h4>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        Yazılan İC ismin dünyaca veya yerel olarak ünlü birine ait olup olmadığını kontrol eder. Uygun değilse belirtir.
+      </p>
+      
+      <div class="form-group">
+        <label class="form-label">İC İSİM</label>
+        <input type="text" id="ai-name-input" class="form-input" placeholder="Örn: Ryan Gosling, John Doe..." style="background: rgba(13, 16, 26, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; width: 100%; color: white;">
+      </div>
+      
+      <button onclick="checkNameWithAI()" class="btn" style="background: linear-gradient(135deg, #a855f7, #7e22ce); color: white; width: 100%;">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Yapay Zeka ile Kontrol Et
+      </button>
+
+      <div id="ai-name-result" style="margin-top: 20px; display: none; padding: 16px; border-radius: 8px; font-size: 13.5px; line-height: 1.5;">
+        <!-- Results will be injected here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function scanDuplicateNames() {
+  const btn = document.querySelector('button[onclick="scanDuplicateNames()"]');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Taranıyor...';
+  btn.disabled = true;
+
+  try {
+    const queryInput = document.getElementById('discord-name-input');
+    const query = queryInput ? queryInput.value.trim() : "";
+    
+    const res = await fetch('/admin/ic-name/scan-discord', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query })
+    });
+    const data = await res.json();
+    
+    const resultsContainer = document.getElementById('duplicate-names-results');
+    const listContainer = document.getElementById('duplicate-names-list');
+    
+    listContainer.innerHTML = '';
+    
+    if (data.success) {
+      if (data.duplicates.length === 0) {
+        listContainer.innerHTML = `
+          <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); padding: 16px; border-radius: 12px; text-align: center;">
+            <i class="fa-solid fa-circle-check" style="color: #22c55e; font-size: 24px; margin-bottom: 8px;"></i>
+            <div style="color: #4ade80; font-size: 15px; font-weight: 500;">Hiçbir çakışma bulunamadı!</div>
+          </div>`;
+      } else {
+        data.duplicates.forEach(dup => {
+          const userTags = dup.users.map(u => `<span style="display: inline-block; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 6px; margin: 4px 4px 0 0; color: #cbd5e1; font-size: 13px;"><i class="fa-brands fa-discord" style="color: #5865F2; margin-right: 4px;"></i> ${u}</span>`).join('');
+          
+          listContainer.innerHTML += `
+            <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 12px; transition: all 0.2s ease;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(239, 68, 68, 0.1);">
+                <div style="font-weight: 600; font-size: 18px; color: #f87171; display: flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-triangle-exclamation"></i> ${dup.name}
+                </div>
+                <span style="font-size: 13px; font-weight: bold; background: #ef4444; color: white; padding: 4px 10px; border-radius: 8px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);">
+                  ${dup.count} Kişi
+                </span>
+              </div>
+              <div>
+                <div style="color: #94a3b8; font-size: 13px; margin-bottom: 8px; font-weight: 500;">Bu İsmi Kullananlar:</div>
+                <div style="display: flex; flex-wrap: wrap;">
+                  ${userTags}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      }
+      resultsContainer.style.display = 'block';
+    } else {
+      listContainer.innerHTML = `<span style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Hata: ${data.message}</span>`;
+      resultsContainer.style.display = 'block';
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Bir hata oluştu!');
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+
+async function checkNameWithAI() {
+  const input = document.getElementById('ai-name-input').value.trim();
+  if (!input) return alert('Lütfen bir isim giriniz.');
+  
+  const btn = document.querySelector('button[onclick="checkNameWithAI()"]');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kontrol Ediliyor...';
+  btn.disabled = true;
+  
+  const resultDiv = document.getElementById('ai-name-result');
+  resultDiv.style.display = 'none';
+
+  try {
+    const res = await fetch('/admin/ic-name/check-gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: input })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      if (data.isFamous) {
+        resultDiv.style.background = 'rgba(239, 68, 68, 0.05)';
+        resultDiv.style.border = '1px solid rgba(239, 68, 68, 0.2)';
+        resultDiv.style.color = '#cbd5e1';
+        resultDiv.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(239, 68, 68, 0.1);">
+            <div style="background: rgba(239, 68, 68, 0.2); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+              <i class="fa-solid fa-xmark" style="color: #ef4444; font-size: 20px;"></i>
+            </div>
+            <div style="font-weight: 700; font-size: 18px; color: #f87171; letter-spacing: 0.5px;">KULLANILAMAZ!</div>
+          </div>
+          <div style="font-size: 14.5px; line-height: 1.6; color: #e2e8f0; padding-left: 4px;">
+            ${data.reason}
+          </div>
+        `;
+      } else {
+        resultDiv.style.background = 'rgba(16, 185, 129, 0.05)';
+        resultDiv.style.border = '1px solid rgba(16, 185, 129, 0.2)';
+        resultDiv.style.color = '#cbd5e1';
+        resultDiv.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(16, 185, 129, 0.1);">
+            <div style="background: rgba(16, 185, 129, 0.2); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+              <i class="fa-solid fa-check" style="color: #10b981; font-size: 20px;"></i>
+            </div>
+            <div style="font-weight: 700; font-size: 18px; color: #34d399; letter-spacing: 0.5px;">UYGUNDUR!</div>
+          </div>
+          <div style="font-size: 14.5px; line-height: 1.6; color: #e2e8f0; padding-left: 4px;">
+            ${data.reason}
+          </div>
+        `;
+      }
+      resultDiv.style.display = 'block';
+    } else {
+      let errorMsg = data.message;
+      if (errorMsg.includes("429")) {
+        errorMsg = "Google Yapay Zeka sınırına ulaştınız (Ücretsiz sürümde dakikada 5 istek sınırı bulunmaktadır). Lütfen yaklaşık 10-15 saniye bekleyip tekrar deneyin.";
+      }
+      
+      resultDiv.style.background = 'rgba(245, 158, 11, 0.05)';
+      resultDiv.style.border = '1px solid rgba(245, 158, 11, 0.2)';
+      resultDiv.style.color = '#cbd5e1';
+      resultDiv.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(245, 158, 11, 0.1);">
+          <div style="background: rgba(245, 158, 11, 0.2); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b; font-size: 20px;"></i>
+          </div>
+          <div style="font-weight: 700; font-size: 18px; color: #fbbf24; letter-spacing: 0.5px;">SİSTEM UYARISI</div>
+        </div>
+        <div style="font-size: 13.5px; line-height: 1.6; color: #e2e8f0; padding-left: 4px; word-break: break-word;">
+          ${errorMsg}
+        </div>
+      `;
+      resultDiv.style.display = 'block';
+    }
+  } catch (err) {
+    console.error(err);
+    resultDiv.style.background = 'rgba(239, 68, 68, 0.05)';
+    resultDiv.style.border = '1px solid rgba(239, 68, 68, 0.2)';
+    resultDiv.style.color = '#cbd5e1';
+    resultDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(239, 68, 68, 0.1);">
+        <div style="background: rgba(239, 68, 68, 0.2); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-bug" style="color: #ef4444; font-size: 20px;"></i>
+        </div>
+        <div style="font-weight: 700; font-size: 18px; color: #f87171; letter-spacing: 0.5px;">BEKLENMEYEN HATA</div>
+      </div>
+      <div style="font-size: 13.5px; line-height: 1.6; color: #e2e8f0; padding-left: 4px;">
+        Sistemle iletişim kurulamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.
+      </div>
+    `;
+    resultDiv.style.display = 'block';
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+</script>

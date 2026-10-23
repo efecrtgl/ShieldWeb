@@ -1,0 +1,539 @@
+<%- include('partials/header') %>
+
+<style>
+  /* UI Kit Exclusive Showcase Styles */
+  .uikit-hero {
+    text-align: center;
+    padding: 20px 0 50px 0;
+    position: relative;
+  }
+
+  .uikit-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(224, 169, 139, 0.15) 0%, rgba(245, 208, 197, 0.1) 100%);
+    border: 1px solid rgba(224, 169, 139, 0.35);
+    padding: 6px 18px;
+    border-radius: 99px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 20px rgba(224, 169, 139, 0.2);
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary-light);
+  }
+
+  .uikit-nav-pills {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+    position: sticky;
+    top: 90px;
+    z-index: 100;
+    background: rgba(7, 8, 12, 0.85);
+    padding: 10px 16px;
+    border-radius: 99px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .uikit-pill {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 99px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .uikit-pill:hover, .uikit-pill.active {
+    color: #fff;
+    background: rgba(224, 169, 139, 0.18);
+    box-shadow: 0 0 15px rgba(224, 169, 139, 0.2);
+  }
+
+  .uikit-section {
+    margin-bottom: 60px;
+    scroll-margin-top: 170px;
+  }
+
+  .uikit-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .uikit-section-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .uikit-section-title i {
+    color: var(--primary);
+  }
+
+  .color-swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 18px;
+  }
+
+  .color-swatch-card {
+    background: rgba(13, 15, 23, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: var(--transition);
+  }
+
+  .color-swatch-card:hover {
+    border-color: rgba(224, 169, 139, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  }
+
+  .color-preview-box {
+    width: 100%;
+    height: 70px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .color-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .color-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .color-hex {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .color-hex:hover {
+    color: var(--primary-light);
+  }
+
+  .component-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+  }
+
+  .code-snippet {
+    background: rgba(4, 5, 8, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #cbd5e1;
+    overflow-x: auto;
+    position: relative;
+    margin-top: 10px;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+  }
+
+  .copy-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+</style>
+
+<main class="container" style="max-width: 1200px;">
+  
+  <!-- UI Kit Header -->
+  <div class="uikit-hero">
+    <div class="uikit-badge">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> EmpireV Ultimate Design System
+    </div>
+    <h1 style="font-family: var(--font-display); font-size: clamp(2.4rem, 5vw, 3.6rem); font-weight: 900; color: #fff; margin-bottom: 12px; letter-spacing: -0.02em;">
+      UI Kit & Tasarım Kılavuzu
+    </h1>
+    <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 680px; margin: 0 auto; line-height: 1.7;">
+      EmpireV web platformu ve admin paneli için geliştirilmiş tüm Rose Gold & Platin tasarım bileşenleri, tipografi standartları ve canlı arayüz elemanları.
+    </p>
+  </div>
+
+  <!-- Quick Navigation Bar -->
+  <div class="uikit-nav-pills">
+    <a href="#colors" class="uikit-pill"><i class="fa-solid fa-palette"></i> Renkler</a>
+    <a href="#typography" class="uikit-pill"><i class="fa-solid fa-font"></i> Tipografi</a>
+    <a href="#buttons" class="uikit-pill"><i class="fa-solid fa-shapes"></i> Butonlar</a>
+    <a href="#badges" class="uikit-pill"><i class="fa-solid fa-certificate"></i> Rozetler</a>
+    <a href="#cards" class="uikit-pill"><i class="fa-solid fa-layer-group"></i> Kartlar & Paneller</a>
+    <a href="#forms" class="uikit-pill"><i class="fa-solid fa-keyboard"></i> Formlar & Girdiler</a>
+    <a href="#toasts" class="uikit-pill"><i class="fa-solid fa-bell"></i> Bildirimler</a>
+  </div>
+
+  <!-- 1. COLOR SYSTEM -->
+  <section id="colors" class="uikit-section">
+    <div class="uikit-section-header">
+      <h2 class="uikit-section-title"><i class="fa-solid fa-palette"></i> 1. Renk Paleti & Tasarım Belirteçleri</h2>
+      <span style="font-size: 12px; color: var(--text-muted);">Logo ile %100 Uyumlu Rose Gold & Platinum Palette</span>
+    </div>
+
+    <div class="color-swatch-grid">
+      <!-- Primary -->
+      <div class="color-swatch-card">
+        <div class="color-preview-box" style="background: #e0a98b; box-shadow: 0 0 20px rgba(224, 169, 139, 0.4);"></div>
+        <div class="color-meta">
+          <span class="color-name">Primary (Rose Gold)</span>
+          <span class="color-hex" onclick="copyColor('#e0a98b')">#e0a98b <i class="fa-regular fa-copy"></i></span>
+        </div>
+      </div>
+
+      <!-- Primary Light -->
+      <div class="color-swatch-card">
+        <div class="color-preview-box" style="background: #f5d0c5;"></div>
+        <div class="color-meta">
+          <span class="color-name">Primary Light (Işıltı)</span>
+          <span class="color-hex" onclick="copyColor('#f5d0c5')">#f5d0c5 <i class="fa-regular fa-copy"></i></span>
+        </div>
+      </div>
+
+      <!-- Secondary / Diamond -->
+      <div class="color-swatch-card">
+        <div class="color-preview-box" style="background: #f8ede8; box-shadow: 0 0 20px rgba(248, 237, 232, 0.3);"></div>
+        <div class="color-meta">
+          <span class="color-name">Secondary (Platin Elmas)</span>
+          <span class="color-hex" onclick="copyColor('#f8ede8')">#f8ede8 <i class="fa-regular fa-copy"></i></span>
+        </div>
+      </div>
+
+      <!-- Champagne Accent -->
+      <div class="color-swatch-card">
+        <div class="color-preview-box" style="background: #e8c59f;"></div>
+        <div class="color-meta">
+          <span class="color-name">Champagne Gold</span>
+          <span class="color-hex" onclick="copyColor('#e8c59f')">#e8c59f <i class="fa-regular fa-copy"></i></span>
+        </div>
+      </div>
+
+      <!-- Dark Surface -->
+      <div class="color-swatch-card">
+        <div class="color-preview-box" style="background: #07080c; border: 1px solid rgba(255,255,255,0.2);"></div>
+        <div class="color-meta">
+          <span class="color-name">Background Primary</span>
+          <span class="color-hex" onclick="copyColor('#07080c')">#07080c <i class="fa-regular fa-copy"></i></span>
+        </div>
+      </div>
+
+      <!-- Surface Elevated -->
+      <div class="color-swatch-card">
+        <div class="color-preview-box" style="background: #131522; border: 1px solid rgba(255,255,255,0.15);"></div>
+        <div class="color-meta">
+          <span class="color-name">Panel / Elevated</span>
+          <span class="color-hex" onclick="copyColor('#131522')">#131522 <i class="fa-regular fa-copy"></i></span>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div class="color-swatch-card">
+        <div class="color-preview-box" style="background: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);"></div>
+        <div class="color-meta">
+          <span class="color-name">Success (Yeşil)</span>
+          <span class="color-hex" onclick="copyColor('#10b981')">#10b981 <i class="fa-regular fa-copy"></i></span>
+        </div>
+      </div>
+
+      <!-- Danger -->
+      <div class="color-swatch-card">
+        <div class="color-preview-box" style="background: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);"></div>
+        <div class="color-meta">
+          <span class="color-name">Danger (Kırmızı)</span>
+          <span class="color-hex" onclick="copyColor('#ef4444')">#ef4444 <i class="fa-regular fa-copy"></i></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. TYPOGRAPHY -->
+  <section id="typography" class="uikit-section">
+    <div class="uikit-section-header">
+      <h2 class="uikit-section-title"><i class="fa-solid fa-font"></i> 2. Tipografi Hiyerarşisi</h2>
+      <span style="font-size: 12px; color: var(--text-muted);">Outfit, Inter & JetBrains Mono</span>
+    </div>
+
+    <div class="content-panel" style="padding: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div>
+          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">Display H1 — font-family: 'Outfit'; font-weight: 900;</span>
+          <h1 style="font-family: var(--font-display); font-size: 2.5rem; font-weight: 900; color: #fff; margin: 4px 0 0 0;">
+            EmpireV — Yeni Nesil Deneyim
+          </h1>
+        </div>
+
+        <div>
+          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">Gradient Title — Rose Gold Gradient Clip</span>
+          <h2 style="font-family: var(--font-display); font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 20%, #f5d0c5 55%, #e0a98b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 4px 0 0 0;">
+            Seçkin Topluluk & Eşsiz Atmosfer
+          </h2>
+        </div>
+
+        <div>
+          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">Section Title H3 — font-family: 'Outfit'; font-weight: 800;</span>
+          <h3 style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: #fff; margin: 4px 0 0 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-crown" style="color: var(--primary);"></i> Özel Ayrıcalıklar & Sistemler
+          </h3>
+        </div>
+
+        <div>
+          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">Body Text — font-family: 'Inter'; font-size: 14px;</span>
+          <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.7; margin: 4px 0 0 0; max-width: 800px;">
+            EmpireV FiveM sunucusu, yüksek performanslı özel scriptleri ve dengeli ekonomi altyapısıyla oyuncularına kesintisiz ve adil bir rol yapma ortamı sunmaktadır.
+          </p>
+        </div>
+
+        <div>
+          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">Monospace Code / Badge — font-family: 'JetBrains Mono';</span>
+          <div style="font-family: var(--font-mono); font-size: 12.5px; color: var(--primary-light); background: rgba(255,255,255,0.03); padding: 8px 14px; border-radius: 8px; display: inline-block; margin-top: 4px; border: 1px solid rgba(255,255,255,0.08);">
+            CITIZEN_ID: EMPIREV-98421 // ROLE: ADMIN
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. BUTTONS -->
+  <section id="buttons" class="uikit-section">
+    <div class="uikit-section-header">
+      <h2 class="uikit-section-title"><i class="fa-solid fa-shapes"></i> 3. Butonlar & Aksiyonlar</h2>
+      <span style="font-size: 12px; color: var(--text-muted);">Tüm Boyutlar, Çeşitler ve Durumlar</span>
+    </div>
+
+    <div class="component-row">
+      <button class="btn btn-primary"><i class="fa-solid fa-sparkles"></i> Primary Buton</button>
+      <button class="btn btn-secondary"><i class="fa-solid fa-layer-group"></i> İkincil Cam Buton</button>
+      <button class="btn btn-success"><i class="fa-solid fa-check"></i> Onayla / Başarılı</button>
+      <button class="btn btn-danger"><i class="fa-solid fa-trash"></i> Sil / Tehlike</button>
+      <a href="#" class="nav-btn-discord"><i class="fa-brands fa-discord"></i> Discord ile Giriş</a>
+      <button class="btn btn-secondary" style="opacity: 0.5; cursor: not-allowed;" disabled><i class="fa-solid fa-lock"></i> Devre Dışı</button>
+    </div>
+
+    <!-- Small & Pill Variants -->
+    <div class="component-row">
+      <button class="btn btn-primary" style="padding: 8px 16px; font-size: 12px; border-radius: 8px;"><i class="fa-solid fa-plus"></i> Küçük Buton</button>
+      <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; border-radius: 8px;"><i class="fa-solid fa-sliders"></i> Filtrele</button>
+      <button class="btn" style="background: rgba(224, 169, 139, 0.15); color: var(--primary-light); border: 1px solid rgba(224, 169, 139, 0.3); padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;">
+        <i class="fa-solid fa-arrows-rotate"></i> Senkronize Et
+      </button>
+      <button class="btn" style="width: 38px; height: 38px; padding: 0; border-radius: 50%; background: var(--primary); color: #fff;" title="Dairesel Aksiyon">
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- 4. BADGES & STATUSES -->
+  <section id="badges" class="uikit-section">
+    <div class="uikit-section-header">
+      <h2 class="uikit-section-title"><i class="fa-solid fa-certificate"></i> 4. Rozetler & Durum Göstergeleri</h2>
+      <span style="font-size: 12px; color: var(--text-muted);">Durum, Uyarı ve Rütbe Etiketleri</span>
+    </div>
+
+    <div class="component-row">
+      <span class="badge badge-success"><span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span> Sunucu Aktif</span>
+      <span class="badge badge-primary"><i class="fa-solid fa-crown"></i> Kurucu / Superuser</span>
+      <span class="badge badge-warning"><i class="fa-solid fa-triangle-exclamation"></i> Beklemede</span>
+      <span class="badge badge-danger"><i class="fa-solid fa-ban"></i> Yasaklı</span>
+      <span class="rank-badge" style="background: rgba(224, 169, 139, 0.18); color: var(--primary-light); border: 1px solid rgba(224, 169, 139, 0.35);">
+        ⭐ Üst Yönetim
+      </span>
+      <span class="rank-badge" style="background: linear-gradient(135deg, #e0a98b 0%, #cf9272 100%); color: #fff; font-weight: 800;">
+        ✨ Diamond VIP
+      </span>
+    </div>
+  </section>
+
+  <!-- 5. CARDS & PANELS -->
+  <section id="cards" class="uikit-section">
+    <div class="uikit-section-header">
+      <h2 class="uikit-section-title"><i class="fa-solid fa-layer-group"></i> 5. Cam Efektli Kartlar & Paneller</h2>
+      <span style="font-size: 12px; color: var(--text-muted);">İstatistik, İçerik ve Kilit Panelleri</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 24px;">
+      <!-- Stat Card -->
+      <div class="glass-card stat-card" style="padding: 24px;">
+        <div class="stat-icon" style="border-color: rgba(224, 169, 139, 0.3); color: var(--primary);">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-header">
+            <span class="stat-value">128 <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;">/ 256</span></span>
+            <span class="stat-label">Aktif Oyuncu Sayısı</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: 50%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Card -->
+      <div class="glass-card" style="padding: 28px;">
+        <div style="width: 46px; height: 46px; border-radius: 12px; background: rgba(224, 169, 139, 0.15); border: 1px solid rgba(224, 169, 139, 0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+          <i class="fa-solid fa-shield-halved" style="font-size: 20px; color: var(--primary-light);"></i>
+        </div>
+        <h3 style="font-family: var(--font-display); font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 8px;">Gelişmiş Güvenlik</h3>
+        <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6; margin: 0;">
+          Çift katmanlı yetkilendirme ve Discord senkronizasyonu ile en yüksek düzeyde veri koruması.
+        </p>
+      </div>
+    </div>
+
+    <!-- Locked / Insufficient Permission Card Preview -->
+    <div style="background: rgba(13, 16, 26, 0.75); border: 1px dashed rgba(239, 68, 68, 0.35); border-radius: 20px; padding: 40px 20px; text-align: center; backdrop-filter: blur(20px);">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+        <i class="fa-solid fa-lock" style="font-size: 22px; color: #ef4444;"></i>
+      </div>
+      <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 6px;">
+        Burayı Görüntülemeye Yetkiniz Yok
+      </h3>
+      <p style="color: var(--text-muted); font-size: 13px; max-width: 480px; margin: 0 auto;">
+        Bu alanı ve ayarları görüntülemek için ilgili yetki grubuna veya Kurucu statüsüne sahip olmanız gerekmektedir.
+      </p>
+    </div>
+  </section>
+
+  <!-- 6. FORMS & CONTROLS -->
+  <section id="forms" class="uikit-section">
+    <div class="uikit-section-header">
+      <h2 class="uikit-section-title"><i class="fa-solid fa-keyboard"></i> 6. Formlar & Girdi Elemanları</h2>
+      <span style="font-size: 12px; color: var(--text-muted);">Girdi Kutuları, Seçimler ve Anahtarlar</span>
+    </div>
+
+    <div class="content-panel" style="padding: 32px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+        <!-- Text Input -->
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px;">Karakter Adı</label>
+          <input type="text" placeholder="Örn: John Doe" style="width: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); padding: 12px 16px; border-radius: 10px; color: #fff; font-size: 13.5px; outline: none; transition: var(--transition);" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='rgba(255,255,255,0.1)';">
+        </div>
+
+        <!-- Select Dropdown -->
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px;">Meslek Grubu</label>
+          <select style="width: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); padding: 12px 16px; border-radius: 10px; color: #fff; font-size: 13.5px; outline: none;">
+            <option value="police">LSPD (Polis Departmanı)</option>
+            <option value="ems">EMS (Sağlık Hizmetleri)</option>
+            <option value="mechanic">Mekanik</option>
+            <option value="civ">Sivil</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Switches and Checks -->
+      <div style="display: flex; gap: 32px; align-items: center; margin-top: 28px; flex-wrap: wrap;">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: #cbd5e1;">
+          <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+          Otomatik Bildirimleri Aç
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: #cbd5e1;">
+          <input type="checkbox" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+          Discord Eşitlemesini Etkinleştir
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. TOAST NOTIFICATIONS TRIGGER -->
+  <section id="toasts" class="uikit-section">
+    <div class="uikit-section-header">
+      <h2 class="uikit-section-title"><i class="fa-solid fa-bell"></i> 7. Canlı Bildirim Sistemi (Toasts)</h2>
+      <span style="font-size: 12px; color: var(--text-muted);">Aşağıdaki butonlara tıklayarak canlı test edin</span>
+    </div>
+
+    <div class="component-row">
+      <button class="btn btn-success" onclick="showUiToast('Başarılı! İşlem başarıyla kaydedildi.', 'success')">
+        <i class="fa-solid fa-circle-check"></i> Başarılı Toast
+      </button>
+      <button class="btn btn-danger" onclick="showUiToast('Hata! Bu işlem için yetkiniz bulunmamaktadır.', 'error')">
+        <i class="fa-solid fa-circle-xmark"></i> Hata Toast
+      </button>
+      <button class="btn" style="background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.4);" onclick="showUiToast('Uyarı: Sunucu bağlantısı yeniden deneniyor.', 'warning')">
+        <i class="fa-solid fa-triangle-exclamation"></i> Uyarı Toast
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  function copyColor(hex) {
+    navigator.clipboard.writeText(hex);
+    if (window.showToast) {
+      window.showToast('Kopyalandı: ' + hex, 'success');
+    } else {
+      alert('Kopyalandı: ' + hex);
+    }
+  }
+
+  function showUiToast(msg, type) {
+    if (window.showToast) {
+      window.showToast(msg, type);
+    } else {
+      alert(msg);
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>

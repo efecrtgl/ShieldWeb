@@ -1,0 +1,2939 @@
+<section id="server-settings-content" class="admin-section-inner">
+  <style>
+    .terminal-stream-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      transition: background 0.15s ease;
+    }
+    .terminal-stream-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .terminal-time-col {
+      color: #475569;
+      font-size: 11px;
+      flex-shrink: 0;
+      user-select: none;
+      min-width: 65px;
+    }
+    .terminal-content-col {
+      flex: 1;
+      word-break: break-word;
+      color: #e2e8f0;
+    }
+    .fx-tag-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .fx-tag-resources {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .fx-tag-scripting {
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+    .fx-tag-citizen {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .fx-tag-shield {
+      background: rgba(224, 169, 139, 0.18);
+      color: var(--primary);
+      border: 1px solid rgba(224, 169, 139, 0.35);
+    }
+    .fx-tag-default {
+      background: rgba(148, 163, 184, 0.12);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+    .fx-highlight-started {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: #4ade80;
+      font-weight: 700;
+    }
+    .fx-highlight-env {
+      color: #38bdf8;
+    }
+    .fx-highlight-warning {
+      color: #fbbf24;
+      font-weight: 600;
+    }
+    .fx-highlight-memory {
+      color: #67e8f9;
+      background: rgba(6, 182, 212, 0.1);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .terminal-quick-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      font-family: monospace;
+    }
+    .terminal-quick-chip:hover {
+      background: rgba(224, 169, 139, 0.15);
+      color: #fff;
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+    .cfg-editor-wrap {
+      display: flex;
+      background: #050608;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+      min-height: 440px;
+      max-height: 580px;
+      position: relative;
+    }
+    .cfg-line-numbers {
+      width: 50px;
+      padding: 14px 8px 14px 0;
+      background: #090b10;
+      border-right: 1px solid rgba(255, 255, 255, 0.07);
+      color: #475569;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      text-align: right;
+      user-select: none;
+      overflow: hidden;
+    }
+    .cfg-textarea {
+      flex: 1;
+      padding: 14px 16px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #93c5fd;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      white-space: pre;
+      overflow: auto;
+      resize: none;
+      tab-size: 2;
+    }
+    .cfg-textarea::selection {
+      background: rgba(56, 189, 248, 0.3);
+    }
+    .cfg-editor-header {
+      background: #0c0e14;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .cfg-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: #050608;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 2px solid var(--primary);
+      border-radius: 6px 6px 0 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .cfg-status-pill {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cfg-status-saved {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .cfg-status-modified {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .cfg-editor-footer {
+      background: #080a0f;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: none;
+      padding: 6px 14px;
+      font-size: 11px;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: monospace;
+      border-radius: 0 0 10px 10px;
+    }
+    .terminal-live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .terminal-pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulseTerminalDot 2s infinite;
+    }
+    @keyframes pulseTerminalDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    #cmd-terminal-window::-webkit-scrollbar,
+    .cfg-textarea::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    #cmd-terminal-window::-webkit-scrollbar-track,
+    .cfg-textarea::-webkit-scrollbar-track {
+      background: #030406;
+    }
+    #cmd-terminal-window::-webkit-scrollbar-thumb,
+    .cfg-textarea::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+    }
+    #cmd-terminal-window::-webkit-scrollbar-thumb:hover,
+    .cfg-textarea::-webkit-scrollbar-thumb:hover {
+      background: rgba(224, 169, 139, 0.4);
+    }
+    .terminal-fullscreen {
+      position: fixed !important;
+      inset: 15px !important;
+      z-index: 99999 !important;
+      height: calc(100vh - 30px) !important;
+      max-height: none !important;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9) !important;
+    }
+
+    /* FiveM Script Studio & File Manager */
+    .scripts-studio-panel {
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      background: rgba(8, 10, 15, 0.95);
+      margin-bottom: 28px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+    .scripts-studio-panel.fullscreen-studio {
+      position: fixed !important;
+      inset: 12px !important;
+      z-index: 99999 !important;
+      height: calc(100vh - 24px) !important;
+      max-height: none !important;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.95) !important;
+      display: flex;
+      flex-direction: column;
+    }
+    .scripts-studio-header {
+      padding: 16px 20px;
+      background: linear-gradient(180deg, #0e111a 0%, #090c12 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .scripts-settings-drawer {
+      background: rgba(0, 0, 0, 0.45);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .scripts-workspace {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: 580px;
+      height: 640px;
+      background: #050609;
+    }
+    .scripts-studio-panel.fullscreen-studio .scripts-workspace {
+      flex: 1;
+      height: auto;
+      min-height: 0;
+    }
+    @media (max-width: 900px) {
+      .scripts-workspace {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+    }
+    /* Explorer Sidebar */
+    .scripts-explorer {
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      background: #07090e;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    .scripts-explorer-toolbar {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #0a0d14;
+    }
+    .scripts-breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-bottom: 2px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .scripts-breadcrumb-chip {
+      color: #94a3b8;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.15s ease;
+      font-weight: 500;
+    }
+    .scripts-breadcrumb-chip:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+    .scripts-breadcrumb-active {
+      color: #f1f5f9;
+      font-weight: 700;
+    }
+    .scripts-tree-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .scripts-tree-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+    .scripts-tree-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+    }
+    .scripts-tree-item.active-item {
+      background: rgba(224, 169, 139, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(224, 169, 139, 0.3);
+    }
+    .scripts-item-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .scripts-item-actions {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      margin-left: 6px;
+    }
+    .scripts-tree-item:hover .scripts-item-actions {
+      display: flex;
+    }
+    .scripts-mini-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #94a3b8;
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 10px;
+      transition: all 0.15s ease;
+    }
+    .scripts-mini-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+    }
+    .scripts-mini-btn.btn-del:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+    }
+    /* Editor Area */
+    .scripts-editor-pane {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: #040508;
+      overflow: hidden;
+      position: relative;
+    }
+    .scripts-tabs-bar {
+      display: flex;
+      align-items: center;
+      background: #090c12;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      min-height: 38px;
+    }
+    .scripts-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      background: #07090e;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 2px solid transparent;
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .scripts-tab:hover {
+      background: #0c0f17;
+      color: #f1f5f9;
+    }
+    .scripts-tab.active-tab {
+      background: #040508;
+      color: #fff;
+      border-bottom: 2px solid var(--primary);
+    }
+    .scripts-tab-dirty {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+      display: inline-block;
+    }
+    .scripts-tab-close {
+      opacity: 0.6;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-size: 11px;
+      transition: opacity 0.15s;
+    }
+    .scripts-tab-close:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.15);
+      color: #f87171;
+    }
+    .scripts-editor-toolbar {
+      padding: 8px 16px;
+      background: #080a10;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .scripts-editor-main {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .scripts-line-numbers {
+      width: 52px;
+      padding: 14px 8px 14px 0;
+      background: #07090e;
+      border-right: 1px solid rgba(255, 255, 255, 0.07);
+      color: #475569;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      text-align: right;
+      user-select: none;
+      overflow: hidden;
+    }
+    .scripts-textarea {
+      flex: 1;
+      padding: 14px 16px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      white-space: pre;
+      overflow: auto;
+      resize: none;
+      tab-size: 2;
+    }
+    .scripts-textarea::selection {
+      background: rgba(224, 169, 139, 0.35);
+    }
+    #scripts-ace-editor {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace !important;
+      font-size: 13px !important;
+      line-height: 1.6 !important;
+    }
+    #scripts-ace-editor .ace_gutter {
+      background: #06080d !important;
+      color: #475569 !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+    }
+    #scripts-ace-editor .ace_gutter-active-line {
+      background: rgba(255, 255, 255, 0.06) !important;
+      color: #cbd5e1 !important;
+    }
+    #scripts-ace-editor .ace_active-line {
+      background: rgba(255, 255, 255, 0.035) !important;
+    }
+    #scripts-ace-editor .ace_cursor {
+      color: var(--primary, #38bdf8) !important;
+      border-left-width: 2px !important;
+    }
+    #scripts-ace-editor .ace_marker-layer .ace_selection {
+      background: rgba(224, 169, 139, 0.28) !important;
+    }
+    #scripts-ace-editor .ace_marker-layer .ace_selected-word {
+      background: rgba(56, 189, 248, 0.2) !important;
+      border: 1px solid rgba(56, 189, 248, 0.35) !important;
+      border-radius: 2px !important;
+    }
+    .scripts-toolbar-select {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #cbd5e1;
+      font-size: 11px;
+      padding: 4px 8px;
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+    .scripts-toolbar-select:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+    .scripts-toolbar-select option {
+      background: #0d0f17;
+      color: #fff;
+    }
+    .scripts-editor-footer {
+      background: #07090e;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 16px;
+      font-size: 11px;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: monospace;
+      user-select: none;
+    }
+    .fx-res-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .fx-cat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+    .scripts-tree-list::-webkit-scrollbar,
+    .scripts-textarea::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .scripts-tree-list::-webkit-scrollbar-track,
+    .scripts-textarea::-webkit-scrollbar-track {
+      background: #030406;
+    }
+    .scripts-tree-list::-webkit-scrollbar-thumb,
+    .scripts-textarea::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+    }
+    .scripts-tree-list::-webkit-scrollbar-thumb:hover,
+    .scripts-textarea::-webkit-scrollbar-thumb:hover {
+      background: rgba(224, 169, 139, 0.4);
+    }
+  </style>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+    <div>
+      <h2 class="panel-title" style="margin: 0; display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-server" style="color: var(--primary);"></i> FiveM Sunucu Yönetimi & CMD Konsolu
+      </h2>
+      <p style="color: var(--text-muted); font-size: 12px; margin: 6px 0 0 0;">
+        FiveM oyun sunucusunu başlatın, kapatın, canlı CMD terminalinden script yükleme akışını izleyin ve server.cfg yapılandırmasını yönetin.
+      </p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span id="server-live-indicator" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(16, 185, 129, 0.12); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.25);">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 10px var(--success);"></span>
+        <span id="server-status-text">FiveM Sunucusu Açık</span>
+      </span>
+      <button onclick="refreshServerStatus()" class="btn-secondary" style="font-size: 12px; padding: 8px 14px; display: flex; align-items: center; gap: 6px; border-radius: 8px; cursor: pointer;">
+        <i class="fa-solid fa-rotate"></i> Yenile
+      </button>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div class="content-panel" style="padding: 18px; margin: 0; display: flex; align-items: center; gap: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+      <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); display: flex; align-items: center; justify-content: center; color: var(--success); font-size: 18px;">
+        <i class="fa-solid fa-gamepad"></i>
+      </div>
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">FiveM Durumu</div>
+        <div id="stat-server-state" style="font-size: 16px; font-weight: 800; color: #fff; margin-top: 2px;">Aktif (Online)</div>
+      </div>
+    </div>
+
+    <div class="content-panel" style="padding: 18px; margin: 0; display: flex; align-items: center; gap: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+      <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px;">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Oyuncu Sayısı</div>
+        <div id="stat-server-players" style="font-size: 16px; font-weight: 800; color: #fff; margin-top: 2px;">0 Oyuncu</div>
+      </div>
+    </div>
+
+    <div class="content-panel" style="padding: 18px; margin: 0; display: flex; align-items: center; gap: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+      <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(224, 169, 139, 0.12); border: 1px solid rgba(224, 169, 139, 0.25); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 18px;">
+        <i class="fa-solid fa-clock"></i>
+      </div>
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Çalışma Süresi</div>
+        <div id="stat-server-uptime" style="font-size: 16px; font-weight: 800; color: #fff; margin-top: 2px;">00:00:00</div>
+      </div>
+    </div>
+
+    <div class="content-panel" style="padding: 18px; margin: 0; display: flex; align-items: center; gap: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+      <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.25); display: flex; align-items: center; justify-content: center; color: #c084fc; font-size: 18px;">
+        <i class="fa-solid fa-microchip"></i>
+      </div>
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Bellek (RAM)</div>
+        <div id="stat-server-ram" style="font-size: 16px; font-weight: 800; color: #fff; margin-top: 2px;">0 MB</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 24px;">
+    <div class="content-panel" style="padding: 24px; margin: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(3, 4, 6, 0.95) 100%);">
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span style="width: 40px; height: 40px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: var(--success); font-size: 18px;">
+            <i class="fa-solid fa-play"></i>
+          </span>
+          <span style="font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: var(--success); text-transform: uppercase;">Kontrol 1</span>
+        </div>
+        <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0 0 8px 0;">
+          FiveM Sunucusunu Açma
+        </h3>
+        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0;">
+          FXServer ve tanımlı başlatma komutunu tetikler. Scriptlerin yüklenmesini başlatır ve canlı CMD konsolunda akışı açar.
+        </p>
+      </div>
+
+      <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <button id="btn-server-start" onclick="executeServerAction('start')" style="width: 100%; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; border: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); transition: all 0.2s ease;">
+          <i class="fa-solid fa-play"></i> FiveM Sunucusunu Aç
+        </button>
+      </div>
+    </div>
+
+    <div class="content-panel" style="padding: 24px; margin: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 20px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.2); background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(3, 4, 6, 0.95) 100%);">
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span style="width: 40px; height: 40px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; color: var(--danger); font-size: 18px;">
+            <i class="fa-solid fa-power-off"></i>
+          </span>
+          <span style="font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(239, 68, 68, 0.15); color: var(--danger); text-transform: uppercase;">Kontrol 2</span>
+        </div>
+        <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0 0 8px 0;">
+          FiveM Sunucusunu Kapatma
+        </h3>
+        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0;">
+          FiveM sunucusuna güvenli durdurma komutu gönderir. Veritabanı ve envanter kayıtlarını güvene alarak FXServer'ı kapatır.
+        </p>
+      </div>
+
+      <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <button id="btn-server-stop" onclick="confirmServerStop()" style="width: 100%; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; border: none; background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3); transition: all 0.2s ease;">
+          <i class="fa-solid fa-power-off"></i> FiveM Sunucusunu Kapat
+        </button>
+      </div>
+    </div>
+
+    <div class="content-panel" style="padding: 24px; margin: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 20px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2); background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(3, 4, 6, 0.95) 100%);">
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: var(--warning); font-size: 18px;">
+            <i class="fa-solid fa-arrows-rotate"></i>
+          </span>
+          <span style="font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); color: var(--warning); text-transform: uppercase;">Kontrol 3</span>
+        </div>
+        <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0 0 8px 0;">
+          FiveM Sunucusuna Restart Atma
+        </h3>
+        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0;">
+          FiveM sunucusunu yeniden başlatır. 15 saniyelik oyun içi geri sayım duyurusu geçebilir veya hemen hızlı restart atabilirsiniz.
+        </p>
+      </div>
+
+      <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+        <div>
+          <label style="font-size: 10.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Restart Türü</label>
+          <select id="server-restart-mode" class="form-input" style="font-size: 12px; padding: 6px 10px; border-radius: 6px; background: #0c0d10; width: 100%;">
+            <option value="countdown">15 Saniye Oyun İçi Duyurulu Restart</option>
+            <option value="instant">Anında Hızlı Restart (Duyurusuz)</option>
+          </select>
+        </div>
+        <button id="btn-server-restart" onclick="confirmServerRestart()" style="width: 100%; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; border: none; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #0b0d14; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3); transition: all 0.2s ease;">
+          <i class="fa-solid fa-arrows-rotate"></i> FiveM Sunucusuna Restart At
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cmd-terminal-panel" class="content-panel" style="padding: 0; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1); background: #06080d; margin-bottom: 28px; overflow: hidden; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8); transition: all 0.25s ease;">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: linear-gradient(180deg, #0e111a 0%, #090c12 100%); border-bottom: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display: flex; gap: 6px;">
+          <span style="width: 11px; height: 11px; border-radius: 50%; background: #ef4444; display: inline-block; box-shadow: 0 0 6px rgba(239,68,68,0.5);"></span>
+          <span style="width: 11px; height: 11px; border-radius: 50%; background: #f59e0b; display: inline-block; box-shadow: 0 0 6px rgba(245,158,11,0.5);"></span>
+          <span style="width: 11px; height: 11px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 6px rgba(16,185,129,0.5);"></span>
+        </div>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-terminal" style="color: var(--primary);"></i> FXServer Canlı CMD & Script Terminali
+        </span>
+        <span class="terminal-live-badge">
+          <span class="terminal-pulse-dot"></span>
+          CANLI YAYIN
+        </span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="position: relative; display: flex; align-items: center;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; font-size: 11px; color: #64748b;"></i>
+          <input type="text" id="cmd-filter-input" placeholder="Konsolda ara..." oninput="applyCmdFilter(this.value)" style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 4px 10px 4px 28px; font-size: 11px; color: #cbd5e1; outline: none; width: 140px; font-family: monospace;">
+        </div>
+
+        <span id="cmd-log-counter" style="font-family: monospace; font-size: 11px; color: #64748b; background: rgba(255, 255, 255, 0.03); padding: 4px 8px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.05);">
+          0 Satır
+        </span>
+
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); cursor: pointer; user-select: none;">
+          <input type="checkbox" id="cmd-autoscroll" checked style="cursor: pointer; accent-color: var(--primary);">
+          <span>Oto Kaydır</span>
+        </label>
+
+        <button onclick="toggleTerminalFullscreen()" title="Tam Ekran Genişlet" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; padding: 5px 9px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+          <i id="cmd-fullscreen-icon" class="fa-solid fa-expand"></i>
+        </button>
+
+        <button onclick="copyTerminalLogs()" title="Logları Kopyala" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+          <i class="fa-solid fa-copy"></i>
+        </button>
+
+        <button onclick="clearCmdConsole()" title="Konsolu Temizle" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+          <i class="fa-solid fa-trash-can"></i> Temizle
+        </button>
+      </div>
+    </div>
+
+    <div id="cmd-terminal-window" style="background: radial-gradient(circle at 10% 10%, #07090f 0%, #030406 100%); padding: 14px 18px; height: 420px; overflow-y: auto; scroll-behavior: smooth; display: flex; flex-direction: column; gap: 2px;">
+      <div style="color: #64748b; font-family: monospace; font-size: 12px;">[FXServer Canlı Akış Terminali başlatılıyor...]</div>
+    </div>
+
+    <div style="background: #080a10; border-top: 1px solid rgba(255, 255, 255, 0.07); padding: 8px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <span style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Hızlı Komutlar:</span>
+      <span class="terminal-quick-chip" onclick="quickFillCmd('ensure ')">+ ensure [script]</span>
+      <span class="terminal-quick-chip" onclick="quickFillCmd('restart ')">+ restart [script]</span>
+      <span class="terminal-quick-chip" onclick="quickFillCmd('refresh')">+ refresh</span>
+      <span class="terminal-quick-chip" onclick="quickFillCmd('status')">+ status</span>
+      <span class="terminal-quick-chip" onclick="quickFillCmd('say Sunucu güncelleniyor.')">+ say [mesaj]</span>
+      <span class="terminal-quick-chip" onclick="quickFillCmd('stop ')">+ stop [script]</span>
+    </div>
+
+    <div style="display: flex; background: #040508; border-top: 1px solid rgba(255, 255, 255, 0.08); padding: 12px 18px; gap: 12px; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 6px; color: var(--primary); font-family: monospace; font-weight: 800; font-size: 13px; user-select: none;">
+        <span>fxserver:~$</span>
+      </div>
+      <input type="text" id="cmd-input-field" placeholder="Konsol komutu girin (örn: ensure qb-core, restart shield-software, refresh, say Selam, status)..." style="flex: 1; background: transparent; border: none; color: #f8fafc; font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none;" onkeydown="handleCmdKeyDown(event)">
+      <button onclick="sendConsoleCommand()" style="background: linear-gradient(135deg, var(--primary) 0%, #c48b6a 100%); color: #0b0d14; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(224, 169, 139, 0.25); transition: transform 0.15s ease;">
+        <i class="fa-solid fa-paper-plane"></i> Gönder
+      </button>
+    </div>
+  </div>
+
+  <div class="content-panel" style="padding: 24px; border-radius: 14px; border: 1px solid var(--border-color); background: rgba(8, 10, 15, 0.95); margin-bottom: 28px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-file-code" style="color: #38bdf8;"></i> FiveM server.cfg Studio & Yapılandırma Editörü
+        </h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">
+          Sunucunun server.cfg dosyasını satır numaralı ve modern editör görünümünde düzenleyin, script direktiflerini anında kaydedin.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button onclick="loadConfigFile()" class="btn-secondary" style="font-size: 11.5px; padding: 7px 14px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-rotate-right"></i> Dosyayı Yenile
+        </button>
+        <button onclick="copyCfgContent()" class="btn-secondary" style="font-size: 11.5px; padding: 7px 14px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-copy"></i> Kopyala
+        </button>
+        <button id="btn-save-cfg" onclick="saveConfigFile()" class="btn btn-primary" style="font-size: 11.5px; padding: 7px 18px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(224, 169, 139, 0.3);">
+          <i class="fa-solid fa-floppy-disk"></i> server.cfg Kaydet
+        </button>
+      </div>
+    </div>
+
+    <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <i class="fa-solid fa-hard-drive" style="color: var(--primary); font-size: 16px;"></i>
+      <div style="flex: 1; min-width: 260px;">
+        <label style="font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Sunucu Disk Yolu (server.cfg Path)</label>
+        <input type="text" id="server-cfg-path-input" class="form-input" placeholder="Örn: D:\full\txData\QBCoreFramework_7334A3.base\server.cfg" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; width: 100%; padding: 6px 10px; background: #050608;">
+      </div>
+      <button onclick="loadConfigFile()" class="btn-secondary" style="font-size: 11px; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-top: 16px;">
+        <i class="fa-solid fa-folder-open"></i> Bu Yoldan Yükle
+      </button>
+    </div>
+
+    <div style="margin-bottom: 8px;">
+      <div class="cfg-editor-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="cfg-tab">
+            <i class="fa-solid fa-file-lines" style="color: #38bdf8;"></i>
+            <span>server.cfg</span>
+          </div>
+          <span id="cfg-status-indicator" class="cfg-status-pill cfg-status-saved">KAYDEDİLDİ</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 10.5px; font-weight: 700; color: #64748b;">Hızlı Ekle:</span>
+          <span class="terminal-quick-chip" onclick="insertIntoCfg('ensure ')">+ ensure</span>
+          <span class="terminal-quick-chip" onclick="insertIntoCfg('setr voice_useNativeAudio true\n')">+ voice</span>
+          <span class="terminal-quick-chip" onclick="insertIntoCfg('add_ace group.admin command allow\n')">+ add_ace</span>
+          <span class="terminal-quick-chip" onclick="insertIntoCfg('sv_maxclients 128\n')">+ maxclients</span>
+        </div>
+      </div>
+
+      <div class="cfg-editor-wrap">
+        <div id="cfg-line-numbers" class="cfg-line-numbers">1</div>
+        <textarea id="server-cfg-editor" class="cfg-textarea" spellcheck="false" placeholder="server.cfg direktiflerini buraya yazın..." oninput="handleCfgInput()" onscroll="syncCfgLineScroll()" onkeydown="handleCfgKeyDown(event)"></textarea>
+      </div>
+
+      <div class="cfg-editor-footer">
+        <div>
+          <span id="cfg-stat-lines"><i class="fa-solid fa-bars"></i> 1 Satır</span>
+          <span style="margin: 0 8px;">&bull;</span>
+          <span id="cfg-stat-chars">0 Karakter</span>
+          <span style="margin: 0 8px;">&bull;</span>
+          <span>FXServer Configuration</span>
+        </div>
+        <div>
+          <span>UTF-8</span>
+          <span style="margin: 0 8px;">&bull;</span>
+          <span>EmpireV Studio v2.0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       FIVEM SCRIPTS & DOSYA YÖNETİCİSİ (IDE / STUDIO)
+       ========================================================================= -->
+  <div id="scripts-studio-panel" class="scripts-studio-panel content-panel" style="padding: 0;">
+    <!-- Studio Top Bar -->
+    <div class="scripts-studio-header">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="width: 38px; height: 38px; border-radius: 10px; background: rgba(224, 169, 139, 0.15); border: 1px solid rgba(224, 169, 139, 0.3); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 16px;">
+          <i class="fa-solid fa-code"></i>
+        </span>
+        <div>
+          <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            FiveM Script & Dosya Yöneticisi <span style="font-size: 10.5px; padding: 2px 7px; border-radius: 4px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">STUDIO v2</span>
+          </h3>
+          <p style="font-size: 11.5px; color: var(--text-muted); margin: 3px 0 0 0;">
+            Sunucudaki tüm scriptleri (Lua, JS, JSON, CFG vb.) görüntüleyin, düzenleyin, yeni script ekleyin ve anında canlı restart atın.
+          </p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span id="scripts-active-path-badge" class="fx-tag-badge fx-tag-citizen" style="margin: 0; font-family: monospace; font-size: 11px; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Aktif Sunucu Dizin Yolu">
+          <i class="fa-solid fa-folder-tree"></i> resources
+        </span>
+
+        <button onclick="toggleScriptsSettingsDrawer()" class="btn-secondary" style="font-size: 11.5px; padding: 6px 12px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-folder-gear"></i> Dizin Ayarları
+        </button>
+
+        <button onclick="navigateScriptsHome()" class="btn-secondary" style="font-size: 11.5px; padding: 6px 12px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="Kök Dizin">
+          <i class="fa-solid fa-house"></i> Kök
+        </button>
+
+        <button onclick="refreshCurrentScriptsDir()" class="btn-secondary" style="font-size: 11.5px; padding: 6px 12px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="Yenile">
+          <i class="fa-solid fa-rotate-right"></i> Yenile
+        </button>
+
+        <button onclick="toggleScriptsStudioFullscreen()" class="btn-secondary" style="font-size: 11.5px; padding: 6px 10px; border-radius: 7px; cursor: pointer;" title="Tam Ekran Studio">
+          <i id="scripts-fullscreen-icon" class="fa-solid fa-expand"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Collapsible Settings Drawer -->
+    <div id="scripts-settings-drawer" class="scripts-settings-drawer" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <div style="font-size: 12px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-sliders" style="color: var(--primary);"></i> FiveM Sunucu / Resources Klasör Yolu Yapılandırması
+        </div>
+        <button onclick="toggleScriptsSettingsDrawer()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 14px;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <p style="font-size: 11.5px; color: var(--text-muted); margin: 0;">
+        Düzenlemek istediğiniz FiveM scriptlerinin bulunduğu ana `resources` klasörünün veya sunucu kök dizininin tam disk yolunu girin.
+      </p>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="text" id="scripts-base-dir-input" class="form-input" placeholder="Örn: C:\FXServer\txData\QBCoreFramework_7334A3.base\resources" style="flex: 1; min-width: 280px; font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 7px 12px; background: #050608;">
+        <button onclick="saveScriptsSettings()" class="btn btn-primary" style="padding: 7px 18px; font-size: 12px; font-weight: 700; border-radius: 7px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-floppy-disk"></i> Dizin Yolunu Kaydet & Uygula
+        </button>
+      </div>
+      <div id="scripts-suggested-paths-wrap" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+        <span style="font-size: 10.5px; font-weight: 700; color: #64748b;">Önerilen Dizinler:</span>
+        <div id="scripts-suggested-pills" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+      </div>
+    </div>
+
+    <!-- Main Workspace Split -->
+    <div class="scripts-workspace">
+      <!-- Left: Explorer Sidebar -->
+      <div class="scripts-explorer">
+        <div class="scripts-explorer-toolbar">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-folder-open" style="color: var(--primary);"></i> DOSYA GEZGİNİ
+            </span>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <button onclick="openCreateScriptModal(false)" class="scripts-mini-btn" title="Yeni Dosya Oluştur">
+                <i class="fa-solid fa-file-circle-plus"></i>
+              </button>
+              <button onclick="openCreateScriptModal(true)" class="scripts-mini-btn" title="Yeni Klasör Oluştur">
+                <i class="fa-solid fa-folder-plus"></i>
+              </button>
+              <button onclick="navigateScriptsUp()" class="scripts-mini-btn" title="Üst Dizine Çık">
+                <i class="fa-solid fa-arrow-turn-up"></i>
+              </button>
+              <button onclick="refreshCurrentScriptsDir()" class="scripts-mini-btn" title="Listeyi Yenile">
+                <i class="fa-solid fa-rotate"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Breadcrumbs -->
+          <div id="scripts-breadcrumbs" class="scripts-breadcrumbs">
+            <span class="scripts-breadcrumb-chip" onclick="loadScriptsTree('')">kök</span>
+          </div>
+
+          <!-- Search Filter -->
+          <div style="position: relative;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 9px; top: 8px; font-size: 11px; color: #64748b;"></i>
+            <input type="text" id="scripts-search-input" placeholder="Dosya veya script ara..." oninput="handleScriptsSearch(this.value)" style="width: 100%; padding: 5px 8px 5px 28px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; color: #cbd5e1; font-size: 11.5px; outline: none; font-family: monospace;">
+          </div>
+        </div>
+
+        <!-- Tree Item List -->
+        <div id="scripts-tree-list" class="scripts-tree-list">
+          <div style="color: #64748b; font-size: 11.5px; padding: 20px; text-align: center;">
+            <i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i> Dosyalar yükleniyor...
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Multi-tab Code Editor -->
+      <div class="scripts-editor-pane">
+        <!-- Tabs Bar -->
+        <div id="scripts-tabs-bar" class="scripts-tabs-bar">
+          <span style="font-size: 11px; color: #475569; padding: 8px 14px; font-family: monospace;">Açık dosya yok</span>
+        </div>
+
+        <!-- Editor Toolbar -->
+        <div id="scripts-editor-toolbar" class="scripts-editor-toolbar" style="display: none;">
+          <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; flex: 1; min-width: 200px;">
+            <i id="scripts-active-file-icon" class="fa-solid fa-file-code" style="color: #38bdf8; font-size: 14px;"></i>
+            <span id="scripts-active-file-path" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #f1f5f9; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              Dosya seçilmedi
+            </span>
+            <span id="scripts-active-file-dirty-pill" class="cfg-status-pill cfg-status-saved">KAYDEDİLDİ</span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <!-- Theme selection -->
+            <div style="display: flex; align-items: center; gap: 5px;" title="Kod Teması">
+              <i class="fa-solid fa-palette" style="font-size: 11px; color: #64748b;"></i>
+              <select id="scripts-theme-select" class="scripts-toolbar-select" onchange="changeScriptTheme(this.value)">
+                <option value="one_dark" selected>One Dark</option>
+                <option value="dracula">Dracula</option>
+                <option value="monokai">Monokai</option>
+                <option value="tomorrow_night_eighties">Tomorrow Night</option>
+              </select>
+            </div>
+
+            <!-- Font size -->
+            <div style="display: flex; align-items: center; gap: 5px;" title="Yazı Boyutu">
+              <select id="scripts-fontsize-select" class="scripts-toolbar-select" onchange="changeScriptFontSize(this.value)">
+                <option value="12px">12px</option>
+                <option value="13px" selected>13px</option>
+                <option value="14px">14px</option>
+                <option value="16px">16px</option>
+              </select>
+            </div>
+
+            <!-- Word Wrap Toggle -->
+            <button id="scripts-btn-wrap" onclick="toggleScriptWrap()" class="btn-secondary" style="font-size: 11px; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="Satır Kaydırmayı Aç/Kapat">
+              <i class="fa-solid fa-arrow-turn-down"></i> <span id="scripts-btn-wrap-text" style="margin-left: 2px;">Wrap</span>
+            </button>
+
+            <!-- Search in Code -->
+            <button onclick="openScriptSearch()" class="btn-secondary" style="font-size: 11px; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="Kodda Ara (Ctrl+F)">
+              <i class="fa-solid fa-magnifying-glass"></i> Ara
+            </button>
+
+            <!-- Restart Resource Button (Visible if file is inside a resource) -->
+            <button id="scripts-btn-restart-res" onclick="restartActiveTabResource()" class="btn-secondary" style="display: none; font-size: 11px; padding: 5px 12px; border-radius: 6px; cursor: pointer; color: #34d399; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.1);" title="Bu FiveM Scriptini Yeniden Başlat">
+              <i class="fa-solid fa-bolt"></i> <span id="scripts-btn-restart-res-label">Script Restart</span>
+            </button>
+
+            <button onclick="reloadActiveScriptFile()" class="btn-secondary" style="font-size: 11px; padding: 5px 12px; border-radius: 6px; cursor: pointer;" title="Diskten Yeniden Yükle">
+              <i class="fa-solid fa-rotate-right"></i> Diskten Yenile
+            </button>
+
+            <button onclick="copyActiveScriptContent()" class="btn-secondary" style="font-size: 11px; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="Tümünü Kopyala">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+
+            <button id="scripts-btn-save-file" onclick="saveActiveScriptFile()" class="btn btn-primary" style="font-size: 11.5px; padding: 5px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(224, 169, 139, 0.25);">
+              <i class="fa-solid fa-floppy-disk"></i> Kaydet (Ctrl+S)
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Editor Area -->
+        <div class="scripts-editor-main">
+          <!-- Empty State (No file open) -->
+          <div id="scripts-empty-editor" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; padding: 40px; color: #64748b;">
+            <div style="width: 64px; height: 64px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: center; font-size: 26px; color: #94a3b8; margin-bottom: 16px;">
+              <i class="fa-solid fa-code"></i>
+            </div>
+            <h4 style="font-size: 15px; font-weight: 700; color: #cbd5e1; margin: 0 0 6px 0;">Düzenlemek İçin Bir Script veya Dosya Seçin</h4>
+            <p style="font-size: 12px; color: #64748b; max-width: 380px; margin: 0 0 16px 0; line-height: 1.5;">
+              Sol taraftaki dosya gezgininden (.lua, .js, .json, .cfg vb.) herhangi bir dosyaya tıklayarak düzenlemeye başlayabilir ya da yeni dosya ekleyebilirsiniz.
+            </p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+              <span class="terminal-quick-chip" onclick="openCreateScriptModal(false)"><i class="fa-solid fa-plus"></i> Yeni Script Dosyası</span>
+              <span class="terminal-quick-chip" onclick="openCreateScriptModal(true)"><i class="fa-solid fa-folder-plus"></i> Yeni Klasör</span>
+              <span class="terminal-quick-chip"><i class="fa-solid fa-keyboard"></i> Ctrl+S: Kaydet</span>
+            </div>
+          </div>
+
+          <!-- Active Editor Container (Ace IDE + Fallback Textarea) -->
+          <div id="scripts-editor-active-wrap" style="display: none; width: 100%; height: 100%; flex: 1; overflow: hidden; position: relative;">
+            <div id="scripts-ace-editor" style="position: absolute; inset: 0;"></div>
+            <div id="scripts-textarea-fallback" style="display: none; width: 100%; height: 100%; flex: 1; overflow: hidden;">
+              <div id="scripts-line-numbers" class="scripts-line-numbers">1</div>
+              <textarea id="scripts-editor-textarea" class="scripts-textarea" spellcheck="false" placeholder="Script içeriğini buraya yazın..." oninput="handleScriptEditorInput()" onscroll="syncScriptLineScroll()" onkeydown="handleScriptKeyDown(event)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editor Status Footer -->
+        <div id="scripts-editor-footer" class="scripts-editor-footer" style="display: none;">
+          <div>
+            <span id="scripts-stat-cursor"><i class="fa-regular fa-i-cursor"></i> Satır: 1, Sütun: 1</span>
+            <span style="margin: 0 8px;">&bull;</span>
+            <span id="scripts-stat-lines">1 Satır</span>
+            <span style="margin: 0 8px;">&bull;</span>
+            <span id="scripts-stat-size">0 KB</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span id="scripts-stat-lang" style="color: #38bdf8; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fa-solid fa-moon"></i> <span>Lua (FiveM)</span>
+            </span>
+            <span style="margin: 0 4px;">&bull;</span>
+            <span id="scripts-stat-res" style="color: #38bdf8;"></span>
+            <span style="margin: 0 4px;">&bull;</span>
+            <span>UTF-8</span>
+            <span style="margin: 0 4px;">&bull;</span>
+            <span>EmpireV Code Studio</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prompt Modal (Create File / Folder / Rename) -->
+  <div id="script-prompt-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 10001; align-items: center; justify-content: center; padding: 20px;">
+    <div class="content-panel" style="width: 100%; max-width: 440px; padding: 28px; border-radius: 16px; border: 1px solid var(--border-color); background: rgba(13, 15, 23, 0.98); display: flex; flex-direction: column; gap: 16px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div id="script-prompt-icon-wrap" style="width: 42px; height: 42px; border-radius: 10px; background: rgba(224, 169, 139, 0.15); border: 1px solid rgba(224, 169, 139, 0.3); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 18px;">
+          <i id="script-prompt-icon" class="fa-solid fa-file-circle-plus"></i>
+        </div>
+        <div>
+          <h3 id="script-prompt-title" style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0;">Yeni Dosya</h3>
+          <p id="script-prompt-desc" style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Oluşturulacak dosya adını girin.</p>
+        </div>
+      </div>
+
+      <div>
+        <label id="script-prompt-input-label" style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">Dosya Adı</label>
+        <input type="text" id="script-prompt-input" class="form-input" placeholder="Örn: server.lua veya config.json" style="width: 100%; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #050608;" onkeydown="handleScriptPromptKeyDown(event)">
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 6px;">
+        <button onclick="closeScriptPromptModal()" class="btn-secondary" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+          Vazgeç
+        </button>
+        <button id="script-prompt-submit-btn" onclick="submitScriptPrompt()" class="btn btn-primary" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+          Oluştur
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danger Modal (Delete confirmation) -->
+  <div id="script-danger-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 10001; align-items: center; justify-content: center; padding: 20px;">
+    <div class="content-panel" style="width: 100%; max-width: 440px; padding: 28px; border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(13, 15, 23, 0.98); display: flex; flex-direction: column; gap: 16px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);">
+      <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); display: flex; align-items: center; justify-content: center; color: var(--danger); font-size: 20px; margin: 0 auto;">
+        <i class="fa-solid fa-trash-can"></i>
+      </div>
+      <div style="text-align: center;">
+        <h3 id="script-danger-title" style="font-family: var(--font-display); font-size: 17px; font-weight: 800; color: #fff; margin: 0 0 6px 0;">Öğeyi Silmek İstiyor Musunuz?</h3>
+        <p id="script-danger-desc" style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0;">Bu işlem geri alınamaz ve dosya/klasör kalıcı olarak sunucu diskinden silinecektir.</p>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 6px;">
+        <button onclick="closeScriptDangerModal()" class="btn-secondary" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+          Vazgeç
+        </button>
+        <button id="script-danger-confirm-btn" onclick="submitScriptDangerAction()" class="btn" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff;">
+          Evet, Kalıcı Olarak Sil
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-panel" style="padding: 24px; border-radius: 14px; border: 1px solid var(--border-color); background: rgba(8, 10, 15, 0.95); margin-bottom: 24px;">
+    <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: #fff; margin: 0 0 8px 0; display: flex; align-items: center; gap: 10px;">
+      <i class="fa-solid fa-folder-gear" style="color: var(--primary);"></i> FiveM Başlatma Komutu / Betik Yolu (.bat / FXServer)
+    </h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5;">
+      Web panelinden "FiveM Sunucusunu Aç" butonuna basıldığında sunucu makinesinde çalıştırılacak .bat veya FXServer komutunu buraya yazabilirsiniz.
+    </p>
+
+    <form onsubmit="saveFivemCommand(event)" style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <input type="text" id="fivem-start-cmd-input" class="form-input" placeholder="Örn: C:\FXServer\server-data\start.bat veya powershell -File start.ps1" style="flex: 1; min-width: 280px; font-family: monospace; font-size: 12px;">
+      <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">
+        <i class="fa-solid fa-floppy-disk"></i> Komutu Kaydet
+      </button>
+    </form>
+  </div>
+
+  <div id="server-action-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div class="content-panel" style="width: 100%; max-width: 440px; padding: 28px; border-radius: 16px; border: 1px solid var(--border-color); background: rgba(13, 15, 23, 0.98); display: flex; flex-direction: column; gap: 18px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);">
+      <div style="width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto;" id="action-modal-icon-wrap">
+        <i id="action-modal-icon" class="fa-solid fa-circle-exclamation"></i>
+      </div>
+      <div style="text-align: center;">
+        <h3 id="action-modal-title" style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin: 0 0 8px 0;">Onay Gerekiyor</h3>
+        <p id="action-modal-desc" style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0;">Bu işlemi gerçekleştirmek istediğinize emin misiniz?</p>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 6px;">
+        <button onclick="closeActionModal()" class="btn-secondary" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+          Vazgeç
+        </button>
+        <button id="action-modal-confirm-btn" onclick="executePendingServerAction()" class="btn" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; color: #fff;">
+          Onayla ve Uygula
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  let pendingServerAction = null;
+  let serverUptimeSeconds = 0;
+  let lastConsoleLogCount = 0;
+  let allRawLogs = [];
+  let currentLogFilter = '';
+  let cmdCommandHistory = [];
+  let cmdHistoryIndex = -1;
+
+  function formatUptime(seconds) {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    const pad = n => n < 10 ? '0' + n : n;
+    return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+  }
+
+  function ansi256ToRgb(n) {
+    if (n < 0 || n > 255) return 'rgb(226, 232, 240)';
+    if (n < 8) {
+      const std = ['rgb(0,0,0)', 'rgb(239,68,68)', 'rgb(16,185,129)', 'rgb(245,158,11)', 'rgb(59,130,246)', 'rgb(236,72,153)', 'rgb(6,182,212)', 'rgb(226,232,240)'];
+      return std[n];
+    }
+    if (n < 16) {
+      const bright = ['rgb(100,116,139)', 'rgb(248,113,113)', 'rgb(52,211,153)', 'rgb(251,191,36)', 'rgb(96,165,250)', 'rgb(244,114,182)', 'rgb(56,189,248)', 'rgb(255,255,255)'];
+      return bright[n - 8];
+    }
+    if (n >= 16 && n <= 231) {
+      const idx = n - 16;
+      const r = Math.floor(idx / 36);
+      const g = Math.floor((idx % 36) / 6);
+      const b = idx % 6;
+      return `rgb(${r ? r * 40 + 55 : 0}, ${g ? g * 40 + 55 : 0}, ${b ? b * 40 + 55 : 0})`;
+    }
+    const val = (n - 232) * 10 + 8;
+    return `rgb(${val}, ${val}, ${val})`;
+  }
+
+  function parseAnsiToHtml(str) {
+    if (!str) return '';
+    let text = String(str);
+
+    text = text.replace(/\x1b\]0;[^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+    text = text.replace(/\^\[\]0;[^\^G\x07]*(?:\^G|\x07)/g, '');
+
+    text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    text = text.replace(/\^([0-9])/g, (m, c) => {
+      const colors = {
+        '1': '#ef4444',
+        '2': '#10b981',
+        '3': '#f59e0b',
+        '4': '#3b82f6',
+        '5': '#06b6d4',
+        '6': '#ec4899',
+        '7': '#f8fafc',
+        '8': '#991b1b',
+        '9': '#d946ef',
+        '0': '#cbd5e1'
+      };
+      return `<span style="color: ${colors[c] || '#cbd5e1'}">`;
+    });
+
+    const ansiPattern = /(?:\x1b|\^\[)\[([0-9;]*)m/g;
+    text = text.replace(ansiPattern, (match, p1) => {
+      if (!p1 || p1 === '0' || p1 === '00') {
+        return '</span>';
+      }
+      const parts = p1.split(';').map(x => parseInt(x, 10));
+      if (parts.length >= 3 && parts[0] === 38 && parts[1] === 5) {
+        return `<span style="color: ${ansi256ToRgb(parts[2])};">`;
+      }
+      if (parts.length >= 3 && parts[0] === 48 && parts[1] === 5) {
+        return `<span style="background-color: ${ansi256ToRgb(parts[2])};">`;
+      }
+      if (parts[0] >= 30 && parts[0] <= 37) {
+        const std = ['#0f172a', '#ef4444', '#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#06b6d4', '#f1f5f9'];
+        return `<span style="color: ${std[parts[0] - 30]};">`;
+      }
+      if (parts[0] >= 90 && parts[0] <= 97) {
+        const bright = ['#64748b', '#f87171', '#34d399', '#fbbf24', '#60a5fa', '#f472b6', '#38bdf8', '#ffffff'];
+        return `<span style="color: ${bright[parts[0] - 90]};">`;
+      }
+      if (parts[0] === 1) {
+        return '<span style="font-weight: 700;">';
+      }
+      return '';
+    });
+
+    text = text.replace(/(?:\x1b|\^\[)\[[0-9;]*[a-zA-Z]/g, '');
+
+    return formatFiveMEntities(text);
+  }
+
+  function formatFiveMEntities(html) {
+    let out = html;
+
+    out = out.replace(/\[\s*(resources:[a-zA-Z0-9_\-]+)\s*\]/g, '<span class="fx-tag-badge fx-tag-resources"><i class="fa-solid fa-cube"></i> $1</span>');
+    out = out.replace(/\[\s*resources\s*\]/g, '<span class="fx-tag-badge fx-tag-resources"><i class="fa-solid fa-cubes"></i> resources</span>');
+    out = out.replace(/\[\s*c-scripting-core\s*\]/g, '<span class="fx-tag-badge fx-tag-scripting"><i class="fa-solid fa-code"></i> c-scripting-core</span>');
+    out = out.replace(/\[\s*citizen-server-impl\s*\]/g, '<span class="fx-tag-badge fx-tag-citizen"><i class="fa-solid fa-network-wired"></i> citizen-server</span>');
+    out = out.replace(/\[\s*shield-software\s*\]/g, '<span class="fx-tag-badge fx-tag-shield"><i class="fa-solid fa-shield-halved"></i> shield-software</span>');
+
+    out = out.replace(/Started resource ([a-zA-Z0-9_\-]+)(?:\s*\(([0-9]+)\s*warnings\))?/g, (m, resName, warns) => {
+      let badge = `<span class="fx-highlight-started"><i class="fa-solid fa-circle-check"></i> Started resource <b style="color:#fff;">${resName}</b></span>`;
+      if (warns) {
+        badge += ` <span class="fx-highlight-warning">(${warns} uyarı)</span>`;
+      }
+      return badge;
+    });
+
+    out = out.replace(/Creating script environments for ([a-zA-Z0-9_\-]+)/g, '<span class="fx-highlight-env"><i class="fa-solid fa-gear fa-spin"></i> Script env: <b>$1</b></span>');
+    out = out.replace(/(uses\s+[0-9.]+\s+MiB\s+of\s+physical\s+memory)/g, '<span class="fx-highlight-memory">$1</span>');
+
+    return out;
+  }
+
+  function renderTerminalLogs() {
+    const terminal = document.getElementById('cmd-terminal-window');
+    if (!terminal) return;
+
+    let filtered = allRawLogs;
+    if (currentLogFilter) {
+      const q = currentLogFilter.toLowerCase();
+      filtered = allRawLogs.filter(l => (l.text && l.text.toLowerCase().includes(q)) || (l.time && l.time.toLowerCase().includes(q)));
+    }
+
+    const counter = document.getElementById('cmd-log-counter');
+    if (counter) {
+      counter.textContent = `${filtered.length} Satır`;
+    }
+
+    if (filtered.length === 0) {
+      terminal.innerHTML = '<div style="color: #64748b; font-family: monospace; padding: 10px;">[Eşleşen log bulunamadı.]</div>';
+      return;
+    }
+
+    terminal.innerHTML = filtered.map((l, index) => {
+      const parsedText = parseAnsiToHtml(l.text || '');
+      let rowColorStyle = '';
+      if (l.type === 'danger' || l.type === 'error') {
+        rowColorStyle = 'border-left: 2px solid #ef4444; background: rgba(239, 68, 68, 0.05);';
+      } else if (l.type === 'warning') {
+        rowColorStyle = 'border-left: 2px solid #f59e0b; background: rgba(245, 158, 11, 0.05);';
+      } else if (l.type === 'cmd') {
+        rowColorStyle = 'border-left: 2px solid var(--primary); background: rgba(224, 169, 139, 0.08);';
+      }
+
+      return `<div class="terminal-stream-row" style="${rowColorStyle}">
+        <span class="terminal-time-col">[${l.time || ''}]</span>
+        <span class="terminal-content-col">${parsedText}</span>
+      </div>`;
+    }).join('');
+
+    const autoScroll = document.getElementById('cmd-autoscroll');
+    if (autoScroll && autoScroll.checked) {
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+  }
+
+  function applyCmdFilter(val) {
+    currentLogFilter = val ? val.trim() : '';
+    renderTerminalLogs();
+  }
+
+  function toggleTerminalFullscreen() {
+    const panel = document.getElementById('cmd-terminal-panel');
+    const icon = document.getElementById('cmd-fullscreen-icon');
+    const terminalWindow = document.getElementById('cmd-terminal-window');
+    if (!panel) return;
+
+    panel.classList.toggle('terminal-fullscreen');
+    if (panel.classList.contains('terminal-fullscreen')) {
+      if (icon) icon.className = 'fa-solid fa-compress';
+      if (terminalWindow) terminalWindow.style.height = 'calc(100vh - 190px)';
+    } else {
+      if (icon) icon.className = 'fa-solid fa-expand';
+      if (terminalWindow) terminalWindow.style.height = '420px';
+    }
+  }
+
+  function copyTerminalLogs() {
+    const text = allRawLogs.map(l => `[${l.time || ''}] ${l.text || ''}`).join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      if (typeof showToast === 'function') showToast('Tüm konsol logları panoya kopyalandı.', 'success');
+      else alert('Loglar kopyalandı.');
+    });
+  }
+
+  function quickFillCmd(prefix) {
+    const input = document.getElementById('cmd-input-field');
+    if (!input) return;
+    input.value = prefix;
+    input.focus();
+  }
+
+  async function refreshServerStatus() {
+    try {
+      const res = await fetch('/admin/server/status');
+      const data = await res.json();
+      if (!data.success) return;
+
+      const indicator = document.getElementById('server-live-indicator');
+      const stateEl = document.getElementById('stat-server-state');
+      const ramEl = document.getElementById('stat-server-ram');
+      const playersEl = document.getElementById('stat-server-players');
+      const cmdInput = document.getElementById('fivem-start-cmd-input');
+
+      if (cmdInput && data.fivemStartCommand && !cmdInput.value) {
+        cmdInput.value = data.fivemStartCommand;
+      }
+
+      if (data.status === 'online') {
+        if (indicator) {
+          indicator.style.background = 'rgba(16, 185, 129, 0.12)';
+          indicator.style.color = 'var(--success)';
+          indicator.style.borderColor = 'rgba(16, 185, 129, 0.25)';
+          indicator.innerHTML = '<span style="width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 10px var(--success);"></span> <span>FiveM Sunucusu Açık</span>';
+        }
+        if (stateEl) stateEl.textContent = 'Aktif (Online)';
+      } else {
+        if (indicator) {
+          indicator.style.background = 'rgba(239, 68, 68, 0.12)';
+          indicator.style.color = 'var(--danger)';
+          indicator.style.borderColor = 'rgba(239, 68, 68, 0.25)';
+          indicator.innerHTML = '<span style="width: 7px; height: 7px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 10px var(--danger);"></span> <span>FiveM Sunucusu Kapalı</span>';
+        }
+        if (stateEl) stateEl.textContent = 'Kapalı (Offline)';
+      }
+
+      if (data.memory && data.memory.rss) {
+        const mb = Math.round(data.memory.rss / (1024 * 1024));
+        if (ramEl) ramEl.textContent = mb + ' MB';
+      }
+
+      if (playersEl) {
+        playersEl.textContent = (data.activePlayers || 0) + ' Oyuncu';
+      }
+
+      if (typeof data.uptime === 'number') {
+        serverUptimeSeconds = Math.floor(data.uptime);
+        const uptimeEl = document.getElementById('stat-server-uptime');
+        if (uptimeEl) uptimeEl.textContent = formatUptime(serverUptimeSeconds);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function fetchConsoleLogs() {
+    try {
+      const res = await fetch('/admin/server/console-logs');
+      const data = await res.json();
+      if (!data.success || !Array.isArray(data.logs)) return;
+
+      if (data.logs.length !== lastConsoleLogCount || JSON.stringify(data.logs) !== JSON.stringify(allRawLogs)) {
+        lastConsoleLogCount = data.logs.length;
+        allRawLogs = data.logs;
+        renderTerminalLogs();
+      }
+    } catch (e) {}
+  }
+
+  function clearCmdConsole() {
+    allRawLogs = [{ time: new Date().toLocaleTimeString('tr-TR'), type: 'system', text: 'Konsol temizlendi.' }];
+    lastConsoleLogCount = 1;
+    renderTerminalLogs();
+  }
+
+  function handleCmdKeyDown(event) {
+    if (event.key === 'Enter') {
+      sendConsoleCommand();
+    } else if (event.key === 'ArrowUp') {
+      if (cmdCommandHistory.length > 0) {
+        if (cmdHistoryIndex < cmdCommandHistory.length - 1) {
+          cmdHistoryIndex++;
+          const val = cmdCommandHistory[cmdCommandHistory.length - 1 - cmdHistoryIndex];
+          event.target.value = val;
+        }
+      }
+      event.preventDefault();
+    } else if (event.key === 'ArrowDown') {
+      if (cmdHistoryIndex > 0) {
+        cmdHistoryIndex--;
+        const val = cmdCommandHistory[cmdCommandHistory.length - 1 - cmdHistoryIndex];
+        event.target.value = val;
+      } else if (cmdHistoryIndex === 0) {
+        cmdHistoryIndex = -1;
+        event.target.value = '';
+      }
+      event.preventDefault();
+    }
+  }
+
+  async function sendConsoleCommand() {
+    const input = document.getElementById('cmd-input-field');
+    if (!input || !input.value.trim()) return;
+
+    const command = input.value.trim();
+    cmdCommandHistory.push(command);
+    if (cmdCommandHistory.length > 50) cmdCommandHistory.shift();
+    cmdHistoryIndex = -1;
+    input.value = '';
+
+    try {
+      const res = await fetch('/admin/server/console-command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command })
+      });
+      const data = await res.json();
+      setTimeout(fetchConsoleLogs, 200);
+    } catch (err) {
+      if (typeof showToast === 'function') showToast('Komut gönderilemedi.', 'error');
+    }
+  }
+
+  function updateCfgLineNumbers() {
+    const editor = document.getElementById('server-cfg-editor');
+    const numbersEl = document.getElementById('cfg-line-numbers');
+    const linesStat = document.getElementById('cfg-stat-lines');
+    const charsStat = document.getElementById('cfg-stat-chars');
+    if (!editor || !numbersEl) return;
+
+    const lines = editor.value.split('\n');
+    const lineCount = lines.length;
+    let numbersText = '';
+    for (let i = 1; i <= lineCount; i++) {
+      numbersText += i + '\n';
+    }
+    numbersEl.textContent = numbersText;
+
+    if (linesStat) linesStat.innerHTML = `<i class="fa-solid fa-bars"></i> ${lineCount} Satır`;
+    if (charsStat) charsStat.textContent = `${editor.value.length.toLocaleString('tr-TR')} Karakter`;
+  }
+
+  function syncCfgLineScroll() {
+    const editor = document.getElementById('server-cfg-editor');
+    const numbersEl = document.getElementById('cfg-line-numbers');
+    if (editor && numbersEl) {
+      numbersEl.scrollTop = editor.scrollTop;
+    }
+  }
+
+  function handleCfgInput() {
+    updateCfgLineNumbers();
+    const indicator = document.getElementById('cfg-status-indicator');
+    if (indicator) {
+      indicator.className = 'cfg-status-pill cfg-status-modified';
+      indicator.textContent = 'DEĞİŞTİRİLDİ';
+    }
+  }
+
+  function handleCfgKeyDown(e) {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const editor = e.target;
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+      editor.selectionStart = editor.selectionEnd = start + 2;
+      handleCfgInput();
+    }
+  }
+
+  function insertIntoCfg(snippet) {
+    const editor = document.getElementById('server-cfg-editor');
+    if (!editor) return;
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    editor.value = editor.value.substring(0, start) + snippet + editor.value.substring(end);
+    editor.selectionStart = editor.selectionEnd = start + snippet.length;
+    editor.focus();
+    handleCfgInput();
+  }
+
+  function copyCfgContent() {
+    const editor = document.getElementById('server-cfg-editor');
+    if (!editor) return;
+    navigator.clipboard.writeText(editor.value).then(() => {
+      if (typeof showToast === 'function') showToast('server.cfg içeriği panoya kopyalandı.', 'success');
+      else alert('Kopyalandı.');
+    });
+  }
+
+  async function loadConfigFile() {
+    try {
+      const res = await fetch('/admin/server/config-file');
+      const data = await res.json();
+      if (!data.success) return;
+
+      const pathInput = document.getElementById('server-cfg-path-input');
+      const editor = document.getElementById('server-cfg-editor');
+      const indicator = document.getElementById('cfg-status-indicator');
+
+      if (pathInput && data.serverCfgPath) pathInput.value = data.serverCfgPath;
+      if (editor && data.serverCfgContent !== undefined) {
+        editor.value = data.serverCfgContent;
+        updateCfgLineNumbers();
+      }
+
+      if (indicator) {
+        indicator.className = 'cfg-status-pill cfg-status-saved';
+        indicator.textContent = 'KAYDEDİLDİ';
+      }
+
+      if (typeof showToast === 'function') showToast('server.cfg yüklendi.', 'info');
+    } catch (err) {}
+  }
+
+  async function saveConfigFile() {
+    const pathInput = document.getElementById('server-cfg-path-input');
+    const editor = document.getElementById('server-cfg-editor');
+    const saveBtn = document.getElementById('btn-save-cfg');
+    const indicator = document.getElementById('cfg-status-indicator');
+
+    const serverCfgPath = pathInput ? pathInput.value.trim() : '';
+    const serverCfgContent = editor ? editor.value : '';
+
+    let origHtml = '';
+    if (saveBtn) {
+      origHtml = saveBtn.innerHTML;
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+    }
+
+    try {
+      const res = await fetch('/admin/server/config-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serverCfgPath, serverCfgContent })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (indicator) {
+          indicator.className = 'cfg-status-pill cfg-status-saved';
+          indicator.textContent = 'KAYDEDİLDİ';
+        }
+        if (typeof showToast === 'function') showToast(data.message, 'success');
+        else alert(data.message);
+        setTimeout(fetchConsoleLogs, 500);
+      } else {
+        if (typeof showToast === 'function') showToast(data.message || 'Hata.', 'error');
+      }
+    } catch (err) {
+      if (typeof showToast === 'function') showToast('Kayıt hatası.', 'error');
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = origHtml;
+      }
+    }
+  }
+
+  async function saveFivemCommand(event) {
+    event.preventDefault();
+    const input = document.getElementById('fivem-start-cmd-input');
+    const fivemStartCommand = input ? input.value.trim() : '';
+
+    try {
+      const res = await fetch('/admin/server/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fivemStartCommand })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (typeof showToast === 'function') showToast(data.message, 'success');
+        else alert(data.message);
+      } else {
+        if (typeof showToast === 'function') showToast(data.message || 'Hata oluştu.', 'error');
+        else alert(data.message || 'Hata.');
+      }
+    } catch (err) {
+      if (typeof showToast === 'function') showToast('Bağlantı hatası.', 'error');
+    }
+  }
+
+  function openActionModal(action, title, desc, iconClass, btnBg, btnText) {
+    pendingServerAction = action;
+    const modal = document.getElementById('server-action-modal');
+    const titleEl = document.getElementById('action-modal-title');
+    const descEl = document.getElementById('action-modal-desc');
+    const iconWrap = document.getElementById('action-modal-icon-wrap');
+    const icon = document.getElementById('action-modal-icon');
+    const confirmBtn = document.getElementById('action-modal-confirm-btn');
+
+    if (titleEl) titleEl.textContent = title;
+    if (descEl) descEl.textContent = desc;
+    if (icon) icon.className = `fa-solid ${iconClass}`;
+    if (iconWrap) {
+      iconWrap.style.background = btnBg.includes('#ef4444') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)';
+      iconWrap.style.color = btnBg.includes('#ef4444') ? 'var(--danger)' : 'var(--warning)';
+    }
+    if (confirmBtn) {
+      confirmBtn.style.background = btnBg;
+      confirmBtn.textContent = btnText;
+    }
+    if (modal) modal.style.display = 'flex';
+  }
+
+  function closeActionModal() {
+    const modal = document.getElementById('server-action-modal');
+    if (modal) modal.style.display = 'none';
+    pendingServerAction = null;
+  }
+
+  function confirmServerStop() {
+    openActionModal(
+      'stop',
+      'FiveM Sunucusunu Kapatmak İstiyor Musunuz?',
+      'Bu işlem FiveM sunucusuna güvenli quit ve kapatma komutu gönderecek, oyuncuların bağlantısını sonlandıracaktır.',
+      'fa-power-off',
+      'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+      'Evet, FiveM Sunucusunu Kapat'
+    );
+  }
+
+  function confirmServerRestart() {
+    const mode = document.getElementById('server-restart-mode').value;
+    const desc = mode === 'countdown' 
+      ? 'FiveM sunucusundaki oyunculara 15 saniyelik geri sayım duyurusu geçilecek ve ardından sunucuya restart atılacaktır.'
+      : 'FiveM sunucusuna anında restart komutu iletilecektir.';
+    openActionModal(
+      'restart',
+      'FiveM Sunucusuna Restart Atılsın Mı?',
+      desc,
+      'fa-arrows-rotate',
+      'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+      'Evet, Restart At'
+    );
+  }
+
+  async function executePendingServerAction() {
+    if (!pendingServerAction) return;
+    const action = pendingServerAction;
+    closeActionModal();
+    executeServerAction(action);
+  }
+
+  async function executeServerAction(action) {
+    const btnId = action === 'start' ? 'btn-server-start' : action === 'stop' ? 'btn-server-stop' : 'btn-server-restart';
+    const btn = document.getElementById(btnId);
+    let originalHtml = '';
+    if (btn) {
+      originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+    }
+
+    try {
+      let bodyData = {};
+      if (action === 'restart') {
+        const modeEl = document.getElementById('server-restart-mode');
+        bodyData.countdown = modeEl && modeEl.value === 'countdown' ? 15 : 0;
+      }
+
+      const res = await fetch(`/admin/server/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        if (typeof showToast === 'function') {
+          showToast(data.message || 'İşlem başarıyla tamamlandı.', 'success');
+        } else {
+          alert(data.message || 'İşlem tamamlandı.');
+        }
+        setTimeout(refreshServerStatus, 1500);
+        setTimeout(fetchConsoleLogs, 500);
+      } else {
+        if (typeof showToast === 'function') {
+          showToast(data.message || 'İşlem başarısız oldu.', 'error');
+        } else {
+          alert(data.message || 'Hata oluştu.');
+        }
+      }
+    } catch (err) {
+      if (typeof showToast === 'function') {
+        showToast('Sunucu bağlantı hatası.', 'error');
+      } else {
+        alert('Sunucu bağlantı hatası.');
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    }
+  }
+
+  /* =========================================================================
+     FIVEM SCRIPT & DOSYA YÖNETİCİSİ (STUDIO & FILE MANAGER) LOGIC
+     ========================================================================= */
+
+  let currentScriptsPath = '';
+  let openScriptTabs = [];
+  let activeScriptTabPath = null;
+  let scriptsRawTreeItems = [];
+  let pendingPromptAction = null;
+  let pendingDangerAction = null;
+  let isStudioFullscreen = false;
+
+  async function loadScriptsSettings() {
+    try {
+      const res = await fetch('/admin/server/scripts/settings');
+      const data = await res.json();
+      if (!data.success) return;
+
+      const input = document.getElementById('scripts-base-dir-input');
+      if (input) input.value = data.configuredPath || data.effectivePath || '';
+
+      const badge = document.getElementById('scripts-active-path-badge');
+      if (badge) {
+        badge.textContent = data.effectivePath || 'resources';
+        badge.title = `Aktif Dizin: ${data.effectivePath}`;
+      }
+
+      const pillsContainer = document.getElementById('scripts-suggested-pills');
+      if (pillsContainer && Array.isArray(data.suggestions)) {
+        pillsContainer.innerHTML = '';
+        data.suggestions.forEach(p => {
+          const chip = document.createElement('span');
+          chip.className = 'terminal-quick-chip';
+          chip.textContent = p;
+          chip.style.maxWidth = '260px';
+          chip.style.overflow = 'hidden';
+          chip.style.textOverflow = 'ellipsis';
+          chip.style.whiteSpace = 'nowrap';
+          chip.onclick = () => {
+            if (input) input.value = p;
+          };
+          pillsContainer.appendChild(chip);
+        });
+      }
+    } catch (e) {
+      console.error('loadScriptsSettings error:', e);
+    }
+  }
+
+  async function saveScriptsSettings() {
+    const input = document.getElementById('scripts-base-dir-input');
+    const pathVal = input ? input.value.trim() : '';
+    try {
+      const res = await fetch('/admin/server/scripts/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serverResourcesPath: pathVal })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (typeof showToast === 'function') showToast(data.message, 'success');
+        const badge = document.getElementById('scripts-active-path-badge');
+        if (badge) badge.textContent = data.effectivePath;
+        toggleScriptsSettingsDrawer(false);
+        currentScriptsPath = '';
+        loadScriptsTree('');
+      } else {
+        if (typeof showToast === 'function') showToast(data.message || 'Hata.', 'error');
+      }
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Bağlantı hatası.', 'error');
+    }
+  }
+
+  function toggleScriptsSettingsDrawer(force) {
+    const drawer = document.getElementById('scripts-settings-drawer');
+    if (!drawer) return;
+    if (typeof force === 'boolean') {
+      drawer.style.display = force ? 'flex' : 'none';
+    } else {
+      drawer.style.display = drawer.style.display === 'none' ? 'flex' : 'none';
+    }
+  }
+
+  function toggleScriptsStudioFullscreen() {
+    const panel = document.getElementById('scripts-studio-panel');
+    const icon = document.getElementById('scripts-fullscreen-icon');
+    if (!panel) return;
+    isStudioFullscreen = !isStudioFullscreen;
+    if (isStudioFullscreen) {
+      panel.classList.add('fullscreen-studio');
+      if (icon) icon.className = 'fa-solid fa-compress';
+    } else {
+      panel.classList.remove('fullscreen-studio');
+      if (icon) icon.className = 'fa-solid fa-expand';
+    }
+    if (scriptAceEditor) {
+      setTimeout(() => scriptAceEditor.resize(), 120);
+    }
+  }
+
+  async function loadScriptsTree(subPath = '') {
+    currentScriptsPath = subPath || '';
+    const listEl = document.getElementById('scripts-tree-list');
+    if (listEl) {
+      listEl.innerHTML = `<div style="color: #64748b; font-size: 11.5px; padding: 20px; text-align: center;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i> Dosyalar taranıyor...</div>`;
+    }
+
+    try {
+      const res = await fetch(`/admin/server/scripts/tree?subPath=${encodeURIComponent(subPath)}`);
+      const data = await res.json();
+      if (!data.success) {
+        if (listEl) {
+          listEl.innerHTML = `<div style="color: #f87171; font-size: 11.5px; padding: 18px; text-align: center;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> ${data.message || 'Dizin listelenemedi.'}</div>`;
+        }
+        return;
+      }
+
+      scriptsRawTreeItems = Array.isArray(data.items) ? data.items : [];
+      renderScriptsBreadcrumbs(data.breadcrumbs || []);
+      renderScriptsTreeItems();
+    } catch (e) {
+      if (listEl) {
+        listEl.innerHTML = `<div style="color: #f87171; font-size: 11.5px; padding: 18px; text-align: center;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Bağlantı hatası: ${e.message}</div>`;
+      }
+    }
+  }
+
+  function renderScriptsBreadcrumbs(crumbs = []) {
+    const el = document.getElementById('scripts-breadcrumbs');
+    if (!el) return;
+    el.innerHTML = '';
+
+    crumbs.forEach((c, idx) => {
+      if (idx > 0) {
+        const sep = document.createElement('span');
+        sep.textContent = '/';
+        sep.style.color = '#475569';
+        sep.style.margin = '0 2px';
+        el.appendChild(sep);
+      }
+      const chip = document.createElement('span');
+      chip.className = idx === crumbs.length - 1 ? 'scripts-breadcrumb-chip scripts-breadcrumb-active' : 'scripts-breadcrumb-chip';
+      chip.textContent = c.name;
+      chip.onclick = () => loadScriptsTree(c.path);
+      el.appendChild(chip);
+    });
+  }
+
+  function renderScriptsTreeItems() {
+    const listEl = document.getElementById('scripts-tree-list');
+    if (!listEl) return;
+
+    const query = (document.getElementById('scripts-search-input')?.value || '').trim().toLowerCase();
+    const items = query
+      ? scriptsRawTreeItems.filter(item => item.name.toLowerCase().includes(query))
+      : scriptsRawTreeItems;
+
+    if (items.length === 0) {
+      listEl.innerHTML = `<div style="color: #64748b; font-size: 11.5px; padding: 24px; text-align: center;"><i class="fa-regular fa-folder-open" style="font-size: 20px; display: block; margin-bottom: 8px;"></i> ${query ? 'Eşleşen dosya bulunamadı.' : 'Bu klasör boş.'}</div>`;
+      return;
+    }
+
+    listEl.innerHTML = '';
+
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'scripts-tree-item' + (activeScriptTabPath === item.relPath ? ' active-item' : '');
+
+      const iconHtml = getScriptFileIconHtml(item.name, item.ext, item.isDir, item.isResource, item.isCategory);
+
+      let badgeHtml = '';
+      if (item.isResource) {
+        badgeHtml = '<span class="fx-res-badge"><i class="fa-solid fa-cube"></i> RESOURCE</span>';
+      } else if (item.isCategory) {
+        badgeHtml = '<span class="fx-cat-badge">KAT</span>';
+      }
+
+      row.innerHTML = `
+        <div class="scripts-item-name" title="${item.relPath}">
+          ${iconHtml}
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}</span>
+          ${badgeHtml}
+        </div>
+        <div class="scripts-item-actions">
+          ${item.isResource ? `
+            <button class="scripts-mini-btn" style="color: #34d399;" title="${item.name} Restart Et" onclick="quickRestartScriptResource('${item.name}', event)">
+              <i class="fa-solid fa-bolt"></i>
+            </button>
+          ` : ''}
+          <button class="scripts-mini-btn" title="Yeniden Adlandır" onclick="openRenameScriptModal('${item.relPath}', '${item.name}', event)">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="scripts-mini-btn btn-del" title="Sil" onclick="openDeleteScriptModal('${item.relPath}', '${item.name}', ${item.isDir}, event)">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      `;
+
+      row.onclick = (e) => {
+        if (e.target.closest('.scripts-item-actions')) return;
+        if (item.isDir) {
+          loadScriptsTree(item.relPath);
+        } else {
+          openScriptFile(item.relPath);
+        }
+      };
+
+      listEl.appendChild(row);
+    });
+  }
+
+  function getScriptFileIconHtml(fileName, ext, isDir, isResource, isCategory) {
+    if (isCategory) return '<i class="fa-solid fa-folder" style="color: #c084fc;"></i>';
+    if (isResource) return '<i class="fa-solid fa-folder-closed" style="color: #34d399;"></i>';
+    if (isDir) return '<i class="fa-solid fa-folder" style="color: #f59e0b;"></i>';
+
+    const lower = fileName.toLowerCase();
+    if (lower === 'fxmanifest.lua' || lower === '__resource.lua') {
+      return '<i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i>';
+    }
+
+    switch (ext) {
+      case '.lua':
+        return '<i class="fa-solid fa-moon" style="color: #38bdf8;"></i>';
+      case '.js':
+      case '.mjs':
+      case '.cjs':
+        return '<i class="fa-brands fa-js" style="color: #f59e0b;"></i>';
+      case '.json':
+        return '<i class="fa-solid fa-code" style="color: #34d399;"></i>';
+      case '.cfg':
+      case '.ini':
+      case '.env':
+        return '<i class="fa-solid fa-gear" style="color: #c084fc;"></i>';
+      case '.html':
+      case '.htm':
+        return '<i class="fa-brands fa-html5" style="color: #fb923c;"></i>';
+      case '.css':
+      case '.scss':
+        return '<i class="fa-brands fa-css3-alt" style="color: #60a5fa;"></i>';
+      case '.sql':
+        return '<i class="fa-solid fa-database" style="color: #818cf8;"></i>';
+      case '.md':
+      case '.txt':
+      case '.log':
+        return '<i class="fa-solid fa-file-lines" style="color: #94a3b8;"></i>';
+      case '.ytd':
+      case '.ydr':
+      case '.yft':
+      case '.rpf':
+        return '<i class="fa-solid fa-cube" style="color: #64748b;" title="Binary 3D/Texture Asset"></i>';
+      default:
+        return '<i class="fa-solid fa-file-code" style="color: #94a3b8;"></i>';
+    }
+  }
+
+  function handleScriptsSearch(val) {
+    renderScriptsTreeItems();
+  }
+
+  function refreshCurrentScriptsDir() {
+    loadScriptsTree(currentScriptsPath);
+  }
+
+  function navigateScriptsHome() {
+    loadScriptsTree('');
+  }
+
+  function navigateScriptsUp() {
+    if (!currentScriptsPath) return;
+    const parts = currentScriptsPath.split('/').filter(Boolean);
+    parts.pop();
+    loadScriptsTree(parts.join('/'));
+  }
+
+  async function openScriptFile(filePath) {
+    const existing = openScriptTabs.find(t => t.path === filePath);
+    if (existing) {
+      switchScriptTab(filePath);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/admin/server/scripts/file?filePath=${encodeURIComponent(filePath)}`);
+      const data = await res.json();
+      if (!data.success) {
+        if (typeof showToast === 'function') {
+          showToast(data.message || 'Dosya açılamadı.', data.isBinary ? 'warning' : 'error');
+        } else {
+          alert(data.message || 'Dosya açılamadı.');
+        }
+        return;
+      }
+
+      openScriptTabs.push({
+        path: data.filePath,
+        name: data.fileName,
+        ext: data.ext,
+        content: data.content,
+        originalContent: data.content,
+        isDirty: false,
+        resourceName: data.resourceName || null,
+        size: data.size
+      });
+
+      switchScriptTab(data.filePath);
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Dosya açılırken hata: ' + e.message, 'error');
+    }
+  }
+
+  // =========================================================================
+  // ACE CODE EDITOR (SHIELD CODE STUDIO) ENGINE
+  // =========================================================================
+  let scriptAceEditor = null;
+  let isSettingAceValue = false;
+  let currentAceWrapMode = false;
+
+  function initScriptAceEditor() {
+    if (scriptAceEditor) return scriptAceEditor;
+
+    if (typeof ace === 'undefined') {
+      console.warn('[Shield Studio] Ace Editor kütüphanesi yüklenemedi, yedek textarea kullanılıyor.');
+      const fb = document.getElementById('scripts-textarea-fallback');
+      if (fb) fb.style.display = 'flex';
+      const aceEl = document.getElementById('scripts-ace-editor');
+      if (aceEl) aceEl.style.display = 'none';
+      return null;
+    }
+
+    try {
+      ace.config.set('basePath', '/js/ace');
+      ace.config.set('modePath', '/js/ace');
+      ace.config.set('themePath', '/js/ace');
+
+      scriptAceEditor = ace.edit("scripts-ace-editor");
+
+      // Load saved preferences
+      const savedTheme = localStorage.getItem('shield_script_theme') || 'one_dark';
+      const savedFontSize = localStorage.getItem('shield_script_fontsize') || '13px';
+
+      const themeSel = document.getElementById('scripts-theme-select');
+      if (themeSel) themeSel.value = savedTheme;
+
+      const sizeSel = document.getElementById('scripts-fontsize-select');
+      if (sizeSel) sizeSel.value = savedFontSize;
+
+      scriptAceEditor.setTheme(`ace/theme/${savedTheme}`);
+      scriptAceEditor.session.setMode("ace/mode/lua");
+      scriptAceEditor.session.setUseWorker(false);
+
+      scriptAceEditor.setOptions({
+        fontSize: savedFontSize,
+        fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace",
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: true,
+        enableSnippets: true,
+        showPrintMargin: false,
+        scrollPastEnd: 0.45,
+        cursorStyle: "smooth",
+        highlightActiveLine: true,
+        highlightSelectedWord: true,
+        tabSize: 2,
+        useSoftTabs: true,
+        wrap: false,
+        autoScrollEditorIntoView: true
+      });
+
+      // Live content modification detector
+      scriptAceEditor.session.on('change', function () {
+        if (isSettingAceValue) return;
+        const tab = openScriptTabs.find(t => t.path === activeScriptTabPath);
+        if (!tab) return;
+
+        const newContent = scriptAceEditor.getValue();
+        tab.content = newContent;
+        tab.isDirty = (newContent !== tab.originalContent);
+
+        const pill = document.getElementById('scripts-active-file-dirty-pill');
+        if (pill) {
+          pill.className = tab.isDirty ? 'cfg-status-pill cfg-status-modified' : 'cfg-status-pill cfg-status-saved';
+          pill.textContent = tab.isDirty ? 'DÜZENLENDİ' : 'KAYDEDİLDİ';
+        }
+
+        renderScriptTabs();
+        updateScriptStats(newContent);
+      });
+
+      // Realtime cursor row & column position
+      scriptAceEditor.selection.on('changeCursor', function () {
+        const cur = scriptAceEditor.getCursorPosition();
+        const line = cur.row + 1;
+        const col = cur.column + 1;
+        const curEl = document.getElementById('scripts-stat-cursor');
+        if (curEl) curEl.innerHTML = `<i class="fa-regular fa-i-cursor"></i> Satır: ${line}, Sütun: ${col}`;
+      });
+
+      // Keyboard shortcut Ctrl+S
+      scriptAceEditor.commands.addCommand({
+        name: 'saveFile',
+        bindKey: { win: 'Ctrl-S', mac: 'Command-S' },
+        exec: function () {
+          saveActiveScriptFile();
+        }
+      });
+
+      // Window resize trigger
+      window.addEventListener('resize', () => {
+        if (scriptAceEditor) scriptAceEditor.resize();
+      });
+
+      return scriptAceEditor;
+    } catch (err) {
+      console.error('[Shield Studio] Ace init error:', err);
+      const fb = document.getElementById('scripts-textarea-fallback');
+      if (fb) fb.style.display = 'flex';
+      const aceEl = document.getElementById('scripts-ace-editor');
+      if (aceEl) aceEl.style.display = 'none';
+      return null;
+    }
+  }
+
+  function getScriptLangInfo(filename) {
+    const ext = (filename ? filename.split('.').pop() : '').toLowerCase();
+    switch (ext) {
+      case 'lua':
+        return { mode: 'ace/mode/lua', label: 'Lua (FiveM)', icon: 'fa-solid fa-moon', color: '#38bdf8' };
+      case 'js':
+      case 'mjs':
+      case 'cjs':
+        return { mode: 'ace/mode/javascript', label: 'JavaScript', icon: 'fa-brands fa-js', color: '#facc15' };
+      case 'ts':
+        return { mode: 'ace/mode/javascript', label: 'TypeScript', icon: 'fa-solid fa-code', color: '#60a5fa' };
+      case 'json':
+        return { mode: 'ace/mode/json', label: 'JSON', icon: 'fa-solid fa-brackets-curly', color: '#fb923c' };
+      case 'cfg':
+      case 'ini':
+      case 'env':
+      case 'properties':
+        return { mode: 'ace/mode/ini', label: 'Configuration (CFG)', icon: 'fa-solid fa-sliders', color: '#a78bfa' };
+      case 'html':
+      case 'htm':
+        return { mode: 'ace/mode/html', label: 'HTML', icon: 'fa-brands fa-html5', color: '#f87171' };
+      case 'css':
+      case 'scss':
+        return { mode: 'ace/mode/css', label: 'CSS', icon: 'fa-brands fa-css3-alt', color: '#38bdf8' };
+      case 'sql':
+        return { mode: 'ace/mode/sql', label: 'SQL', icon: 'fa-solid fa-database', color: '#34d399' };
+      case 'sh':
+      case 'bat':
+      case 'cmd':
+      case 'ps1':
+        return { mode: 'ace/mode/sh', label: 'Shell / Batch', icon: 'fa-solid fa-terminal', color: '#e2e8f0' };
+      default:
+        return { mode: 'ace/mode/text', label: 'Düz Metin', icon: 'fa-solid fa-file-lines', color: '#94a3b8' };
+    }
+  }
+
+  function changeScriptTheme(themeName) {
+    if (scriptAceEditor) {
+      scriptAceEditor.setTheme(`ace/theme/${themeName}`);
+      localStorage.setItem('shield_script_theme', themeName);
+      if (typeof showToast === 'function') showToast(`Kod teması: ${themeName}`, 'info');
+    }
+  }
+
+  function changeScriptFontSize(fontSize) {
+    if (scriptAceEditor) {
+      scriptAceEditor.setFontSize(fontSize);
+      localStorage.setItem('shield_script_fontsize', fontSize);
+    }
+  }
+
+  function toggleScriptWrap() {
+    if (!scriptAceEditor) return;
+    currentAceWrapMode = !currentAceWrapMode;
+    scriptAceEditor.session.setUseWrapMode(currentAceWrapMode);
+    const btn = document.getElementById('scripts-btn-wrap');
+    if (btn) {
+      btn.style.color = currentAceWrapMode ? 'var(--primary)' : '';
+      btn.style.borderColor = currentAceWrapMode ? 'var(--primary)' : '';
+      btn.style.background = currentAceWrapMode ? 'rgba(224, 169, 139, 0.15)' : '';
+    }
+  }
+
+  function openScriptSearch() {
+    if (scriptAceEditor) {
+      scriptAceEditor.execCommand('find');
+    }
+  }
+
+  function switchScriptTab(filePath) {
+    activeScriptTabPath = filePath;
+    renderScriptTabs();
+    renderScriptsTreeItems();
+
+    const tab = openScriptTabs.find(t => t.path === filePath);
+    const emptyEl = document.getElementById('scripts-empty-editor');
+    const activeWrap = document.getElementById('scripts-editor-active-wrap');
+    const toolbar = document.getElementById('scripts-editor-toolbar');
+    const footer = document.getElementById('scripts-editor-footer');
+
+    if (!tab) {
+      if (emptyEl) emptyEl.style.display = 'flex';
+      if (activeWrap) activeWrap.style.display = 'none';
+      if (toolbar) toolbar.style.display = 'none';
+      if (footer) footer.style.display = 'none';
+      return;
+    }
+
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (activeWrap) activeWrap.style.display = 'flex';
+    if (toolbar) toolbar.style.display = 'flex';
+    if (footer) footer.style.display = 'flex';
+
+    const pathEl = document.getElementById('scripts-active-file-path');
+    if (pathEl) pathEl.textContent = tab.path;
+
+    const pill = document.getElementById('scripts-active-file-dirty-pill');
+    if (pill) {
+      pill.className = tab.isDirty ? 'cfg-status-pill cfg-status-modified' : 'cfg-status-pill cfg-status-saved';
+      pill.textContent = tab.isDirty ? 'DÜZENLENDİ' : 'KAYDEDİLDİ';
+    }
+
+    const restartBtn = document.getElementById('scripts-btn-restart-res');
+    const restartLabel = document.getElementById('scripts-btn-restart-res-label');
+    if (restartBtn && restartLabel) {
+      if (tab.resourceName) {
+        restartBtn.style.display = 'inline-flex';
+        restartLabel.textContent = `${tab.resourceName} Restart`;
+      } else {
+        restartBtn.style.display = 'none';
+      }
+    }
+
+    // Set Language Badge in Footer
+    const langInfo = getScriptLangInfo(tab.name || tab.path);
+    const langEl = document.getElementById('scripts-stat-lang');
+    if (langEl) {
+      langEl.innerHTML = `<i class="${langInfo.icon}" style="color: ${langInfo.color};"></i> <span style="color: ${langInfo.color};">${langInfo.label}</span>`;
+    }
+
+    // Initialize Ace Editor or populate fallback
+    const editor = initScriptAceEditor();
+    if (editor) {
+      isSettingAceValue = true;
+      editor.session.setMode(langInfo.mode);
+      editor.session.setUseWorker(false);
+      editor.setValue(tab.content != null ? tab.content : '', -1);
+      editor.session.getUndoManager().reset();
+      editor.session.setUseWrapMode(currentAceWrapMode);
+      isSettingAceValue = false;
+      setTimeout(() => {
+        editor.resize();
+        editor.focus();
+      }, 50);
+    } else {
+      const textarea = document.getElementById('scripts-editor-textarea');
+      if (textarea) {
+        textarea.value = tab.content;
+        textarea.scrollTop = 0;
+        textarea.scrollLeft = 0;
+      }
+      syncScriptLineScroll();
+    }
+
+    updateScriptStats(tab.content || '');
+  }
+
+  function renderScriptTabs() {
+    const bar = document.getElementById('scripts-tabs-bar');
+    if (!bar) return;
+
+    if (openScriptTabs.length === 0) {
+      bar.innerHTML = '<span style="font-size: 11px; color: #475569; padding: 8px 14px; font-family: monospace;">Açık dosya yok</span>';
+      return;
+    }
+
+    bar.innerHTML = '';
+    openScriptTabs.forEach(t => {
+      const tabEl = document.createElement('div');
+      tabEl.className = 'scripts-tab' + (t.path === activeScriptTabPath ? ' active-tab' : '');
+
+      const iconHtml = getScriptFileIconHtml(t.name, t.ext, false, false, false);
+      const dirtyHtml = t.isDirty ? '<span class="scripts-tab-dirty" title="Kaydedilmemiş Değişiklik"></span>' : '';
+
+      tabEl.innerHTML = `
+        ${iconHtml}
+        <span>${t.name}</span>
+        ${dirtyHtml}
+        <span class="scripts-tab-close" title="Sekmeyi Kapat" onclick="closeScriptTab('${t.path}', event)">&times;</span>
+      `;
+
+      tabEl.onclick = (e) => {
+        if (e.target.classList.contains('scripts-tab-close')) return;
+        switchScriptTab(t.path);
+      };
+
+      bar.appendChild(tabEl);
+    });
+  }
+
+  function closeScriptTab(filePath, event) {
+    if (event) event.stopPropagation();
+
+    const idx = openScriptTabs.findIndex(t => t.path === filePath);
+    if (idx === -1) return;
+
+    const tab = openScriptTabs[idx];
+    if (tab.isDirty) {
+      const ok = confirm(`"${tab.name}" dosyasında kaydedilmemiş değişiklikler var. Yine de kapatmak istiyor musunuz?`);
+      if (!ok) return;
+    }
+
+    openScriptTabs.splice(idx, 1);
+
+    if (activeScriptTabPath === filePath) {
+      if (openScriptTabs.length > 0) {
+        const nextIdx = Math.max(0, idx - 1);
+        switchScriptTab(openScriptTabs[nextIdx].path);
+      } else {
+        switchScriptTab(null);
+      }
+    } else {
+      renderScriptTabs();
+    }
+  }
+
+  function handleScriptEditorInput() {
+    const tab = openScriptTabs.find(t => t.path === activeScriptTabPath);
+    if (!tab) return;
+
+    const textarea = document.getElementById('scripts-editor-textarea');
+    if (!textarea) return;
+
+    const newContent = textarea.value;
+    tab.content = newContent;
+    tab.isDirty = (newContent !== tab.originalContent);
+
+    const pill = document.getElementById('scripts-active-file-dirty-pill');
+    if (pill) {
+      pill.className = tab.isDirty ? 'cfg-status-pill cfg-status-modified' : 'cfg-status-pill cfg-status-saved';
+      pill.textContent = tab.isDirty ? 'DÜZENLENDİ' : 'KAYDEDİLDİ';
+    }
+
+    renderScriptTabs();
+    updateScriptStats(newContent);
+    syncScriptLineScroll();
+  }
+
+  function updateScriptStats(content) {
+    const lines = content.split('\n').length;
+    const sizeBytes = new Blob([content]).size;
+    const sizeFormatted = formatScriptFileSize(sizeBytes);
+
+    const lineNumEl = document.getElementById('scripts-line-numbers');
+    if (lineNumEl) {
+      let nums = '';
+      for (let i = 1; i <= lines; i++) {
+        nums += i + '\n';
+      }
+      lineNumEl.textContent = nums;
+    }
+
+    const linesEl = document.getElementById('scripts-stat-lines');
+    if (linesEl) linesEl.textContent = `${lines} Satır`;
+
+    const sizeEl = document.getElementById('scripts-stat-size');
+    if (sizeEl) sizeEl.textContent = sizeFormatted;
+
+    const tab = openScriptTabs.find(t => t.path === activeScriptTabPath);
+    const resEl = document.getElementById('scripts-stat-res');
+    if (resEl) {
+      resEl.textContent = tab && tab.resourceName ? `Resource: ${tab.resourceName}` : 'FXServer Script';
+    }
+
+    if (!scriptAceEditor) {
+      updateScriptCursorInfo();
+    }
+  }
+
+  function syncScriptLineScroll() {
+    const ta = document.getElementById('scripts-editor-textarea');
+    const ln = document.getElementById('scripts-line-numbers');
+    if (ta && ln) {
+      ln.scrollTop = ta.scrollTop;
+    }
+  }
+
+  function updateScriptCursorInfo() {
+    const ta = document.getElementById('scripts-editor-textarea');
+    const curEl = document.getElementById('scripts-stat-cursor');
+    if (!ta || !curEl) return;
+
+    const pos = ta.selectionStart || 0;
+    const textBefore = ta.value.substring(0, pos);
+    const line = textBefore.split('\n').length;
+    const col = pos - textBefore.lastIndexOf('\n');
+
+    curEl.innerHTML = `<i class="fa-regular fa-i-cursor"></i> Satır: ${line}, Sütun: ${col}`;
+  }
+
+  function handleScriptKeyDown(e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+      e.preventDefault();
+      saveActiveScriptFile();
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const ta = e.target;
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+
+      ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(end);
+      ta.selectionStart = ta.selectionEnd = start + 2;
+      handleScriptEditorInput();
+    }
+  }
+
+  async function saveActiveScriptFile() {
+    const tab = openScriptTabs.find(t => t.path === activeScriptTabPath);
+    if (!tab) return;
+
+    if (scriptAceEditor) {
+      tab.content = scriptAceEditor.getValue();
+    }
+
+    const saveBtn = document.getElementById('scripts-btn-save-file');
+    const origHtml = saveBtn ? saveBtn.innerHTML : '';
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+    }
+
+    try {
+      const res = await fetch('/admin/server/scripts/file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filePath: tab.path, content: tab.content })
+      });
+      const data = await res.json();
+      if (data.success) {
+        tab.originalContent = tab.content;
+        tab.isDirty = false;
+        renderScriptTabs();
+
+        const pill = document.getElementById('scripts-active-file-dirty-pill');
+        if (pill) {
+          pill.className = 'cfg-status-pill cfg-status-saved';
+          pill.textContent = 'KAYDEDİLDİ';
+        }
+
+        if (typeof showToast === 'function') showToast(data.message, 'success');
+        else alert(data.message);
+      } else {
+        if (typeof showToast === 'function') showToast(data.message || 'Kayıt başarısız.', 'error');
+        else alert(data.message || 'Hata.');
+      }
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Kayıt sırasında bağlantı hatası.', 'error');
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = origHtml;
+      }
+    }
+  }
+
+  async function reloadActiveScriptFile() {
+    const tab = openScriptTabs.find(t => t.path === activeScriptTabPath);
+    if (!tab) return;
+
+    if (tab.isDirty) {
+      const ok = confirm('Yaptığınız değişiklikler geri alınacak ve dosya diskten yeniden yüklenecek. Emin misiniz?');
+      if (!ok) return;
+    }
+
+    try {
+      const res = await fetch(`/admin/server/scripts/file?filePath=${encodeURIComponent(tab.path)}`);
+      const data = await res.json();
+      if (data.success) {
+        tab.content = data.content;
+        tab.originalContent = data.content;
+        tab.isDirty = false;
+
+        if (scriptAceEditor) {
+          isSettingAceValue = true;
+          scriptAceEditor.setValue(data.content != null ? data.content : '', -1);
+          scriptAceEditor.session.getUndoManager().reset();
+          isSettingAceValue = false;
+        } else {
+          const textarea = document.getElementById('scripts-editor-textarea');
+          if (textarea) textarea.value = data.content;
+        }
+
+        updateScriptStats(data.content);
+        renderScriptTabs();
+
+        const pill = document.getElementById('scripts-active-file-dirty-pill');
+        if (pill) {
+          pill.className = 'cfg-status-pill cfg-status-saved';
+          pill.textContent = 'KAYDEDİLDİ';
+        }
+
+        if (typeof showToast === 'function') showToast('Dosya diskten yeniden yüklendi.', 'info');
+      }
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Yeniden yükleme hatası.', 'error');
+    }
+  }
+
+  function copyActiveScriptContent() {
+    const tab = openScriptTabs.find(t => t.path === activeScriptTabPath);
+    if (!tab) return;
+    const content = scriptAceEditor ? scriptAceEditor.getValue() : tab.content;
+    navigator.clipboard.writeText(content).then(() => {
+      if (typeof showToast === 'function') showToast('Script içeriği panoya kopyalandı.', 'success');
+    }).catch(() => {
+      if (typeof showToast === 'function') showToast('Kopyalama başarısız oldu.', 'error');
+    });
+  }
+
+  async function restartActiveTabResource() {
+    const tab = openScriptTabs.find(t => t.path === activeScriptTabPath);
+    if (!tab || !tab.resourceName) return;
+    quickRestartScriptResource(tab.resourceName);
+  }
+
+  async function quickRestartScriptResource(resName, event) {
+    if (event) event.stopPropagation();
+    if (!resName) return;
+
+    try {
+      const res = await fetch('/admin/server/scripts/restart-resource', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resourceName: resName })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (typeof showToast === 'function') showToast(data.message, 'success');
+        else alert(data.message);
+        setTimeout(fetchConsoleLogs, 500);
+      } else {
+        if (typeof showToast === 'function') showToast(data.message || 'Hata.', 'error');
+      }
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Restart komutu iletilemedi.', 'error');
+    }
+  }
+
+  function formatScriptFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  /* Modals */
+  function openCreateScriptModal(isFolder) {
+    pendingPromptAction = {
+      type: isFolder ? 'new_folder' : 'new_file',
+      parentPath: currentScriptsPath
+    };
+
+    const titleEl = document.getElementById('script-prompt-title');
+    const descEl = document.getElementById('script-prompt-desc');
+    const inputLabel = document.getElementById('script-prompt-input-label');
+    const input = document.getElementById('script-prompt-input');
+    const btn = document.getElementById('script-prompt-submit-btn');
+    const icon = document.getElementById('script-prompt-icon');
+
+    if (isFolder) {
+      if (titleEl) titleEl.textContent = 'Yeni Klasör Oluştur';
+      if (descEl) descEl.textContent = `"${currentScriptsPath || 'kök'}" içerisine yeni bir klasör oluşturun.`;
+      if (inputLabel) inputLabel.textContent = 'Klasör Adı';
+      if (input) { input.placeholder = 'Örn: client veya [qb]'; input.value = ''; }
+      if (btn) btn.textContent = 'Klasör Oluştur';
+      if (icon) icon.className = 'fa-solid fa-folder-plus';
+    } else {
+      if (titleEl) titleEl.textContent = 'Yeni Script Dosyası Oluştur';
+      if (descEl) descEl.textContent = `"${currentScriptsPath || 'kök'}" içerisine yeni bir script dosyası oluşturun.`;
+      if (inputLabel) inputLabel.textContent = 'Dosya Adı & Uzantısı';
+      if (input) { input.placeholder = 'Örn: config.lua, main.js, fxmanifest.lua'; input.value = ''; }
+      if (btn) btn.textContent = 'Dosya Oluştur';
+      if (icon) icon.className = 'fa-solid fa-file-circle-plus';
+    }
+
+    const modal = document.getElementById('script-prompt-modal');
+    if (modal) modal.style.display = 'flex';
+    setTimeout(() => { if (input) input.focus(); }, 100);
+  }
+
+  function openRenameScriptModal(itemPath, currentName, event) {
+    if (event) event.stopPropagation();
+
+    pendingPromptAction = {
+      type: 'rename',
+      targetPath: itemPath
+    };
+
+    const titleEl = document.getElementById('script-prompt-title');
+    const descEl = document.getElementById('script-prompt-desc');
+    const inputLabel = document.getElementById('script-prompt-input-label');
+    const input = document.getElementById('script-prompt-input');
+    const btn = document.getElementById('script-prompt-submit-btn');
+    const icon = document.getElementById('script-prompt-icon');
+
+    if (titleEl) titleEl.textContent = 'Yeniden Adlandır';
+    if (descEl) descEl.textContent = `"${currentName}" için yeni adı girin.`;
+    if (inputLabel) inputLabel.textContent = 'Yeni Ad';
+    if (input) { input.placeholder = 'Yeni isim...'; input.value = currentName; }
+    if (btn) btn.textContent = 'Adı Değiştir';
+    if (icon) icon.className = 'fa-solid fa-pen';
+
+    const modal = document.getElementById('script-prompt-modal');
+    if (modal) modal.style.display = 'flex';
+    setTimeout(() => { if (input) { input.focus(); input.select(); } }, 100);
+  }
+
+  function closeScriptPromptModal() {
+    const modal = document.getElementById('script-prompt-modal');
+    if (modal) modal.style.display = 'none';
+    pendingPromptAction = null;
+  }
+
+  function handleScriptPromptKeyDown(e) {
+    if (e.key === 'Enter') {
+      submitScriptPrompt();
+    } else if (e.key === 'Escape') {
+      closeScriptPromptModal();
+    }
+  }
+
+  async function submitScriptPrompt() {
+    if (!pendingPromptAction) return;
+
+    const input = document.getElementById('script-prompt-input');
+    const val = input ? input.value.trim() : '';
+    if (!val) {
+      if (typeof showToast === 'function') showToast('İsim boş bırakılamaz.', 'warning');
+      return;
+    }
+
+    const action = pendingPromptAction;
+    closeScriptPromptModal();
+
+    if (action.type === 'new_file' || action.type === 'new_folder') {
+      try {
+        const res = await fetch('/admin/server/scripts/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            parentPath: action.parentPath,
+            name: val,
+            isFolder: action.type === 'new_folder'
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (typeof showToast === 'function') showToast(data.message, 'success');
+          loadScriptsTree(action.parentPath);
+          if (action.type === 'new_file' && data.newPath) {
+            openScriptFile(data.newPath);
+          }
+        } else {
+          if (typeof showToast === 'function') showToast(data.message || 'Oluşturulamadı.', 'error');
+        }
+      } catch (e) {
+        if (typeof showToast === 'function') showToast('Bağlantı hatası: ' + e.message, 'error');
+      }
+    } else if (action.type === 'rename') {
+      try {
+        const res = await fetch('/admin/server/scripts/rename', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            targetPath: action.targetPath,
+            newName: val
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (typeof showToast === 'function') showToast(data.message, 'success');
+
+          // Update tab if open
+          const tab = openScriptTabs.find(t => t.path === action.targetPath);
+          if (tab && data.newPath) {
+            tab.path = data.newPath;
+            tab.name = val;
+            if (activeScriptTabPath === action.targetPath) {
+              activeScriptTabPath = data.newPath;
+              const pathEl = document.getElementById('scripts-active-file-path');
+              if (pathEl) pathEl.textContent = data.newPath;
+            }
+            renderScriptTabs();
+          }
+
+          loadScriptsTree(currentScriptsPath);
+        } else {
+          if (typeof showToast === 'function') showToast(data.message || 'Yeniden adlandırılamadı.', 'error');
+        }
+      } catch (e) {
+        if (typeof showToast === 'function') showToast('Bağlantı hatası: ' + e.message, 'error');
+      }
+    }
+  }
+
+  function openDeleteScriptModal(itemPath, itemName, isDir, event) {
+    if (event) event.stopPropagation();
+
+    pendingDangerAction = { targetPath: itemPath, itemName, isDir };
+
+    const titleEl = document.getElementById('script-danger-title');
+    const descEl = document.getElementById('script-danger-desc');
+
+    if (titleEl) titleEl.textContent = `"${itemName}" Silinecek`;
+    if (descEl) descEl.textContent = isDir
+      ? `Bu klasör ve içindeki tüm scriptler/dosyalar kalıcı olarak silinecektir. Bu işlem geri alınamaz!`
+      : `Bu dosya sunucudan kalıcı olarak silinecektir. Bu işlem geri alınamaz!`;
+
+    const modal = document.getElementById('script-danger-modal');
+    if (modal) modal.style.display = 'flex';
+  }
+
+  function closeScriptDangerModal() {
+    const modal = document.getElementById('script-danger-modal');
+    if (modal) modal.style.display = 'none';
+    pendingDangerAction = null;
+  }
+
+  async function submitScriptDangerAction() {
+    if (!pendingDangerAction) return;
+
+    const action = pendingDangerAction;
+    closeScriptDangerModal();
+
+    try {
+      const res = await fetch('/admin/server/scripts/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetPath: action.targetPath })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (typeof showToast === 'function') showToast(data.message, 'success');
+
+        // Close tabs that match or are inside the deleted path
+        openScriptTabs = openScriptTabs.filter(t => {
+          if (t.path === action.targetPath || t.path.startsWith(action.targetPath + '/')) {
+            return false;
+          }
+          return true;
+        });
+
+        if (activeScriptTabPath === action.targetPath || activeScriptTabPath?.startsWith(action.targetPath + '/')) {
+          if (openScriptTabs.length > 0) {
+            switchScriptTab(openScriptTabs[0].path);
+          } else {
+            switchScriptTab(null);
+          }
+        } else {
+          renderScriptTabs();
+        }
+
+        loadScriptsTree(currentScriptsPath);
+      } else {
+        if (typeof showToast === 'function') showToast(data.message || 'Silme işlemi başarısız.', 'error');
+      }
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Silme işlemi sırasında hata: ' + e.message, 'error');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    refreshServerStatus();
+    loadConfigFile();
+    fetchConsoleLogs();
+    loadScriptsSettings();
+    loadScriptsTree('');
+
+    setInterval(() => {
+      serverUptimeSeconds++;
+      const uptimeEl = document.getElementById('stat-server-uptime');
+      if (uptimeEl) uptimeEl.textContent = formatUptime(serverUptimeSeconds);
+    }, 1000);
+
+    setInterval(refreshServerStatus, 10000);
+    setInterval(fetchConsoleLogs, 2000);
+  });
+</script>

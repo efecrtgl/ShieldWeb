@@ -1,0 +1,243 @@
+<% if (userPermissions.manageWebsite) { %>
+  <section id="gallery-settings-content" class="admin-section-inner">
+    <div class="main-layout">
+      <div class="content-panel" style="grid-column: span 6;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;"><i class="fa-solid fa-plus-circle text-sky-400"></i> Galeri Resmi Ekle</h3>
+        <form action="/admin/website/gallery/add" method="POST" style="display: flex; flex-direction: column; gap: 20px;">
+          <input type="hidden" name="imageUrl" id="gallery-imageUrl">
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Görsel URL'si ile Ekle</label>
+              <input type="text" id="gallery-imageUrl-input" placeholder="https://example.com/image.png" class="form-input" oninput="updateGalleryImageSource(this.value, 'url')">
+            </div>
+            
+            <div>
+              <label class="form-label">Dosya Yükle (Sürükle Bırak)</label>
+              <div id="gallery-drop-zone" style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 12px; text-align: center; background: rgba(0,0,0,0.1); cursor: pointer; transition: var(--transition); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 74px; gap: 4px;">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 16px; color: var(--text-muted);"></i>
+                <span style="font-size: 11px; color: var(--text-muted);" id="gallery-drop-zone-text">Dosya seç veya sürükle</span>
+                <input type="file" id="gallery-file-upload" accept="image/*" style="display: none;">
+              </div>
+            </div>
+          </div>
+
+          <div id="gallery-image-preview-container" style="display: none; position: relative; width: 100%; height: 120px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);">
+            <img id="gallery-image-preview" src="" style="width: 100%; height: 100%; object-fit: cover;">
+            <button type="button" onclick="clearSelectedGalleryImage()" style="position: absolute; top: 8px; right: 8px; background: rgba(239, 68, 68, 0.8); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;"><i class="fa-solid fa-floppy-disk"></i> Resmi Kaydet</button>
+        </form>
+      </div>
+      <div class="content-panel" style="grid-column: span 6; overflow-x: auto; padding: 24px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;"><i class="fa-solid fa-list-ol text-sky-400"></i> Galeri Listesi</h3>
+        <span style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 12px;"><i class="fa-solid fa-info-circle"></i> Görselleri sürükleyip bırakarak öncelik sıralamasını değiştirebilirsiniz.</span>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width: 40px;"></th>
+              <th>Görsel</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="gallery-table-body">
+            <% if (gallery && gallery.length > 0) { %>
+              <% gallery.forEach(item => { %>
+                <tr draggable="true" data-id="<%= item._id %>" style="cursor: move;">
+                  <td class="drag-handle" style="color: var(--text-muted); text-align: center; font-size: 14px;"><i class="fa-solid fa-grip-vertical"></i></td>
+                  <td><img src="<%= item.imageUrl %>" style="width: 80px; height: 45px; border-radius: 6px; object-fit: cover;"></td>
+                  <td>
+                    <form action="/admin/website/gallery/delete/<%= item._id %>" method="POST">
+                      <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 10px;"><i class="fa-solid fa-trash"></i> Sil</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="3" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 16px 0;">Resim bulunmuyor.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+<% } else { %>
+  <div class="locked-overlay">
+    <div class="locked-overlay-icon"><i class="fa-solid fa-lock"></i></div>
+    <h4>Erişim Kısıtlandı</h4>
+    <p>Burayı görüntülemeye yetkiniz yok.</p>
+  </div>
+<% } %>
+
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const dropZone = document.getElementById("gallery-drop-zone");
+    const fileUpload = document.getElementById("gallery-file-upload");
+    
+    if (dropZone && fileUpload) {
+      dropZone.addEventListener("click", () => fileUpload.click());
+      
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = "var(--primary)";
+        dropZone.style.background = "rgba(0, 113, 227, 0.05)";
+      });
+      
+      dropZone.addEventListener("dragleave", () => {
+        dropZone.style.borderColor = "var(--border-color)";
+        dropZone.style.background = "rgba(0,0,0,0.1)";
+      });
+      
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = "var(--border-color)";
+        dropZone.style.background = "rgba(0,0,0,0.1)";
+        
+        if (e.dataTransfer.files.length > 0) {
+          handleGalleryImageFile(e.dataTransfer.files[0]);
+        }
+      });
+      
+      fileUpload.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+          handleGalleryImageFile(e.target.files[0]);
+        }
+      });
+    }
+
+    const tableBody = document.getElementById("gallery-table-body");
+    if (tableBody) {
+      let dragEl;
+      
+      function setupDragAndDrop() {
+        tableBody.querySelectorAll("tr[draggable='true']").forEach(row => {
+          row.addEventListener("dragstart", (e) => {
+            dragEl = row;
+            e.dataTransfer.effectAllowed = "move";
+            row.classList.add("dragging");
+          });
+          
+          row.addEventListener("dragend", () => {
+            row.classList.remove("dragging");
+            saveGalleryOrder();
+          });
+          
+          row.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            
+            const target = e.target.closest("tr");
+            if (target && target !== dragEl && target.parentNode === tableBody) {
+              const rect = target.getBoundingClientRect();
+              const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+              tableBody.insertBefore(dragEl, next ? target.nextSibling : target);
+            }
+          });
+        });
+      }
+      
+      function saveGalleryOrder() {
+        const rows = tableBody.querySelectorAll("tr[draggable='true']");
+        const ids = Array.from(rows).map(row => row.getAttribute("data-id"));
+        
+        fetch("/admin/website/gallery/reorder", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ ids })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log("Gallery reordered successfully!");
+          }
+        })
+        .catch(err => console.error(err));
+      }
+      
+      setupDragAndDrop();
+    }
+  });
+
+  function handleGalleryImageFile(file) {
+    if (!file.type.startsWith("image/")) {
+      alert("Lütfen sadece bir resim dosyası seçin.");
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1920;
+        
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.85);
+        updateGalleryImageSource(compressedBase64, 'file', file.name);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function updateGalleryImageSource(value, source, fileName = '') {
+    const imageUrlHidden = document.getElementById("gallery-imageUrl");
+    const imageUrlInput = document.getElementById("gallery-imageUrl-input");
+    const imagePreviewContainer = document.getElementById("gallery-image-preview-container");
+    const imagePreview = document.getElementById("gallery-image-preview");
+    const dropZoneText = document.getElementById("gallery-drop-zone-text");
+
+    if (imageUrlHidden) imageUrlHidden.value = value;
+    
+    if (source === 'url') {
+      if (value.trim()) {
+        if (imagePreview) imagePreview.src = value;
+        if (imagePreviewContainer) imagePreviewContainer.style.display = "block";
+      } else {
+        if (imagePreviewContainer) imagePreviewContainer.style.display = "none";
+      }
+    } else if (source === 'file') {
+      if (imagePreview) imagePreview.src = value;
+      if (imagePreviewContainer) imagePreviewContainer.style.display = "block";
+      if (imageUrlInput) imageUrlInput.value = "";
+      if (dropZoneText) dropZoneText.innerText = fileName || "Resim Yüklendi";
+    }
+  }
+
+  function clearSelectedGalleryImage() {
+    const imageUrlHidden = document.getElementById("gallery-imageUrl");
+    const imageUrlInput = document.getElementById("gallery-imageUrl-input");
+    const fileUpload = document.getElementById("gallery-file-upload");
+    const imagePreviewContainer = document.getElementById("gallery-image-preview-container");
+    const imagePreview = document.getElementById("gallery-image-preview");
+    const dropZoneText = document.getElementById("gallery-drop-zone-text");
+
+    if (imageUrlHidden) imageUrlHidden.value = "";
+    if (imageUrlInput) imageUrlInput.value = "";
+    if (fileUpload) fileUpload.value = "";
+    if (imagePreviewContainer) imagePreviewContainer.style.display = "none";
+    if (imagePreview) imagePreview.src = "";
+    if (dropZoneText) dropZoneText.innerText = "Dosya seç veya sürükle";
+  }
+</script>

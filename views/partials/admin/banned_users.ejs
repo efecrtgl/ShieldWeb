@@ -1,0 +1,306 @@
+<% if (userPermissions.banUser || userPermissions.unbanUser || userPermissions.discordBan || userPermissions.discordUnban) { %>
+  <% 
+    const now = new Date();
+    const bannedUsers = discordUsers.filter(u => u.wlCezaBitis && new Date(u.wlCezaBitis) > now && !u.isPermaBanned);
+  %>
+  <section id="banned-users-content" class="admin-section-inner">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+      <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-user-slash"></i> Banlanan Kullanıcılar</h2>
+      <div style="display: flex; gap: 10px;">
+        <span style="font-size: 13px; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+          Discord Sunucu Banlı: <strong id="discord-ban-count">Yükleniyor...</strong>
+        </span>
+        <span style="font-size: 13px; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+          Whitelist Cezalı: <strong><%= bannedUsers.length %></strong>
+        </span>
+      </div>
+    </div>
+
+    <!-- Discord Ban Form -->
+    <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; box-shadow: none;">
+      <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-gavel" style="color: var(--danger);"></i> Discord'dan Kullanıcı Yasakla (Ban)
+      </h3>
+      <form action="/admin/users/discord-ban" method="POST" id="discord-ban-form" onsubmit="submitDiscordBanForm(event)" style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="flex: 1.5; min-width: 250px;">
+          <textarea name="discordId" class="form-input sensitive-data" placeholder="Discord ID'leri (Yan yana, virgülle veya alt alta yazabilirsiniz...)" required style="height: 52px; min-height: 52px; font-size: 12px; border-radius: 8px; width: 100%; font-family: monospace; resize: vertical; padding: 10px 12px;"></textarea>
+        </div>
+        <div style="flex: 2; min-width: 250px;">
+          <input type="text" name="reason" class="form-input" placeholder="Yasaklama Nedeni (Zorunlu)" required style="height: 52px; font-size: 13px; border-radius: 8px; width: 100%;">
+        </div>
+        <% if (userPermissions.banUser || userPermissions.discordBan) { %>
+          <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; font-size: 13px; height: 52px; padding: 0 24px; border-radius: 8px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-style: solid; white-space: nowrap;">
+            <i class="fa-solid fa-gavel"></i> Toplu Yasakla
+          </button>
+        <% } else { %>
+          <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); font-weight: 600; font-size: 13px; height: 52px; padding: 0 24px; border-radius: 8px; display: flex; align-items: center; gap: 8px; cursor: not-allowed; opacity: 0.5;">
+            <i class="fa-solid fa-lock"></i> Yasakla
+          </button>
+        <% } %>
+      </form>
+    </div>
+
+    <!-- Discord Unban Form -->
+    <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; box-shadow: none;">
+      <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-circle-check" style="color: var(--success);"></i> Discord Yasak Kaldır (Unban)
+      </h3>
+      <form action="" method="POST" id="manual-unban-form" onsubmit="submitManualUnban(event)" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+          <input type="text" id="manual-unban-discord-id" class="form-input" placeholder="Discord ID (Örn: 444578261494661122)" required style="height: 40px; font-size: 13px; border-radius: 8px; width: 100%;">
+        </div>
+        <% if (userPermissions.unbanUser || userPermissions.discordUnban) { %>
+          <button type="submit" class="btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); font-weight: 600; font-size: 12px; height: 40px; padding: 0 20px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer; border-style: solid;">
+            <i class="fa-solid fa-circle-check"></i> Yasağı Kaldır
+          </button>
+        <% } else { %>
+          <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); font-weight: 600; font-size: 12px; height: 40px; padding: 0 20px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: not-allowed; opacity: 0.5;">
+            <i class="fa-solid fa-lock"></i> Yasağı Kaldır
+          </button>
+        <% } %>
+      </form>
+    </div>
+
+    <!-- Live Discord Guild Ban List Table -->
+    <div class="content-panel" style="padding: 24px; margin-bottom: 24px; overflow-x: auto;">
+      <h3 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--danger); margin-top: 0; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-brands fa-discord"></i> Discord Sunucusunda Yasaklı (Banlı) Kullanıcılar & Sebepleri
+      </h3>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Profil</th>
+            <th>Kullanıcı Adı</th>
+            <th>Discord ID</th>
+            <th>Yasaklanma Nedeni (Sebep)</th>
+            <th>İşlem</th>
+          </tr>
+        </thead>
+        <tbody id="discord-bans-table-body">
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Discord ban listesi çekiliyor...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Whitelist Punished Users Table -->
+    <div class="content-panel" style="padding: 24px; overflow-x: auto;">
+      <h3 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--warning); margin-top: 0; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-user-clock"></i> Whitelist Süreli Cezalı Kullanıcılar
+      </h3>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Profil</th>
+            <th>Kullanıcı Adı</th>
+            <th>Discord ID</th>
+            <th>Ceza Bitiş Tarihi</th>
+            <th>Kalan Süre</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (bannedUsers.length > 0) { %>
+            <% bannedUsers.forEach(dUser => { %>
+              <% 
+                const bitis = new Date(dUser.wlCezaBitis);
+                const diffMs = bitis - now;
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let kalanSure = "";
+                if (diffDays > 0) {
+                  kalanSure = `${diffDays} gün ${diffHours} saat`;
+                } else {
+                  kalanSure = `${diffHours} saat`;
+                }
+              %>
+              <tr>
+                <td>
+                  <img class="sensitive-info" src="<%= dUser.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);">
+                </td>
+                <td class="sensitive-info" style="font-weight: 600;"><%= dUser.username %></td>
+                <td class="sensitive-info" style="font-family: monospace; font-size: 12px; color: var(--text-muted);"><%= dUser.discordId %></td>
+                <td style="color: var(--warning); font-weight: 600;">
+                  <%= bitis.toLocaleDateString('tr-TR') %> <%= bitis.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
+                </td>
+                <td style="font-size: 12px; color: var(--text-muted);"><%= kalanSure %></td>
+                <td>
+                  <div style="display: flex; gap: 8px;">
+                    <% if (userPermissions.clearPunishments) { %>
+                      <button type="button" onclick="clearWlPunish('<%= dUser.discordId %>')" class="btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer; border-style: none;">
+                        <i class="fa-solid fa-trash-can-arrow-up"></i> Cezayı Kaldır
+                      </button>
+                    <% } else { %>
+                      <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;">
+                        <i class="fa-solid fa-lock"></i> Cezayı Kaldır
+                      </button>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 16px 0;">Aktif whitelist cezası bulunan kullanıcı bulunmuyor.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      async function submitDiscordBanForm(event) {
+        event.preventDefault();
+        const form = event.target;
+        const discordId = form.querySelector('[name="discordId"]').value.trim();
+        const reason = form.querySelector('[name="reason"]').value.trim();
+        if (!discordId || !reason) {
+          if (window.showAdminToast) window.showAdminToast('Lütfen Discord ID ve yasaklama nedenini doldurun.', 'error');
+          return;
+        }
+        try {
+          const res = await fetch('/admin/users/discord-ban', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ discordId, reason })
+          });
+          const data = await res.json().catch(() => ({ success: res.ok }));
+          if (data.success) {
+            if (window.showAdminToast) window.showAdminToast(data.message || 'Kullanıcı(lar) Discord\'dan yasaklandı.', 'success');
+            form.reset();
+            loadDiscordBans();
+          } else {
+            if (window.showAdminToast) window.showAdminToast(data.message || 'Yasaklama işlemi başarısız oldu.', 'error');
+          }
+        } catch (err) {
+          if (window.showAdminToast) window.showAdminToast('Bağlantı hatası: ' + err.message, 'error');
+        }
+      }
+
+      async function submitManualUnban(event) {
+        event.preventDefault();
+        const input = document.getElementById("manual-unban-discord-id");
+        const id = input ? input.value.trim() : "";
+        if (!id) return;
+        try {
+          const res = await fetch(`/admin/users/discord-unban/${id}`, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            credentials: 'include'
+          });
+          const data = await res.json().catch(() => ({ success: res.ok }));
+          if (data.success) {
+            if (window.showAdminToast) window.showAdminToast(data.message || 'Discord yasağı kaldırıldı.', 'success');
+            if (input) input.value = '';
+            loadDiscordBans();
+          } else {
+            if (window.showAdminToast) window.showAdminToast(data.message || 'Yasak kaldırılırken hata oluştu.', 'error');
+          }
+        } catch (err) {
+          if (window.showAdminToast) window.showAdminToast('Bağlantı hatası: ' + err.message, 'error');
+        }
+      }
+
+      async function unbanDiscordUser(discordId, username) {
+        if (!confirm(`${username} adlı kullanıcının Discord banını kaldırmak istediğinize emin misiniz?`)) return;
+        try {
+          const res = await fetch(`/admin/users/discord-unban/${discordId}`, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            credentials: 'include'
+          });
+          const data = await res.json().catch(() => ({ success: res.ok }));
+          if (data.success) {
+            if (window.showAdminToast) window.showAdminToast(data.message || 'Yasak kaldırıldı.', 'success');
+            loadDiscordBans();
+          } else {
+            if (window.showAdminToast) window.showAdminToast(data.message || 'Yasak kaldırılamadı.', 'error');
+          }
+        } catch (err) {
+          if (window.showAdminToast) window.showAdminToast('Bağlantı hatası: ' + err.message, 'error');
+        }
+      }
+
+      async function clearWlPunish(discordId) {
+        if (!confirm('Bu kullanıcının whitelist cezasını kaldırmak istediğinize emin misiniz?')) return;
+        try {
+          const res = await fetch(`/admin/users/punish/clear/${discordId}`, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            credentials: 'include'
+          });
+          const data = await res.json().catch(() => ({ success: res.ok }));
+          if (data.success) {
+            if (window.showAdminToast) window.showAdminToast(data.message || 'Whitelist cezası kaldırıldı.', 'success');
+            setTimeout(() => { if (typeof loadUsers === 'function') loadUsers(); else window.location.reload(); }, 600);
+          } else {
+            if (window.showAdminToast) window.showAdminToast(data.message || 'Ceza kaldırılırken hata oluştu.', 'error');
+          }
+        } catch (err) {
+          if (window.showAdminToast) window.showAdminToast('Bağlantı hatası: ' + err.message, 'error');
+        }
+      }
+
+      async function loadDiscordBans() {
+        const tbody = document.getElementById("discord-bans-table-body");
+        const countSpan = document.getElementById("discord-ban-count");
+        if (!tbody) return;
+
+        try {
+          const res = await fetch("/admin/api/discord-bans");
+          const data = await res.json();
+
+          if (data.success && Array.isArray(data.bans)) {
+            if (countSpan) countSpan.innerText = data.bans.length;
+
+            if (data.bans.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">Discord sunucusunda banlı kullanıcı bulunmuyor.</td></tr>';
+              return;
+            }
+
+            let html = "";
+            data.bans.forEach(b => {
+              html += `
+                <tr>
+                  <td><img class="sensitive-info" src="${b.avatarUrl}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);"></td>
+                  <td class="sensitive-info" style="font-weight: 600;">${b.username}</td>
+                  <td class="sensitive-info" style="font-family: monospace; font-size: 12px; color: var(--text-muted);">${b.discordId}</td>
+                  <td style="color: #ef4444; font-weight: 500; font-size: 13px;">${b.reason}</td>
+                  <td>
+                    <button type="button" class="btn" onclick="unbanDiscordUser('${b.discordId}', '${b.username.replace(/'/g, "\\'")}')" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; border: 1px solid rgba(16, 185, 129, 0.2);">
+                      <i class="fa-solid fa-circle-check"></i> Yasağı Kaldır
+                    </button>
+                  </td>
+                </tr>
+              `;
+            });
+            tbody.innerHTML = html;
+          } else {
+            if (countSpan) countSpan.innerText = "0";
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 16px;">${data.message || 'Ban listesi yüklenemedi.'}</td></tr>`;
+          }
+        } catch (err) {
+          if (countSpan) countSpan.innerText = "0";
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 16px;">Yükleme hatası: ${err.message}</td></tr>`;
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const sec = document.getElementById("banned-users");
+        if (sec) {
+          const obs = new MutationObserver(() => {
+            if (sec.classList.contains("active")) {
+              loadDiscordBans();
+            }
+          });
+          obs.observe(sec, { attributes: true, attributeFilter: ["class"] });
+        }
+        if (window.location.hash === "#banned-users") {
+          loadDiscordBans();
+        }
+      });
+    </script>
+  </section>
+<% } %>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bakım Modu — Shield</title>
+  <link rel="icon" type="image/png" href="/images/logo.png">
+  <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="background-color: var(--bg-primary); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">
+  
+  <div style="background: rgba(12, 13, 16, 0.6); border: 1px solid var(--border-color); border-radius: 20px; padding: 48px 32px; text-align: center; backdrop-filter: blur(20px); box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-width: 500px; width: 100%;">
+    
+    <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; border-radius: 50%; background: rgba(0, 113, 227, 0.08); border: 1px solid rgba(0, 113, 227, 0.2); color: var(--primary); font-size: 36px; margin-bottom: 24px; animation: pulse 2s infinite;">
+      <i class="fa-solid fa-screwdriver-wrench"></i>
+    </div>
+
+    <h1 style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px;">
+      Şu Anda Bakımdayız!
+    </h1>
+    
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 32px;">
+      <%= locals.customMessage || "Sizlere daha iyi bir deneyim sunabilmek amacıyla sitemizde güncellemeler ve bakım çalışmaları yapıyoruz. Çok yakında tekrar çevrimiçi olacağız!" %>
+    </p>
+
+    <div style="border-top: 1px solid var(--border-color); padding-top: 24px; display: flex; justify-content: center; gap: 16px;">
+      <a href="/auth/login" class="nav-btn-discord" style="padding: 10px 24px; font-size: 12px;">
+        <i class="fa-solid fa-gauge-high"></i> Yönetici Girişi
+      </a>
+    </div>
+
+  </div>
+
+  <style>
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(0, 113, 227, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 15px rgba(0, 113, 227, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 113, 227, 0);
+      }
+    }
+  </style>
+
+</body>
+</html>

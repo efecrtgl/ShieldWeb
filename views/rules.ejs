@@ -1,0 +1,954 @@
+<%- include('partials/header') %>
+
+<style>
+  .rules-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 40px;
+    margin-top: 40px;
+    align-items: start;
+  }
+
+  .rules-sidebar {
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    background: rgba(12, 13, 16, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .rules-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .rules-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+  }
+
+  .rules-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .rules-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .rules-menu-link:hover, .rules-menu-link.active {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--primary);
+  }
+  
+  .rules-menu-link.active {
+    border-left: 2px solid var(--primary);
+    border-radius: 0 8px 8px 0;
+    padding-left: 10px;
+  }
+
+  .rules-content {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .rule-section {
+    scroll-margin-top: 100px;
+  }
+
+  .rule-card {
+    background: rgba(12, 13, 16, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .rule-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .rule-title span {
+    background: var(--primary);
+    box-shadow: 0 0 10px var(--primary-glow);
+    color: #fff;
+    font-size: 13px;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .rules-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .rules-list li {
+    font-size: 14px;
+    color: var(--text-main);
+    line-height: 1.6;
+    position: relative;
+    padding-left: 20px;
+  }
+
+  .rules-list li::before {
+    content: "•";
+    color: var(--primary);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  .robbery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .robbery-card {
+    background: rgba(255,255,255,0.01);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .robbery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+  }
+
+  .robbery-level {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(224, 169, 139, 0.15);
+    color: var(--primary-light);
+  }
+
+  .robbery-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .robbery-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .robbery-detail-label {
+    color: var(--text-muted);
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+
+  .robbery-detail-val {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .rules-alert {
+    background: rgba(245, 158, 11, 0.03);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    padding: 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  .rules-table th, .rules-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+  }
+  .rules-table th {
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  @media (max-width: 991px) {
+    .rules-container {
+      grid-template-columns: 1fr;
+    }
+    .rules-sidebar {
+      position: static;
+      max-height: 300px;
+    }
+  }
+</style>
+
+<main class="container">
+  <div class="rules-container">
+    <!-- Left Sidebar Table of Contents -->
+    <aside class="rules-sidebar">
+      <ul class="rules-menu">
+        <li><a href="#section-spirit" class="rules-menu-link active"><i class="fa-solid fa-compass"></i> Sunucunun Ruhu</a></li>
+        <li><a href="#section-dictionary" class="rules-menu-link"><i class="fa-solid fa-book"></i> 1. Terimler Sözlüğü</a></li>
+        <li><a href="#section-universal" class="rules-menu-link"><i class="fa-solid fa-globe"></i> 2. Temel RP Kuralları</a></li>
+        <li><a href="#section-character" class="rules-menu-link"><i class="fa-solid fa-user-gear"></i> 3. Karakter & Kimlik</a></li>
+        <li><a href="#section-economy" class="rules-menu-link"><i class="fa-solid fa-wallet"></i> 4. Ekonomi, İşletme ve Mülk</a></li>
+        <li><a href="#section-comms" class="rules-menu-link"><i class="fa-solid fa-phone"></i> 5. İletişim ve Uygulamalar</a></li>
+        <li><a href="#section-traffic" class="rules-menu-link"><i class="fa-solid fa-car"></i> 6. Araç & Trafik Gerçekçiliği</a></li>
+        <li><a href="#section-zones" class="rules-menu-link"><i class="fa-solid fa-map-location-dot"></i> 7. Safe Zone & 3. Taraf</a></li>
+        <li><a href="#section-baiting" class="rules-menu-link"><i class="fa-solid fa-fish"></i> 8. Baiting ve İstismar Türleri</a></li>
+        <li><a href="#section-sensitive" class="rules-menu-link"><i class="fa-solid fa-circle-exclamation"></i> 9. Hassas İçerik & 18+</a></li>
+        <li><a href="#section-admin" class="rules-menu-link"><i class="fa-solid fa-circle-user"></i> 10. Yönetim & Ticket Etiği</a></li>
+        <li><a href="#section-errors" class="rules-menu-link"><i class="fa-solid fa-circle-xmark"></i> 11. Sık Yapılan Hatalar</a></li>
+        <li><a href="#section-faq" class="rules-menu-link"><i class="fa-solid fa-circle-question"></i> 12. Sık Sorulan Sorular</a></li>
+        <li><a href="#section-permits" class="rules-menu-link"><i class="fa-solid fa-stamp"></i> EK-B. Yönetim İzni Gerekli</a></li>
+        <li><a href="#section-index" class="rules-menu-link"><i class="fa-solid fa-list-ol"></i> EK-C. Hızlı Cevap İndeksi</a></li>
+        <li><a href="#section-penalty-matrix" class="rules-menu-link"><i class="fa-solid fa-gavel"></i> BÖLÜM IV. Ceza Yönetmeliği</a></li>
+      </ul>
+    </aside>
+
+    <div class="rules-content">
+      
+      <!-- Sunucunun Ruhu -->
+      <section id="section-spirit" class="rule-section">
+        <div class="rule-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h2 class="rule-title" style="margin-bottom:0;">Sunucunun Ruhu</h2>
+            <span style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: var(--primary); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;">
+              EmpireV 2.0 RESMÎ KURAL SETİ
+            </span>
+          </div>
+
+          <div style="background: rgba(220, 38, 38, 0.1); border-left: 4px solid #ef4444; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; line-height: 1.6;">
+            <strong style="color:#ef4444;">ÖNEMLİ — Okundu ve Kabul Edildi Sayılır:</strong> Bu kurallar, EmpireV sunucusunda aktif olarak rol yapan herkes tarafından okunmuş ve kabul edilmiş sayılır. <em>“Başka sunucuda bu kural şöyleydi”</em> türü savunmalar asla kabul edilmez. Böyle bir savunmanın destekte dile getirilmesi, yönetici takdiriyle kuralları okumamış sayılmanıza ve hakkınızda işlem yapılmasına yol açabilir.
+          </div>
+
+          <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+            EmpireV'ın dengesi <strong>%80 Social RP (Hard)</strong> ve <strong>%20 Gun RP (Arcade)</strong> üzerine kuruludur. Bu oran her kuralın ruhunu belirler ve iki ilke asla karıştırılmaz.
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+            <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.15); padding: 20px; border-radius: 12px;">
+              <h4 style="color: var(--primary); margin-top:0;">SOSYAL TARAF — HARD</h4>
+              <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.6; margin:0;">
+                Sosyal roleplay burada sert, gerçekçi ve tavizsizdir. Fear-RP zorunludur; karakter canının kıymetini bilir. Value of Life esastır, fail-RP yasaktır, her agresif eylemin bir IC sebebi olmalıdır. Yaralanma, korku, travma ve sonuç role yansır. Sosyal ihlaller ağır cezalandırılır — sunucunun kalbi burasıdır.
+              </p>
+            </div>
+            <div style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15); padding: 20px; border-radius: 12px;">
+              <h4 style="color: var(--warning); margin-top:0;">GUN TARAFI — ARCADE</h4>
+              <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.6; margin:0;">
+                Silahlı içerik daha akıcı, affedici ve eğlence odaklıdır; ağırlıklı olarak sistemsel soygunlardır. Mekanikler sade ve rakamsaldır: kişi sayısı, silah, planlama, PD bekleme ve cooldown net sayılarla tanımlıdır. Anlaşmalı roller eğlence önceliklidir; force (zorlama) hoş görülmez.
+              </p>
+            </div>
+          </div>
+
+          <div class="rules-alert" style="margin-top: 20px;">
+            <strong>Bir kuralı okurken kendine sor:</strong> “Bu bir sosyal etkileşim kuralı mı, yoksa gun/soygun mekaniği mi?” Sosyalse tavizsiz-gerçekçi, gun'sa net-rakamsal-akıcı uygulanır.<br><br>
+            <span style="font-size: 12px; color: var(--text-muted);">
+              ⚑ Bu kitapçık genel ve sosyal roleplay kurallarını kapsar. İllegal kurallar <a href="/rules" style="color:var(--primary);">EmpireV İllegal Kural Kitapçığı</a>'nda; Legal birim kuralları <a href="/legal-rules" style="color:var(--primary);">EmpireV Legal Birimler Kitapçığı</a>'nda; yaptırımlar Ceza Yönetmeliği'ndedir.
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 1. Terimler Sozlugu -->
+      <section id="section-dictionary" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>1</span> Terimler Sözlüğü</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Aşağıdaki terimler kural setinin tamamında aynı anlamda kullanılır. Bir kuralı anlamadan önce ilgili terimi buradan kontrol edin.</p>
+          
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th style="width: 170px;">Terim</th>
+                <th>Açıklama</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>IC / OOC</strong></td><td>IC = oyun içi (karakterin bildiği); OOC = oyun dışı (gerçek sen). İkisi karıştırılmaz.</td></tr>
+              <tr><td><strong>RP / RPG mantığı</strong></td><td>RP = karakteri gerçek bir insan gibi canlandırmak. RPG (Fast-RP) mantığı = rolü video oyunu gibi oynamak; yasaktır.</td></tr>
+              <tr><td><strong>Metagame</strong></td><td>Oyun dışı (Discord, yayın, dış ses) bilgiyi IC kullanmak. Stream sniping dâhil.</td></tr>
+              <tr><td><strong>Powergame</strong></td><td>Karşı tarafa şans tanımadan sonucu dayatmak, gerçekçi olmayan güç, /me ile imkânsız aksiyon.</td></tr>
+              <tr><td><strong>Fail-RP</strong></td><td>Rol mantığını bozan davranış (yüksekten atlayıp yara almamak, kaçarken telefonla oynamak vb.).</td></tr>
+              <tr><td><strong>VDM / RDM</strong></td><td>VDM = aracı silah gibi kullanmak/ezmek. RDM = sebepsiz/rolsüz öldürmek.</td></tr>
+              <tr><td><strong>Fear-RP</strong></td><td>Karakterin canının kıymetini bilmesi; silah/patlayıcı/sayısal üstünlük karşısında korkması, teslim olması.</td></tr>
+              <tr><td><strong>Value of Life</strong></td><td>Sistemsel avantaj için canını hiçe saymamak. Fear-RP'nin temel gerekçesi.</td></tr>
+              <tr><td><strong>Combat Log</strong></td><td>Aktif rol/çatışma sırasında oyundan çıkmak/AFK olmak. Yasak.</td></tr>
+              <tr><td><strong>NLR (New Life Rule)</strong></td><td>Sistemsel ölüm sonrası kural: son 20 dk hatırlanmaz, olay yerine dönülmez, intikam yasak.</td></tr>
+              <tr><td><strong>CK / PK</strong></td><td>CK = karakterin kalıcı ölümü. PK = sistemsel/geçici ölüm; karakter ağır yaralı devam eder.</td></tr>
+              <tr><td><strong>Loot</strong></td><td>Ölen/düşen kişinin üzerinden eşya/silah alma.</td></tr>
+              <tr><td><strong>Perm</strong></td><td>Bir illegal ekibe resmî üye sayılman için yönetimin verdiği izin. Perm yoksa üye sayılmazsın.</td></tr>
+              <tr><td><strong>Hood / Claim</strong></td><td>Hood = çetenin onaylı mahallesi. Claim = sahiplenilen/kontrol edilen bölge.</td></tr>
+              <tr><td><strong>Snitch</strong></td><td>İspiyonculuk: birini polise veya başkalarına açık etmek.</td></tr>
+              <tr><td><strong>Drive-by / Hit&Run</strong></td><td>Drive-by = araçla giderken ateş (yasaktır). Hit&Run = hızlı vur-kaç saldırısı.</td></tr>
+              <tr><td><strong>Gang-up</strong></td><td>Hasım rolünü üçüncü tarafa paslayıp sayısal üstünlük kurmak. Yasak.</td></tr>
+              <tr><td><strong>Green / Safe Zone</strong></td><td>İllegal role (gasp, kaçırma, silah çekme) girilemeyen korunmuş bölgeler (Taco hariç).</td></tr>
+              <tr><td><strong>Downed / Bleedout</strong></td><td>Sistemsel olarak yere düşmüş, ağır yaralı hâl. Bu sürede savaşılamaz, ağır iş yapılamaz.</td></tr>
+              <tr><td><strong>SS (South Side / Ghetto)</strong></td><td>Çetelerin yoğun olduğu mahalle bölgesi.</td></tr>
+              <tr><td><strong>Clean Shot</strong></td><td>Rehine/kalabalık ortamda hedefe tek isabetli atış. Rehine varken yasaktır.</td></tr>
+              <tr><td><strong>Felony Stop</strong></td><td>Ağır suçluyu ekip desteğiyle, prosedürlü şekilde araçtan indirip etkisiz hâle getirme.</td></tr>
+              <tr><td><strong>Priority / Cooldown</strong></td><td>Priority = aynı anda kaç eylem yapılabileceği. Cooldown = tekrar için beklenen süre.</td></tr>
+              <tr><td><strong>Blacklist / WL</strong></td><td>Blacklist = belirli role kesin yasak. WL = geçici uzaklaştırma / whitelist'e düşürme cezası.</td></tr>
+              <tr><td><strong>Ticket / POV</strong></td><td>Ticket = yönetime destek/onay talebi. POV = rolün video kaydı (belirli rollerde zorunlu).</td></tr>
+              <tr><td><strong>SSF</strong></td><td>South Side'a girmeden önce beklenen shotfire (silah sesi) bekleme süresi.</td></tr>
+              <tr><td><strong>Initiation (Rol Başlatma)</strong></td><td>Agresif eyleme geçmeden önce niyeti belli etme (trashtalk/tehdit); fear-RP bu andan itibaren devreye girer.</td></tr>
+              <tr><td><strong>Coalition (Ortak Savunma)</strong></td><td>Gang-up veya snitch yapan kural-tanımaz bir çeteye karşı mağdur çetelerin SAVUNMA amaçlı birleşmesi.</td></tr>
+              <tr><td><strong>Third-Party (3. Taraf)</strong></td><td>Bir çatışma/olayla IC bağı olmayan kişi/grup. İzinsiz karışması yasaktır.</td></tr>
+              <tr><td><strong>Peek / Cover</strong></td><td>Peek = siperden kısa süre çıkıp ateş edip geri çekilme. Cover = siper alma. Peeker's advantage istismarı hoş görülmez.</td></tr>
+              <tr><td><strong>Push / Hot Drop</strong></td><td>Push = çatışmada karşı tarafın mevzisine ilerleme. Hot Drop = soygunda helikopterden ekip indirme.</td></tr>
+              <tr><td><strong>Baiting</strong></td><td>Bir tarafı (polis/EMS/çete) yapay durumla tuzağa/tepkiye çekme. Cop-bait, EMS-bait yasaktır.</td></tr>
+              <tr><td><strong>Corner Abuse</strong></td><td>Güvenli bölgeye kaçıp oradan trashtalk/tahrik yaparak dokunulmazlık istismarı. Yasaktır.</td></tr>
+              <tr><td><strong>RP-Crashing</strong></td><td>Başkasının aktif sahnesini sebepsiz basmak/bozmak.</td></tr>
+              <tr><td><strong>Meta-Baiting</strong></td><td>Karşı tarafı OOC bilgi vermeye/metagame'e zorlayacak şekilde konuşturmaya çalışmak.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 2. Evrensel / Temel RP Kurallari -->
+      <section id="section-universal" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>2</span> Evrensel / Temel RP Kuralları</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Bu bölüm tüm karakterler için geçerlidir — legal, illegal, sivil fark etmez. Buradaki ihlaller sunucunun kalbine dokunduğu için ağır değerlendirilir.</p>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">2.1 IC / OOC Ayrımı ve Metagame</h3>
+          <ul class="rules-list">
+            <li>Karakterin yalnızca IC olarak öğrendiğini bilebilir; OOC bilgi role taşınamaz.</li>
+            <li>Discord, yayın/Twitch, dış ses, WhatsApp gibi oyun dışı kaynaklardan edinilen bilgi IC kullanılamaz.</li>
+            <li>Stream sniping (birinin yayınını izleyip konum/plan öğrenme) metagame'dir ve yasaktır.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">2.2 Powergame ve Fail-RP</h3>
+          <ul class="rules-list">
+            <li>Karşı tarafa tepki şansı tanımadan sonuç dayatmak, gerçekçi olmayan güç kullanmak yasaktır.</li>
+            <li>/me ile imkânsız aksiyon yazılamaz; sonuç /do ile karşı tarafa sorulur. <em>(Örnek: “/me tek yumrukla adamı bayıltır” powergame'dir. Doğrusu: “/me yumruğunu çenesine savurur” + /do başarılı mı?)</em></li>
+            <li>Rol mantığını bozan davranışlar (canı hiçe sayma, kaçarken telefonla oynama, yaralıyken normal koşma) fail-RP'dir.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">2.3 RDM / VDM</h3>
+          <ul class="rules-list">
+            <li>Yeterli IC sebep ve en az bir eskalasyon basamağı olmadan öldürmek (RDM) yasaktır.</li>
+            <li>Aracı silah gibi kullanmak, sebepsiz ezmek (VDM) yasaktır.</li>
+            <li>Kasıtlı RDM/VDM Perma'dır; kaza–kasıt ayrımı POV kaydı üzerinden yönetici tarafından belirlenir.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">2.4 Fear-RP ve Value of Life</h3>
+          <ul class="rules-list">
+            <li>Şu durumlarda fear-RP zorunludur: sana silah doğrultulduğunda, açık sayısal üstünlük karşısında, patlayıcı/keskin alet tehdidinde.</li>
+            <li>Bu durumlarda korkar, teslim olur, kahramanlık yapmazsın.</li>
+            <li>Sistemsel avantaj (loot, konum, intikam) için canını hiçe saymak Value of Life ihlalidir.</li>
+            <li>Fear-RP ihlalinde yönetim karşı tarafa doğrudan CK veya kalıcı hasar izni verebilir.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">2.5 NLR (New Life Rule)</h3>
+          <ul class="rules-list">
+            <li>Sistemsel ölüm (CK olmayan) sonrası olayın son 20 dakikasını hatırlayamazsın; yanında bulunup bayılmayan biri anlatmadıkça bu bilgiyi kullanamazsın.</li>
+            <li>Yeniden doğduktan sonra doğrudan olay yerine dönemezsin.</li>
+            <li>Seni öldüreni bulup öldürmeye çalışmak (revenge kill) yasaktır.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">2.6 Combat Log, Yeni Karakter, Cop-Baiting</h3>
+          <ul class="rules-list">
+            <li>Aktif rol/çatışma/gözaltı/soygun sırasında çıkmak, AFK olmak yasaktır. Gerçek teknik sorunda en kısa sürede dön ve ticket aç.</li>
+            <li>Yeni karakterle sisteme girip hemen ağır illegal role dalmak (fresh char abuse) yasaktır; önce IC zemin kurulmalıdır.</li>
+            <li>Legal birimleri gereksiz tahrik/tuzak (cop-baiting, EMS-baiting) ve 911'den sahte ihbarla pusu kurmak yasaktır.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">2.7 Ses, Karakterden Çıkma, Bug/Exploit</h3>
+          <ul class="rules-list">
+            <li>Mic spam, soundboard/müzik, voice changer ve trolling yasaktır.</li>
+            <li>IC alanda OOC muhabbet yasaktır; gerekiyorsa /ooc kullan, tartışmayı ticket'a taşı.</li>
+            <li>Bug/exploit/dupe/cheat/izinsiz third-party kesinlikle yasaktır; bug fark edersen kullanmadan ticket ile bildir.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">2.8 POV Zorunluluğu ve Sahne Saygısı</h3>
+          <ul class="rules-list">
+            <li>Çatışma, soygun, kaçırma, CK ve kalıcı hasar, hit&run rollerinde POV (video kaydı) zorunludur. Kaydın yoksa savunma hakkın doğmaz.</li>
+            <li>Başkasının aktif rolünü (sahnesini) sebepsiz basmak (RP-crashing) yasaktır.</li>
+            <li>İzinsiz rol paslamak yasaktır: aktif rolünü/olayını (hasım, rehine, çatışma) başka kişiye/gruba devredemezsin. Hasım rolünü 3. tarafa paslamak gang-up'tır.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 3. Karakter, Kimlik ve Multi-Character -->
+      <section id="section-character" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>3</span> Karakter, Kimlik ve Multi-Character</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Karakterin gerçek bir insan gibi tutarlı, geçmişi olan ve sürekliliğini koruyan biri olması beklenir.</p>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">3.1 İsim ve Kimlik</h3>
+          <ul class="rules-list">
+            <li>İsim gerçekçi ve role uygun olmalıdır; meme/ünlü/gerçek kişi/troll isimleri yasaktır.</li>
+            <li>Başvuruda belirttiğin IC ismi oyun içinde de o şekilde kullanmak zorundasın; keyfî değiştiremezsin.</li>
+            <li>Bir karakter minimum 16 yaşında olmak zorundadır; çocuk rolleri yasaktır.</li>
+            <li>Karakterin mal varlığı, gerçek dünya mal varlığı/parası ile takas edilemez veya satılamaz.</li>
+            <li>Crash (bozuk/patlatan) mikrofon kullanımı yasaktır.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">3.2 Backstory ve Süreklilik</h3>
+          <ul class="rules-list">
+            <li>Karakterinin bir geçmişi olmalı; yaşadığı travma, korku, yaralanma ve ilişkiler role yansımalıdır. Etki-tepki esastır: ağır bir olay yaşayan karakter hiçbir şey olmamış gibi davranamaz.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">3.3 Multi-Character ve Character Mixing</h3>
+          <ul class="rules-list">
+            <li>Bir oyuncu <strong>maksimum 1 karaktere</strong> sahip olabilir. 2. karakter için yönetim izni zorunludur.</li>
+            <li>Bir karakterinin bildiği bilgiyi, eşyasını, parasını veya aracını başka karakterine taşıyamazsın (character mixing yasağı).</li>
+            <li>Bir karakterin, senin başka karakterinin işine karışamaz; aynı olayda iki kendi karakterinle bulunamazsın.</li>
+            <li>LSPD (polis) rolü yapan oyuncular illegal odaklı karakter açamaz. İllegal karaktere sahip oyuncular, ikincil karakteriyle LSPD başvurusu yapamaz.</li>
+            <li>İllegal karakteri bir birliğe bağlıysa, oyuncu ikincil karakteriyle başka bir birlikte veya kendi birliğinde illegal rol yapamaz.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">3.4 Karakter Değişim Cooldown'u</h3>
+          <ul class="rules-list">
+            <li>Bir olaya karıştıktan sonra aynı olayı etkilemek için kısa sürede başka karaktere geçmek yasaktır; en az 15 dakika aynı olay örgüsüne farklı karakterle dönemezsin.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">3.5 İlişki ve Meslek RP'si</h3>
+          <ul class="rules-list">
+            <li>Bu sunucuda <strong>aile RP'si yapılmaz</strong>. İlişki ve evlilik rolleri yapılabilir; ancak tümü karşılıklı rızaya dayanır ve kimse zorlanamaz.</li>
+            <li>Cinsel içerik yalnızca ERP kuralına tabidir (yetişkinler arası, çift taraflı açık rıza, özel alan).</li>
+            <li>Legal meslekler (madenci, çöpçü, taksici vb.) “para farmı” olarak değil rolle icra edilir.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">3.6 CK (Character Kill) — Genel İlke</h3>
+          <ul class="rules-list">
+            <li>Bir karakterin kalıcı ölümü (CK) yalnızca o karakterin sahibi olan oyuncuya aittir; kimse kimseyi kafasına göre CK edemez. Yönetim, CK izni verme hakkını daima elinde tutar.</li>
+            <li>CK izni yalnızca belirli roller kapsamında (fear-RP ihlali, ekip force CK vb.) karşı tarafa geçebilir.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: #ef4444; margin: 20px 0 10px 0;">3.7 Yasaklı Roller / Karakterler</h3>
+          <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.6;">
+            Aşağıdaki roller sunucuda kesin olarak yasaktır:
+            <ul style="margin:8px 0 0 0; padding-left:20px; color:var(--text-muted);">
+              <li>Terörist rolü & Dini lider rolü.</li>
+              <li>Ünlü bir ismi koyma veya o ünlünün rolünü yapma.</li>
+              <li>Sana ait olmayan bir karakteri yaratma / taklit etme (impersonation).</li>
+              <li>Seri katil rolü.</li>
+              <li>Deli / psikolojik bozukluğa sahip karakter rolü — yalnızca yönetim izniyle yapılabilir.</li>
+              <li>Acıya duyarsız (ağrı hissetmeyen) karakter rolü.</li>
+              <li>Emekli polis, eski asker, eski savcı vb. geçmiş-resmî görevli rolleri.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Ekonomi, Isletme ve Mülk -->
+      <section id="section-economy" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>4</span> Ekonomi, İşletme ve Mülk</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Ekonomi ve mülk kuralları, transferlerin ve sahipliğin rolle ve dürüstçe yapılmasını güvence altına alır.</p>
+
+          <ul class="rules-list">
+            <li><strong>İşletme Sahipliği:</strong> İllegal kişilerin işletmeleri legal görünmek amacıyla vardır; buralarda rahatça silah takınılamaz. Legal bir işletme illegal bir mekâna dönüştürülemez (açıkça illegal üs gibi kullanılamaz).</li>
+            <li><strong>Mülk / Ev ve Arama İzni:</strong> Bir mülke girip arama yapmak için savcı izni gerekir; makul şüphe (silah sesi, bağrışma) istisnadır. Ev baskını yalnızca geçerli IC sebep ve gerekli izinlerle yapılabilir.</li>
+            <li><strong>Para / Eşya Transferi ve Dolandırıcılık:</strong> Rolsüz transfer yasaktır; satışta parayı verip kaçmak veya eşyayı vermeden kaçmak yasaktır. Vergi/borcu olan araç ve mülkler satılamaz. Dolandırıcılık RP'si kabul edilir; ancak sistem suistimaline (bug/dupe) dönüşemez. Bir kişiyi kaçırarak/rehin alarak mülk, işletme veya aracın yasal transferi talep edilemez.</li>
+            <li><strong>Mekanik / İşlem Raporu:</strong> Mekanik (tamirci) tarafından yapılan tüm işlemler kayıt altına alınmalı ve rapor edilmek zorundadır; kayıt dışı/rolsüz işlem yapılamaz.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 5. Iletisim, Telefon ve Uygulamalar -->
+      <section id="section-comms" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>5</span> İletişim, Telefon ve Uygulamalar</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Doğru iletişim komutları ve uygulama kullanımı; powergame'i önler, rolü herkes için okunur kılar ve OOC kirliliği engeller.</p>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">5.1 /me ve /do Komutları</h3>
+          <ul class="rules-list">
+            <li><code>/me</code> = karakterin yaptığı aksiyonu yazar (ör. <i>/me cebinden anahtarı çıkarır</i>).</li>
+            <li><code>/do</code> = bir durumu/soruyu belirtir veya karşı tarafa sonucu sorar (ör. <i>/do başarılı mı?</i>).</li>
+            <li>/me ile imkânsız aksiyon yazmak (powergame) yasaktır; sonuç daima karşı tarafa /do ile bırakılır.</li>
+            <li>Telefon/SMS, telsiz ve anons/megafon rolleri gerçekçi ve amaca uygun kullanılır; kirletilemez. /ooc yalnızca gerekli durumlarda kullanılır.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">5.2 Sarı Sayfalar ve Sosyal Medya (Twitter / Instagram)</h3>
+          <ul class="rules-list">
+            <li>Sarı Sayfalar uygulaması yalnızca ilan, işyeri duyurusu ve satın alma/arama amacıyla kullanılır; tehdit, şikayet, öneri gibi postlar atılamaz. Uygulama üzerinden OOC tartışma başlatmak doğrudan yasaklama sebebidir. İşletme reklamı her 1 saatte 1 atılabilir.</li>
+            <li>Twitter ve Instagram üzerinden OOC tartışma kesinlikle yasaktır. Mix (IC-OOC karıştırma) ve MG yasaktır. Pornografik içerik ve yasal olmayan içeriklerin paylaşımı yasaktır.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: #ef4444; margin: 20px 0 10px 0;">5.4 Şive / Ağız Kullanımı YASAĞI</h3>
+          <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.6;">
+            <strong>Rol esnasında yöresel ağız, şive veya lehçe kullanmak yasaktır.</strong> Tüm oyuncuların anlaşılabilir, standart ve nötr bir Türkçe ile iletişim kurması beklenir. Neden: RP akışının bozulmaması ve herkesin eşit şekilde iletişim kurabilmesi için.
+          </div>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">5.5 Müzik Dinletme & DMCA Telif Kuralı</h3>
+          <ul class="rules-list">
+            <li>Müzik dinletmek serbesttir; ancak müzik rol bütünlüğünü bozmamalı, gürültülü/küfürlü/provokatif/halay/düğün havası müzikleri açılmamalıdır.</li>
+            <li><strong>Yayıncı Telif Koruması (DMCA):</strong> İçerideki yayıncı oyuncuları DMCA (telif hakkı) sorunlarından korumak amacıyla, kendi evinizde değilseniz sunucu içerisinde <strong>Türkçe şarkı açılması yasaktır</strong>; aksi takdirde gerekli işlemler uygulanır.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 6. Araç ve Trafik Gerçekçiligi -->
+      <section id="section-traffic" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>6</span> Araç ve Trafik Gerçekçiliği</h2>
+          <ul class="rules-list">
+            <li><strong>Non-RP Driving:</strong> Rampadan uçmak, “NoS troll”, çatıda gezmek gibi gerçek dışı sürüşler yasaktır. Ağır kaza sonrası aracı normal sürmeye devam edilemez; hasar/tamir RP'si yapılır.</li>
+            <li><strong>Plaka & Motor Kuralları:</strong> Plaka sökme rolü yasaktır; oyun içi sistem sahte plakası kullanılır. Motorla illegal faaliyet yasaktır (sistemsel illegal ve kaçış rollerinde motor/bisiklet kullanılamaz). Chop shop/araç parçalama rolle yapılır.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">6.1 PIT ve RAM — Oyuncular Arası Kovalamaca</h3>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+            PIT = kaçan aracın arka çeyreğine kontrollü temasla dokunup aracı döndürme manevrasıdır (amaç durdurmaktır, imha etmek değil). RAM = araca hızla, kasıtlı ve yıkıcı biçimde çarpmaktır (RAM ve araç parçalamak yasaktır, VDM'e girer).
+          </p>
+          <ul class="rules-list" style="margin-top: 10px;">
+            <li>PIT yalnızca otobanda atılabilir; dar sokaklarda, kalabalık bölgelerde, dağda/bayırda PIT yasaktır.</li>
+            <li>Oyuncular arası kovalamacada PIT ancak kovalamaca başladıktan <strong>en az 10 dakika sonra</strong> atılabilir.</li>
+            <li>Toplam <strong>en fazla 5 PIT</strong> atılabilir; 1. PIT'ten sonra 2. PIT için en az 2 dakika beklenir (ard arda PIT yasak).</li>
+            <li>Aracı parçalamak, ramlemek (RAM) ve kasıtlı imha yasaktır.</li>
+          </ul>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">6.2 NPC Araçları ve NPC'lere Tutum</h3>
+          <ul class="rules-list">
+            <li>Bir NPC aracına bindiğinde, o aracı çalıntı olarak kabul etmiş sayılırsın. Polis plakayı sorguladığında aracın çalıntı olduğunu görebilir.</li>
+            <li>NPC'ler şehirde yaşayan bireyler olarak kabul edilir; onlara karşı yapılan rollerin sorumluluğunu oyuncu kabul etmiş sayılır.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 7. Bölge Kuralları, Safe Zone ve 3. Taraf -->
+      <section id="section-zones" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>7</span> Bölge Kuralları, Safe Zone ve 3. Taraf</h2>
+          
+          <h3 style="font-size: 15px; color: var(--primary); margin-top:0; margin-bottom: 10px;">7.1 Green Zone / Safe Zone (Güvenli Bölgeler)</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+            Aşağıdaki bölgelerde (içi, etrafı ve 50 metre çevresi) gasp, kaçırma, silah çekme ve illegal başlatma yasaktır:
+          </p>
+          <ul class="rules-list">
+            <li>Hastane ve çevresi (EMS giriş/çıkış alanı).</li>
+            <li>Polis Departmanı (PD) ve önü, karakol çevresi.</li>
+            <li>Banka içi ve ATM çevresi (aktif soygun rolü hariç).</li>
+            <li>Devlet/DOJ binaları, mahkeme çevresi.</li>
+            <li>İşletmeler (açık, hizmet veren dükkân/mekân).</li>
+            <li>Resmî iş başvuru/işlem noktaları ve mekanik/tamirci gibi tarafsız hizmet alanları.</li>
+          </ul>
+
+          <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #dc2626; padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <strong style="color:#ef4444; font-size:14px;">⚠️ İSTİSNA — TACO İŞLETMESİ:</strong><br>
+            <span style="font-size: 13px; color: #cbd5e1; line-height: 1.6;">
+              Taco işletmesi güvenli bölge <strong>DEĞİLDİR</strong>. Taco'nun içinde ve çevresinde illegal rol (gasp, çatışma, baskın) yapılabilir; güvenli bölge kuralları burada geçerli değildir.
+            </span>
+          </div>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">7.2 Corner Abuse ve 7.3 Third-Party (3. Taraf)</h3>
+          <ul class="rules-list">
+            <li><strong>Corner Abuse:</strong> Güvenli bölgeye kaçıp oradan trashtalk yapıp dokunulmazlık istismarı yapmak yasaktır. Çatışmadan kaçıp güvenli bölgeye sığınamazsınız; role başladığınız yerin sonuçlarını taşırsınız.</li>
+            <li><strong>Third-Party (3. Taraf):</strong> Bir çatışma/olayla IC bağı olmayan kişi veya grup o olaya izinsiz karışamaz. İki çete çatışmadayken 3. çete karışamaz. 3. tarafın “geçerken denk geldim” gerekçesiyle çatışmaya dalması RP-crashing ve powergame sayılır.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 8. Baiting ve Istismar Türleri -->
+      <section id="section-baiting" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>8</span> Baiting ve İstismar Türleri</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Yapay durum yaratıp bir tarafı tuzağa/tepkiye çekmek (baiting) her biçimiyle yasaktır.</p>
+          
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Tür</th>
+                <th>Tanim</th>
+                <th style="width: 100px;">Durum</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Cop-Bait</strong></td><td>Polisi gereksiz tahrik/tuzakla tepkiye çekmek.</td><td style="color: var(--danger); font-weight:700;">YASAK</td></tr>
+              <tr><td><strong>EMS-Bait</strong></td><td>Sağlıkçıyı sahte durumla tuzağa/pusuya çekmek.</td><td style="color: var(--danger); font-weight:700;">YASAK</td></tr>
+              <tr><td><strong>Gang-Bait</strong></td><td>Bir çeteyi yapay provokasyonla savaşa sürüklemek.</td><td style="color: var(--danger); font-weight:700;">YASAK</td></tr>
+              <tr><td><strong>Meta-Bait</strong></td><td>Karşı tarafı OOC bilgi vermeye/metagame'e zorlamak.</td><td style="color: var(--danger); font-weight:700;">YASAK</td></tr>
+              <tr><td><strong>Corner-Bait</strong></td><td>Safe zone'dan tahrik edip dokunulmazlık istismarı.</td><td style="color: var(--danger); font-weight:700;">YASAK</td></tr>
+              <tr><td><strong>Loot-Bait</strong></td><td>Sırf loot için sebepsiz savaş çıkarmak.</td><td style="color: var(--danger); font-weight:700;">ABUSE</td></tr>
+            </tbody>
+          </table>
+          <ul class="rules-list" style="margin-top: 15px;">
+            <li><strong>911 Sahte İhbarı:</strong> 911'den sahte ihbarla polisi/EMS'i pusuya düşürmek en ağır baiting türüdür.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 9. Hassas Içerik ve 18+ Sınırları -->
+      <section id="section-sensitive" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>9</span> Hassas İçerik ve 18+ Sınırları</h2>
+          <ul class="rules-list">
+            <li><strong>ERP:</strong> Yalnızca yetişkin bireyler arası, karşılıklı açık rıza ve özel alanda serbesttir. Rıza dışı veya kamusal alanda yapılırsa Perma'dır.</li>
+            <li><strong>İşkence / Travma:</strong> Kendine zarar temalı RP rıza esaslıdır; rahatsız edici içerik dayatması yasaktır.</li>
+            <li><strong>Homofobi / Transfobi:</strong> Cinsel yönelim-kimlik temelli nefret söylemi doğrudan Perma'dır. (Örn: IC bir kadın karakterin sesi “erkeksi” diye o oyuncuya OOC laf etmek bu kapsamdadır; “ben IC yaptım” savunması geçersizdir).</li>
+          </ul>
+
+          <div style="background: rgba(220, 38, 38, 0.15); border: 2px solid #dc2626; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center;">
+            <strong style="color:#ef4444; font-size:14px;">🚫 SIFIR TOLERANS — MİNÖR / REŞİT OLMAYAN İÇERİK:</strong><br>
+            <span style="font-size: 13px; color: #cbd5e1;">Reşit olmayan / minör temalı herhangi bir uygunsuz veya cinsel içerik hiçbir koşulda, hiçbir “rıza” veya rol bahanesiyle esnetilemez ve doğrudan <strong>PERMA BAN</strong> sebebidir.</span>
+          </div>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">9.1 Küfür ve Hakaret Kullanımı</h3>
+          <ul class="rules-list">
+            <li><strong>OOC Küfür:</strong> OOC küfür kesinlikle yasaktır ve doğrudan kalıcı yasaklama (perma) sebebidir. (Kişiler arası DM konuşmaları sunucuyu ilgilendirmez.)</li>
+            <li><strong>IC Küfür:</strong> IC küfür serbesttir; ancak belirli filtreler çerçevesinde ve ölçülü olmalıdır.</li>
+            <li><strong>DDK (Dini ve Milli Değerlere Küfür):</strong> Tamamen yasaktır (cezası Perma).</li>
+            <li><strong>ADK (Ailevi Değerlere Küfür):</strong> Rol içinde belirli şartlarla serbesttir: karşındaki kişiyle <strong>en az 5 dakika rol yapmış olman</strong> ve kişinin rol geçmişinin uygun olması gerekir. Rahatsız edici düzeye çıkarsa Ceza Yönetmeliği uygulanır.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 10. Yönetim, Ticket ve Admin Etigi -->
+      <section id="section-admin" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>10</span> Yönetim, Ticket ve Admin Etiği</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Kurallar rolle çözülür; çözülemeyen ihtilaflar ticket'a taşınır. Hataya hatayla değil, kayıt+ticket ile karşılık verilir.</p>
+
+          <ul class="rules-list">
+            <li><strong>10.1 Şikayet ve Savunma Süreci:</strong> Bir olayla ilgili şikayet açma süresi maksimum 24 saattir; 24 saat geçtikten sonra açılan şikayetler geçersizdir. Şikayet için geçerli POV (video kanıt) zorunludur; POV olmadan hiçbir şikayet işleme alınmaz. Yetkilinin kararı kesindir.</li>
+            <li><strong>10.2 Zarar Karşılama:</strong> Sunucu kaynaklı bir sorun yüzünden bir şeyini kaybedersen, kanıtınla (video kaydı) Discord üzerinden ticket açarak zararını talep edebilirsin. “E” tuşuna basılı tutarak (kendi isteğinle) hastaneye döndüğünde eşyaların karşılanmaz.</li>
+            <li><strong>10.3 3. Parti Yazılım ve Modlar:</strong> Avantaj sağlayan hile/aim/radar/pvp pack vb. kesinlikle yasaktır ve kalıcı yasaklama sebebidir. Görsel/işitsel modlar (grafik paketleri, telsiz sesi değiştirme) serbesttir.</li>
+            <li><strong>10.4 Yayın ve Ghost Kuralı:</strong> Yayınları izleyip oradaki karakterlerle role girmek (ghosting) metagame'dir ve geçici/kalıcı yasaklama ile cezalandırılır.</li>
+            <li><strong>10.5 Reklam:</strong> Diğer GTA V topluluklarının reklamını yapmak / bu topluluklar hakkında konuşmak yasaktır (Perma).</li>
+            <li><strong>10.6 Sunucu Açıkları (Exploit):</strong> Bir sunucu hatası/açığıyla karşılaşınca ticket açılmalıdır. Açığı bilerek kullanmak yasaklama ve mal varlığı silinmesi ile sonuçlanır.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 11. Sık Yapılan Hatalar (Yap / Yapma) -->
+      <section id="section-errors" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>11</span> Sık Yapılan Hatalar (Yap / Yapma)</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Yeni ve deneyimli oyuncuların en sık düştüğü hatalar ve doğru karşılıkları:</p>
+          
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th>DURUM</th>
+                <th style="color: var(--danger);">YANLIŞ</th>
+                <th style="color: var(--success);">DOĞRU</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Silah doğrultuldu</strong></td><td>Silah çekip sıkmaya çalışmak</td><td>Fear-RP: teslim ol, talimata uy</td></tr>
+              <tr><td><strong>Sistemsel öldün</strong></td><td>Spawn olup olaya dönmek</td><td>NLR: son 20 dk'yı unut, dönme</td></tr>
+              <tr><td><strong>Rol başlatma</strong></td><td>Direkt silaha davranmak</td><td>Trashtalk &rarr; brawl &rarr; silah</td></tr>
+              <tr><td><strong>Kaza yaptın</strong></td><td>Hiçbir şey olmamış gibi sürmek</td><td>Hasar/kaza RP'si yap</td></tr>
+              <tr><td><strong>Karşı taraf hata yaptı</strong></td><td>Hataya hatayla karşılık</td><td>POV al, ticket aç</td></tr>
+              <tr><td><strong>Ölü/düşmüş kişi</strong></td><td>Üzerinden loot / trashtalk</td><td>Dokunma; sahneye saygı</td></tr>
+              <tr><td><strong>Güvenli bölgede sorun</strong></td><td>Gasp/silah çekmek</td><td>Role uygun yere taşı</td></tr>
+              <tr><td><strong>OOC anlaşmazlık</strong></td><td>Genel sohbette tartışmak</td><td>Ticket aç, role devam et</td></tr>
+              <tr><td><strong>Ağır yaralısın</strong></td><td>Ağır iş / intikam</td><td>Süre dolana kadar yaralı rolü</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 12. Sık Sorulan Sorular (SSS) -->
+      <section id="section-faq" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>12</span> Sık Sorulan Sorular (SSS)</h2>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+              <h4 style="color: #fff; margin-bottom: 4px; font-size:14px;"><i class="fa-solid fa-circle-question text-primary"></i> Bir kişiyi ne kadar tutabilirim?</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">En fazla 45 dk (izinle uzatılır). Baygın/hood baskını istisnaları saklıdır.</p>
+            </div>
+            <div>
+              <h4 style="color: #fff; margin-bottom: 4px; font-size:14px;"><i class="fa-solid fa-circle-question text-primary"></i> Aynı kişiyi ne zaman tekrar kaçırabilirim?</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">En az 24 saat sonra.</p>
+            </div>
+            <div>
+              <h4 style="color: #fff; margin-bottom: 4px; font-size:14px;"><i class="fa-solid fa-circle-question text-primary"></i> Sistemsel ölünce ne kadar yaralı kalırım?</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Yumruk 15 dk · sopa 20 dk · bıçak 40 dk · silah 1 saat.</p>
+            </div>
+            <div>
+              <h4 style="color: #fff; margin-bottom: 4px; font-size:14px;"><i class="fa-solid fa-circle-question text-primary"></i> Öldükten sonra ne kadar süre çatışmaya giremem?</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Silahla ölümde en az 3 saat.</p>
+            </div>
+            <div>
+              <h4 style="color: #fff; margin-bottom: 4px; font-size:14px;"><i class="fa-solid fa-circle-question text-primary"></i> Araçtan ateş edebilir miyim?</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Hayır. Drive-by (araçtan ateş) bu sunucuda yasaktır.</p>
+            </div>
+            <div>
+              <h4 style="color: #fff; margin-bottom: 4px; font-size:14px;"><i class="fa-solid fa-circle-question text-primary"></i> Ekip kaç kişi olabilir?</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Min 10, max 25. İllegal faaliyette aynı anda max 15.</p>
+            </div>
+            <div>
+              <h4 style="color: #fff; margin-bottom: 4px; font-size:14px;"><i class="fa-solid fa-circle-question text-primary"></i> PD hood'a kaç kişi girer?</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">En az 3 ekip (6 kişi); tek girilmez.</p>
+            </div>
+            <div>
+              <h4 style="color: #fff; margin-bottom: 4px; font-size:14px;"><i class="fa-solid fa-circle-question text-primary"></i> Nerede gasp/kaçırma yapamam?</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Tüm güvenli bölgelerde (hastane, PD önü, banka vb.). Taco işletmesi hariç.</p>
+            </div>
+            <div>
+              <h4 style="color: #fff; margin-bottom: 4px; font-size:14px;"><i class="fa-solid fa-circle-question text-primary"></i> POV zorunlu mu?</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Çatışma, soygun, kaçırma, CK ve hit&run'da evet; yoksa savunma hakkı yok.</p>
+            </div>
+            <div>
+              <h4 style="color: #fff; margin-bottom: 4px; font-size:14px;"><i class="fa-solid fa-circle-question text-primary"></i> Kaç karakterim olabilir?</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Maksimum 1; 2. karakter yönetim iznine bağlı.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EK-B. Yönetim Izni Gereken Eylemler -->
+      <section id="section-permits" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>EK-B</span> Yönetim İzni Gereken Eylemler</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Aşağıdaki eylemler yalnızca yönetim onayı (ticket) ile yapılabilir. Onaysız yapılması kural ihlalidir.</p>
+          
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th>EYLEM</th>
+                <th>GEREKÇE / KOŞUL</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Patlatma / büyük zarar verme</strong></td><td>Ticket ile önceden onay</td></tr>
+              <tr><td><strong>Vezne, Kuyumcu, Banka ve büyük soygunlar</strong></td><td>Katılımcı + tarih bildirimli ticket</td></tr>
+              <tr><td><strong>Merkez Bankası / Kargo Gemisi</strong></td><td>Yönetim izni (3 gün önceden bildirim)</td></tr>
+              <tr><td><strong>Legal mekana saldırı</strong></td><td>Yönetim onayı</td></tr>
+              <tr><td><strong>CK / kalıcı hasar (izinsiz)</strong></td><td>Karşı taraf veya yönetim izni</td></tr>
+              <tr><td><strong>Uzuv kopartma</strong></td><td>Kalıcı hasar izni + ayrı izin</td></tr>
+              <tr><td><strong>Force CK</strong></td><td>Boss yetkisi / yönetim</td></tr>
+              <tr><td><strong>İşbaşı memur kaçırma</strong></td><td>Net delil + sebep + POV</td></tr>
+              <tr><td><strong>Snitch rolü</strong></td><td>OOC lider izni</td></tr>
+              <tr><td><strong>Ekstra division açma</strong></td><td>Legal manager onayı</td></tr>
+              <tr><td><strong>Müebbet yazma (yargıç)</strong></td><td>Yönetim onayı</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- EK-C. Hızlı Cevap İndeksi -->
+      <section id="section-index" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>EK-C</span> Hızlı Cevap İndeksi (A–Z)</h2>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Aradığın konuyu alfabetik olarak bul ve ilgili bölüme git.</p>
+
+          <div style="overflow-x: auto;">
+            <table class="rules-table" style="font-size: 12px;">
+              <thead>
+                <tr>
+                  <th>KONU</th>
+                  <th>YER</th>
+                  <th>KONU</th>
+                  <th>YER</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Ağır silah taşıma</td><td>İllegal Kit. · Çatışma</td><td>Polise karşı tavır (çete)</td><td>İllegal Kit. · Çete</td></tr>
+                <tr><td>Alt karakter (multi-char)</td><td>Bölüm 3.3</td><td>Powergame</td><td>Bölüm 2.2</td></tr>
+                <tr><td>ATM soygunu</td><td>İllegal Kit. · Soygun</td><td>POV zorunluluğu</td><td>Bölüm 2.8</td></tr>
+                <tr><td>Baiting (cop/EMS/gang)</td><td>İllegal Kit. · Yaralı</td><td>Priority (öncelik)</td><td>İllegal Kit. · Cooldown</td></tr>
+                <tr><td>Banka soygunları</td><td>İllegal Kit. · Soygun</td><td>RDM / VDM</td><td>Bölüm 2.3</td></tr>
+                <tr><td>Backstory / süreklilik</td><td>Bölüm 3.2</td><td>Revenge kill</td><td>İllegal Kit. · Yaralı</td></tr>
+                <tr><td>Araç çalma (Boosting)</td><td>İllegal Kit. · Soygun</td><td>Savaş / misilleme (çete)</td><td>İllegal Kit. · Çete</td></tr>
+                <tr><td>Ceza merdiveni</td><td>EK-A / Ceza Yönetmeliği</td><td>Character mixing</td><td>Bölüm 3.3</td></tr>
+                <tr><td>Coalition (ortak savunma)</td><td>İllegal Kit. · Çete</td><td>Combat log</td><td>Bölüm 2.6</td></tr>
+                <tr><td>Corner abuse</td><td>Bölüm 7.2</td><td>Third-party (3. taraf)</td><td>Bölüm 7.3</td></tr>
+                <tr><td>CK / PK</td><td>İllegal Kit. · Sosyal İllegal</td><td>Ticket / admin etiği</td><td>Bölüm 10</td></tr>
+                <tr><td>EMS / doktor kuralları</td><td>Legal Kit. · EMS</td><td>Güvenli bölge (safe zone)</td><td>Bölüm 7.1</td></tr>
+                <tr><td>Fear-RP</td><td>Bölüm 2.4</td><td>Yönetim izni eylemler</td><td>EK-B</td></tr>
+                <tr><td>Felony stop</td><td>Legal Kit. · Police</td><td>18+ / ERP sınırları</td><td>Bölüm 9</td></tr>
+                <tr><td>Küfür / ADK kuralları</td><td>Bölüm 9.1</td><td>İkincil karakter (LSPD/illegal)</td><td>Bölüm 3.3</td></tr>
+                <tr><td>Karakter yaşı (min 16)</td><td>Bölüm 3.1</td><td>CK — genel ilke</td><td>Bölüm 3.6</td></tr>
+                <tr><td>Şikayet ve savunma süreci</td><td>Bölüm 10.1</td><td>Sürüş gerçekçiliği / PIT</td><td>Bölüm 6</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- BÖLÜM IV. CEZA YÖNETMELİĞİ & KADEMELİ MERDİVEN -->
+      <section id="section-penalty-matrix" class="rule-section">
+        <div class="rule-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h2 class="rule-title" style="margin-bottom:0;"><span>IV</span> Ceza Yönetmeliği & Kademeli Merdiven</h2>
+            <span style="background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.4); color: #ef4444; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;">
+              RESMÎ YAPTIRIM TABLOSU
+            </span>
+          </div>
+
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+            Bu yönetmelik, EmpireV'de bir kuralın ihlali hâlinde uygulanacak yaptırımları tanımlar. Amaç, cezaları öngörülebilir ve adil kılmaktır.
+          </p>
+
+          <!-- Kademeli Artış Merdiveni -->
+          <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(59, 130, 246, 0.3); padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+            <h4 style="color: var(--primary); margin-top:0; font-size:15px; text-align:center;"><i class="fa-solid fa-stairs"></i> KADEMELİ ARTIŞ MERDİVENİ</h4>
+            <p style="font-size: 12px; color: var(--text-muted); text-align:center; margin-bottom: 15px;">
+              Uyarılar birikir. Toplam aktif uyarı sayısı aşağıdaki eşiklere ulaştığında uyarı otomatik olarak Whitelist (WL) cezasına dönüşür.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; text-align: center;">
+              <div style="background: rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); padding: 12px 6px; border-radius: 8px;">
+                <div style="color: #60a5fa; font-weight: 900; font-size: 16px;">4X</div>
+                <div style="color: #fff; font-size: 12px; font-weight: 700; margin-top: 4px;">1 GÜN WL</div>
+              </div>
+              <div style="background: rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); padding: 12px 6px; border-radius: 8px;">
+                <div style="color: #60a5fa; font-weight: 900; font-size: 16px;">5X</div>
+                <div style="color: #fff; font-size: 12px; font-weight: 700; margin-top: 4px;">2 GÜN WL</div>
+              </div>
+              <div style="background: rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); padding: 12px 6px; border-radius: 8px;">
+                <div style="color: #fbbf24; font-weight: 900; font-size: 16px;">6X</div>
+                <div style="color: #fff; font-size: 12px; font-weight: 700; margin-top: 4px;">3 GÜN WL</div>
+              </div>
+              <div style="background: rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); padding: 12px 6px; border-radius: 8px;">
+                <div style="color: #f87171; font-weight: 900; font-size: 16px;">7X</div>
+                <div style="color: #fff; font-size: 12px; font-weight: 700; margin-top: 4px;">4 GÜN WL</div>
+              </div>
+              <div style="background: rgba(220,38,38,0.25); border:1px solid #dc2626; padding: 12px 6px; border-radius: 8px;">
+                <div style="color: #ef4444; font-weight: 900; font-size: 16px;">8X</div>
+                <div style="color: #fff; font-size: 12px; font-weight: 700; margin-top: 4px;">5 GÜN WL</div>
+              </div>
+            </div>
+            <p style="font-size: 11px; color: #94a3b8; margin: 12px 0 0 0; text-align: center;">
+              * 1X, 2X ve 3X uyarıların zaman aşımı süresi veriliş tarihinden itibaren <strong>1 haftadır</strong>; 1 hafta dolunca silinir. 8X üstü ihlal doğrudan yönetim incelemesine taşınır (Perma imkânı).
+            </p>
+          </div>
+
+          <h3 style="font-size: 15px; color: var(--primary); margin: 20px 0 10px 0;">Öne Çıkan Yaptırım Listesi</h3>
+          <div style="overflow-x: auto;">
+            <table class="rules-table" style="font-size: 12px;">
+              <thead>
+                <tr>
+                  <th>İHLAL TÜ RÜ</th>
+                  <th>YAPTIRIM</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Hatalı /do - /me kullanımı / Rolsüz araç çalma</td><td><span style="color:#eab308; font-weight:700;">1X UYARI</span></td></tr>
+                <tr><td>Non-RP Driving / Refuse RP / Kaza rolüne girmemek</td><td><span style="color:#eab308; font-weight:700;">2X UYARI</span></td></tr>
+                <tr><td>Cop-Bait (normal) / Ölü kişiyi izinsiz lootlamak</td><td><span style="color:#eab308; font-weight:700;">2X UYARI</span></td></tr>
+                <tr><td>Low RP / Ölüye trashtalk / Gang-up / Pursuit istismarı</td><td><span style="color:#eab308; font-weight:700;">3X UYARI</span></td></tr>
+                <tr><td>Fail-RP / Powergame / IC-OOC Mixing / NLR ihlali / Revenge Kill</td><td><span style="color:#eab308; font-weight:700;">3X UYARI</span></td></tr>
+                <tr><td>Fear-RP ihlali / Güvenli Bölge ihlali / Bug Abuse / Absürt Rol</td><td><span style="color:#ef4444; font-weight:700;">1 GÜN WL</span></td></tr>
+                <tr><td>Combat Log / Stream Sniping / Meta Gaming</td><td><span style="color:#ef4444; font-weight:700;">2 GÜN WL</span></td></tr>
+                <tr><td>Rıza dışı cinsel içerik / ERP dayatması</td><td><span style="color:#ef4444; font-weight:900;">PERMA</span></td></tr>
+                <tr><td>Reşit olmayan / minör temalı içerik</td><td><span style="color:#ef4444; font-weight:900;">PERMA (SIFIR TOLERANS)</span></td></tr>
+                <tr><td>RDM (kasıtlı) / VDM (kasıtlı) / Dupe / Hile / Ağır Exploit</td><td><span style="color:#ef4444; font-weight:900;">PERMA</span></td></tr>
+                <tr><td>OOC Nefret Söylemi / Homofobi / Transfobi / Doxxing / Reklam</td><td><span style="color:#ef4444; font-weight:900;">PERMA</span></td></tr>
+                <tr><td>DDK (Dini ve Milli Değerlere Küfür) / OOC Küfür</td><td><span style="color:#ef4444; font-weight:900;">PERMA</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- EK-B. Yönetim Izni Gereken Eylemler -->
+      <section id="section-permits" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title"><span>EK-B</span> Yönetim İzni Gereken Eylemler</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Aşağıdaki eylemler yalnızca yönetim onayı (ticket açarak) ile yapılabilir. İzinsiz yapılması doğrudan kural ihlalidir.</p>
+          
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th>Eylem</th>
+                <th>Gerekçe / Koşul</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Patlatma / Büyük zarar verme rolleri</strong></td><td>Ticket ile önceden yazılı yönetim onayı</td></tr>
+              <tr><td><strong>Vezne, Kuyumcu, Paleto, Banka soygunları</strong></td><td>Katılımcı sayısı ve tarih bildirimli ticket</td></tr>
+              <tr><td><strong>Merkez Bankası / Kargo Gemisi soygunları</strong></td><td>En az 3 gün önceden detaylı plan bildirimi</td></tr>
+              <tr><td><strong>Legal binalara (Karakol vb.) saldırı</strong></td><td>Yönetimden özel durumsal onay</td></tr>
+              <tr><td><strong>CK / Kalıcı hasar rolleri (İzinsiz)</strong></td><td>Karşı tarafın yazılı onayı veya yönetim izni</td></tr>
+              <tr><td><strong>Uzuv kopartma rolleri</strong></td><td>Kalıcı hasar izni + ekstra yönetim izni</td></tr>
+              <tr><td><strong>İşbaşı memur (Polis/EMS) kaçırma</strong></td><td>Net rolsel deliller + haklı gerekçe bildirimi</td></tr>
+              <tr><td><strong>Bölge/Departman sınırları dışında operasyon</strong></td><td>Legal yöneticisi ve yönetim izni</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  // Add smooth scrolling to sidebar links and highlight active link on scroll
+  document.querySelectorAll('.rules-menu-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      const targetId = this.getAttribute('href');
+      const targetElement = document.querySelector(targetId);
+      
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth' });
+        
+        // Update active class immediately on click
+        document.querySelectorAll('.rules-menu-link').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      }
+    });
+  });
+
+  // Scroll Spy to update active sidebar item during scrolling
+  const sections = document.querySelectorAll('.rule-section');
+  const navLinks = document.querySelectorAll('.rules-menu-link');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      const sectionHeight = section.clientHeight;
+      if (pageYOffset >= (sectionTop - 120)) {
+        current = section.getAttribute('id');
+      }
+    });
+
+    if (current) {
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+          link.classList.add('active');
+        }
+      });
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

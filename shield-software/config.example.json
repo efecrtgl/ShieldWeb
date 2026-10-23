@@ -1,0 +1,58 @@
+{
+  "apiUrl": "http://localhost:3000/api/fivem/bridge/poll",
+  "secretKey": "CHANGE_ME_same_as_FIVEM_BRIDGE_SECRET_in_panel_env",
+  "pollInterval": 1000,
+  "serverStatus": true,
+  "dbLock": false,
+  "commands": {
+    "setjob": "setjob {id} {job} {grade}",
+    "setgang": "setgang {id} {gang} {grade}",
+    "giveitem": "giveitem {id} {item} {amount}",
+    "pedmenu": "pedmenu {id}",
+    "kill": "kill {id}",
+    "revive": "revive {id}",
+    "pedver": "pedver {id} {ped}",
+    "pedal": "pedal {id}",
+    "givemoney": "givemoney {id} {type} {amount}",
+    "clearinventory": "clearinventory {id}",
+    "removeitem": "removeitem {id} {item} {amount}"
+  },
+  "locations": {
+    "spawn": {
+      "x": -1041.5132,
+      "y": -2745.3735,
+      "z": 21.4744,
+      "label": "Spawn"
+    },
+    "hospital": {
+      "x": 1110.6072,
+      "y": -1465.3322,
+      "z": 34.8017,
+      "label": "Hastane"
+    },
+    "police": {
+      "x": 382.8608,
+      "y": -1024.3256,
+      "z": 29.6516,
+      "label": "MRPD"
+    },
+    "casino": {
+      "x": 886.1298,
+      "y": -1.6302,
+      "z": 78.875,
+      "label": "Casino"
+    },
+    "prison": {
+      "x": 1854.3348,
+      "y": 2585.7998,
+      "z": 45.7818,
+      "label": "Hapishane"
+    },
+    "motel": {
+      "x": -705.7981,
+      "y": -1284.808,
+      "z": 5.1104,
+      "label": "Vesspuci Motel"
+    }
+  }
+}

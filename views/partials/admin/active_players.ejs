@@ -1,0 +1,2044 @@
+<section id="active-players-mgmt-content" class="admin-section-inner" style="font-family: 'Inter', sans-serif;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-gamepad" style="color: var(--success);"></i> Aktif Oyuncular (FiveM)</h2>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span id="active-players-total-badge" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;">0 Oyuncu Aktif</span>
+      <span style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-lock"></i> SQL Kilitli (Discord & Console Aktif)
+      </span>
+    </div>
+  </div>
+
+  <div class="content-panel" style="padding: 24px; overflow-x: auto;">
+    <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div style="position: relative; width: 300px;">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; z-index: 2;"></i>
+        <input type="text" id="search-active-players-input" oninput="filterActivePlayersTable()" placeholder="Oyuncu ID (#12), adı, Discord ID veya karakter ara..." class="form-input" style="padding-left: 38px !important; height: 38px; border-radius: 8px; font-size: 13px; width: 100%;">
+      </div>
+
+      <!-- Görünüm Değiştirici (Tablo vs Canlı 2D Harita) -->
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button id="btn-view-table" onclick="switchActivePlayersView('table')" class="btn btn-secondary" style="background: rgba(0, 113, 227, 0.2); color: #fff; border: 1px solid rgba(0, 113, 227, 0.4); font-size: 12px; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-list"></i> Liste Görünümü
+        </button>
+        <button id="btn-view-map" onclick="switchActivePlayersView('map')" class="btn btn-secondary" style="background: rgba(255, 255, 255, 0.04); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 12px; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-map-location-dot"></i> Canlı 2D Harita
+        </button>
+      </div>
+    </div>
+
+    <!-- Tablo Görünümü -->
+    <div id="active-players-table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Oyuncu Adı (Game Name)</th>
+            <th>Discord ID</th>
+            <th>Karakter İsimleri</th>
+            <th>Ping</th>
+            <th style="text-align: right;">Eylemler</th>
+          </tr>
+        </thead>
+        <tbody id="active-players-table-body">
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 24px 0;">
+              <i class="fa-solid fa-spinner fa-spin" style="font-size: 18px; margin-bottom: 8px; color: var(--primary);"></i><br>Aktif oyuncu listesi alınıyor...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Canlı 2D Harita Görünümü (GTA V Map) -->
+    <div id="active-players-map-wrapper" style="display: none; margin-top: 12px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); position: relative;">
+      <div style="position: absolute; top: 14px; right: 14px; z-index: 1000; background: rgba(9, 10, 13, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.12); padding: 10px 16px; border-radius: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #34d399; box-shadow: 0 0 10px #34d399;"></span>
+        <span style="font-size: 12px; font-weight: 700; color: #fff;">GTA V Canlı Harita & Oyuncu Konumları</span>
+      </div>
+      <div id="active-players-map" style="width: 100%; height: 620px; background: #0c1626;"></div>
+    </div>
+  </div>
+</section>
+
+<div id="live-screen-modal" onclick="onLiveScreenBackdropClick(event)" style="display: none; position: fixed; inset: 0; background: rgba(5, 7, 12, 0.85); backdrop-filter: blur(16px) saturate(180%); z-index: 999999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.25s ease;">
+  <div class="modal-content" onclick="event.stopPropagation()" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.12); width: 1080px; max-width: 96vw; max-height: 94vh; border-radius: 18px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(16, 185, 129, 0.1); overflow: hidden; transform: scale(0.94); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; pointer-events: auto;">
+    <div style="padding: 16px 22px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.02); flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 20px;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 10px #10b981; animation: livePulseAnim 1.4s infinite;"></span>
+          <span style="font-size: 11px; font-weight: 800; color: #34d399; letter-spacing: 0.5px;">CANLI YAYIN</span>
+        </div>
+        <div style="font-size: 15px; font-weight: 700; color: #fff;">
+          <span id="live-screen-player-name">Oyuncu</span>
+          <span id="live-screen-player-id" style="font-size: 12px; color: var(--primary); font-family: monospace; margin-left: 6px; background: rgba(59, 130, 246, 0.15); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.3);">#0</span>
+        </div>
+        <span id="live-screen-ping" style="font-size: 11px; font-family: monospace; color: #34d399; background: rgba(255, 255, 255, 0.04); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.08);">
+          <i class="fa-solid fa-bolt" style="margin-right: 3px;"></i>0ms
+        </span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.06); padding: 4px 10px; border-radius: 8px; font-size: 11px; color: #94a3b8; font-family: monospace;">
+          <span>FPS: <strong id="live-screen-fps-stat" style="color: #38bdf8;">60.0</strong></span>
+          <span style="opacity: 0.3;">|</span>
+          <span>Gecikme: <strong id="live-screen-lag-stat" style="color: #34d399;">Ultra Düşük</strong></span>
+          <span style="opacity: 0.3;">|</span>
+          <span style="color: #a78bfa;"><i class="fa-solid fa-shield" style="font-size: 9px; margin-right: 2px;"></i>Full HD Donmasız</span>
+        </div>
+
+        <select id="live-screen-speed-select" onchange="changeLiveScreenSpeed(this.value)" style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; font-size: 11px; padding: 5px 8px; border-radius: 8px; outline: none; cursor: pointer;">
+          <option value="16" selected>60 FPS (Maksimum Akıcılık - Full HD)</option>
+          <option value="33">30 FPS (Ultra Akıcı - Full HD)</option>
+          <option value="66">15 FPS (Akıcı)</option>
+          <option value="200">5 FPS (Dengeli)</option>
+          <option value="850">1.2 FPS (Ultra Hafif)</option>
+        </select>
+
+        <button type="button" onclick="downloadLiveScreenSnapshot()" title="Anlık Ekranı İndir (Fotoğraf)" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #e2e8f0; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-camera"></i> Fotoğraf
+        </button>
+
+        <button type="button" onclick="toggleLiveScreenFullscreen()" title="Tam Ekran" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #e2e8f0; padding: 6px 10px; border-radius: 8px; font-size: 12px; cursor: pointer;">
+          <i class="fa-solid fa-expand"></i>
+        </button>
+
+        <button id="live-screen-close-btn" type="button" onclick="closeLiveScreenModal(event)" title="Yayını Kapat" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 6px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="live-screen-container" style="position: relative; width: 100%; height: 560px; max-height: 65vh; background: #07090e; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+      <div id="live-screen-loader" style="position: absolute; inset: 0; background: rgba(7, 9, 14, 0.92); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+        <div style="width: 44px; height: 44px; border: 3px solid rgba(16, 185, 129, 0.2); border-top-color: #10b981; border-radius: 50%; animation: spinAnim 0.8s linear infinite;"></div>
+        <div style="font-size: 13px; font-weight: 600; color: #e2e8f0;">Oyuncunun ekranına bağlanılıyor...</div>
+        <div style="font-size: 11px; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-gauge-high" style="color: #34d399;"></i> Full HD MJPEG Donanım Yayını • 0 FPS Drop Koruması
+        </div>
+      </div>
+
+      <img id="live-screen-viewport" src="" alt="Canlı Yayın" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background: #000;" />
+
+      <div style="position: absolute; bottom: 12px; left: 16px; z-index: 5; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 6px; font-family: monospace; font-size: 10px; color: #cbd5e1; display: flex; align-items: center; gap: 10px; pointer-events: none;">
+        <span>SHIELD SPECTATE</span>
+        <span style="opacity: 0.3;">•</span>
+        <span id="live-screen-hud-time">--:--:--</span>
+        <span style="opacity: 0.3;">•</span>
+        <span id="live-screen-hud-resolution">1920x1080 (Full HD)</span>
+      </div>
+    </div>
+
+    <div style="padding: 12px 22px; background: rgba(0, 0, 0, 0.4); border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+          <i class="fa-solid fa-gamepad" style="margin-right: 4px;"></i> Hızlı Aksiyon:
+        </span>
+        <button onclick="quickActionScreenRevive()" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          <i class="fa-solid fa-heart-pulse"></i> Canlandır
+        </button>
+        <button onclick="quickActionScreenKill()" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          <i class="fa-solid fa-skull"></i> Öldür
+        </button>
+        <button onclick="quickActionScreenDm()" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          <i class="fa-solid fa-message"></i> Mesaj Gönder
+        </button>
+        <button onclick="openKickModal(currentStreamingPlayerId, document.getElementById('live-screen-player-name')?.innerText)" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          <i class="fa-solid fa-user-xmark"></i> Kickle
+        </button>
+        <button onclick="openBanModal(currentStreamingPlayerId, document.getElementById('live-screen-player-name')?.innerText)" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          <i class="fa-solid fa-gavel"></i> Banla
+        </button>
+      </div>
+
+      <div style="font-size: 11px; color: #64748b; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
+        <span>Pencere kapandığında oyuncu yayını anında sonlanır ve hiçbir FPS kaybı yaşanmaz.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KICK MODAL (Sebep Gerektiren Modal) -->
+<div id="active-player-kick-modal" class="modal-backdrop" onclick="onActivePlayerKickBackdropClick(event)"
+  style="display: none; position: fixed; inset: 0; background: rgba(5, 7, 12, 0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 1000002; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.25s ease;">
+  <div class="modal-content" onclick="event.stopPropagation()"
+    style="background: rgba(18, 20, 28, 0.98); border: 1px solid rgba(245, 158, 11, 0.35); width: 540px; max-width: 94vw; border-radius: 16px; box-shadow: 0 25px 60px rgba(0,0,0,0.85), 0 0 40px rgba(245, 158, 11, 0.15); overflow: hidden; transform: scale(0.94); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column;">
+    
+    <!-- Modal Header -->
+    <div style="padding: 18px 22px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(245, 158, 11, 0.06);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-user-xmark" style="color: #fbbf24; font-size: 16px;"></i>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #fff;">Oyuncuyu Sunucudan At (Kick)</h3>
+          <p style="margin: 2px 0 0; font-size: 11px; color: var(--text-muted);">FiveM sunucu bağlantısını anında sonlandırır</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeActivePlayerKickModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; transition: all 0.2s;">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div style="padding: 22px; display: flex; flex-direction: column; gap: 16px;">
+      <!-- Player Info Card -->
+      <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="font-size: 13px; font-weight: 700; color: #fff;">
+            <span id="kick-modal-player-name">Oyuncu Adı</span>
+            <span id="kick-modal-player-id" style="font-family: monospace; font-size: 11px; color: var(--primary); background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); padding: 2px 8px; border-radius: 6px; margin-left: 6px;">#0</span>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;" id="kick-modal-discord-id">
+          Discord: -
+        </div>
+      </div>
+
+      <!-- Kick Reason Textarea -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+          <span><i class="fa-solid fa-comment-dots" style="color: #fbbf24; margin-right: 6px;"></i>Kick Nedeni / Gerekçesi <strong style="color: #ef4444;">*</strong></span>
+          <span style="font-size: 10px; color: #f87171; font-weight: 600;">(Zorunlu)</span>
+        </label>
+        <textarea id="kick-modal-reason-input" rows="3" class="form-input" placeholder="Oyuncunun neden kicklendiğini detaylıca belirtiniz... (Oyuncu ekranında bu açıklama görünecektir)" style="resize: vertical; border-radius: 8px; font-size: 12px; padding: 10px 12px; width: 100%; min-height: 80px;"></textarea>
+      </div>
+
+      <!-- Quick Reason Chips -->
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Hızlı Sebep Şablonları:</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <button type="button" onclick="setKickReasonPreset('Yetkili Çağrısına Uymama (Destek Talebi)')" class="reason-preset-btn">Yetkili Çağrısı</button>
+          <button type="button" onclick="setKickReasonPreset('Troll Davranış / Uygunsuz Hareketler')" class="reason-preset-btn">Troll Davranış</button>
+          <button type="button" onclick="setKickReasonPreset('Rol Bölme / Rol Dışı (Fail RP)')" class="reason-preset-btn">Rol Bölme (Fail RP)</button>
+          <button type="button" onclick="setKickReasonPreset('Uygunsuz Karakter / Karakter İsmi Değişimi')" class="reason-preset-btn">Karakter / Nick</button>
+          <button type="button" onclick="setKickReasonPreset('Mikrofon / Kulaklık / Ses İletişim Sorunu')" class="reason-preset-btn">Mikrofon Sorunu</button>
+          <button type="button" onclick="setKickReasonPreset('OOC Konuşma / Kural Hatırlatması')" class="reason-preset-btn">OOC Konuşma</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div style="padding: 14px 22px; background: rgba(0, 0, 0, 0.4); border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+      <button type="button" onclick="closeActivePlayerKickModal()" style="background: rgba(255, 255, 255, 0.06); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+        Vazgeç
+      </button>
+      <button type="button" id="btn-submit-active-player-kick" onclick="executeKickPlayer()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; border: none; padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35); transition: all 0.2s;">
+        <i class="fa-solid fa-user-xmark"></i> Oyuncuyu Kickle
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- BAN MODAL (Sebep ve Süre Seçimi İçeren Sistem) -->
+<div id="active-player-ban-modal" class="modal-backdrop" onclick="onActivePlayerBanBackdropClick(event)"
+  style="display: none; position: fixed; inset: 0; background: rgba(5, 7, 12, 0.9); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 1000002; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.25s ease;">
+  <div class="modal-content" onclick="event.stopPropagation()"
+    style="background: rgba(18, 20, 28, 0.98); border: 1px solid rgba(239, 68, 68, 0.4); width: 560px; max-width: 94vw; border-radius: 16px; box-shadow: 0 25px 60px rgba(0,0,0,0.85), 0 0 40px rgba(239, 68, 68, 0.2); overflow: hidden; transform: scale(0.94); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column;">
+    
+    <!-- Modal Header -->
+    <div style="padding: 18px 22px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(239, 68, 68, 0.08);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.35); display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-gavel" style="color: #f87171; font-size: 16px;"></i>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #fff;">Oyuncuyu Sunucudan Yasakla (Ban)</h3>
+          <p style="margin: 2px 0 0; font-size: 11px; color: var(--text-muted);">FiveM & Whitelist ceza sistemine anında işlenir</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeActivePlayerBanModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; transition: all 0.2s;">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div style="padding: 22px; display: flex; flex-direction: column; gap: 16px; max-height: 75vh; overflow-y: auto;">
+      <!-- Player Info Card -->
+      <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="font-size: 13px; font-weight: 700; color: #fff;">
+            <span id="ban-modal-player-name">Oyuncu Adı</span>
+            <span id="ban-modal-player-id" style="font-family: monospace; font-size: 11px; color: var(--danger); background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); padding: 2px 8px; border-radius: 6px; margin-left: 6px;">#0</span>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;" id="ban-modal-discord-id">
+          Discord: -
+        </div>
+      </div>
+
+      <!-- Ban Duration Selection System -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+          <span><i class="fa-solid fa-clock" style="color: #f87171; margin-right: 6px;"></i>Yasaklama Süresi <strong style="color: #ef4444;">*</strong></span>
+          <span id="ban-duration-summary-badge" style="font-size: 11px; color: #f87171; font-weight: 700; background: rgba(239,68,68,0.15); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(239,68,68,0.3);">3 Gün</span>
+        </label>
+        
+        <!-- Duration Dropdown -->
+        <select id="ban-modal-duration-select" onchange="onBanModalDurationSelectChange(this.value)" class="form-input" style="height: 38px; border-radius: 8px; font-size: 12px; width: 100%; cursor: pointer;">
+          <option value="1_hour">1 Saat</option>
+          <option value="3_hours">3 Saat</option>
+          <option value="6_hours">6 Saat</option>
+          <option value="12_hours">12 Saat</option>
+          <option value="1_day">1 Gün (24 Saat)</option>
+          <option value="3_days" selected>3 Gün</option>
+          <option value="7_days">7 Gün (1 Hafta)</option>
+          <option value="14_days">14 Gün (2 Hafta)</option>
+          <option value="30_days">30 Gün (1 Ay)</option>
+          <option value="perma">⛔ Kalıcı / Sınırsız (Perma Ban)</option>
+          <option value="custom">⚙️ Özel Süre Belirle...</option>
+        </select>
+
+        <!-- Fast Duration Preset Chips -->
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px;">
+          <button type="button" onclick="setBanDurationPreset('1_hour')" class="duration-preset-btn">1 Saat</button>
+          <button type="button" onclick="setBanDurationPreset('1_day')" class="duration-preset-btn">1 Gün</button>
+          <button type="button" onclick="setBanDurationPreset('3_days')" class="duration-preset-btn active">3 Gün</button>
+          <button type="button" onclick="setBanDurationPreset('7_days')" class="duration-preset-btn">7 Gün</button>
+          <button type="button" onclick="setBanDurationPreset('14_days')" class="duration-preset-btn">14 Gün</button>
+          <button type="button" onclick="setBanDurationPreset('30_days')" class="duration-preset-btn">30 Gün</button>
+          <button type="button" onclick="setBanDurationPreset('perma')" class="duration-preset-btn perma">⛔ Kalıcı</button>
+        </div>
+
+        <!-- Custom Duration Inputs (Conditional) -->
+        <div id="ban-modal-custom-duration-wrap" style="display: none; margin-top: 8px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); padding: 10px 12px; border-radius: 8px; gap: 8px; align-items: center;">
+          <span style="font-size: 11px; color: var(--text-muted); flex-shrink: 0;">Özel Miktar:</span>
+          <input type="number" id="ban-modal-custom-value" min="1" placeholder="Miktar" class="form-input" style="height: 32px; width: 100px; font-size: 12px; padding: 0 10px;">
+          <select id="ban-modal-custom-unit" class="form-input" style="height: 32px; font-size: 12px; flex: 1;">
+            <option value="hours">Saat</option>
+            <option value="days" selected>Gün</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Ban Reason Textarea -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+          <span><i class="fa-solid fa-comment-dots" style="color: #f87171; margin-right: 6px;"></i>Yasaklama Sebebi / İhlal Gerekçesi <strong style="color: #ef4444;">*</strong></span>
+          <span style="font-size: 10px; color: #f87171; font-weight: 600;">(Zorunlu)</span>
+        </label>
+        <textarea id="ban-modal-reason-input" rows="3" class="form-input" placeholder="Oyuncunun sunucudan neden yasaklandığını detaylıca yazınız... (Oyuncu giriş yapmaya çalıştığında bu sebep gösterilecektir)" style="resize: vertical; border-radius: 8px; font-size: 12px; padding: 10px 12px; width: 100%; min-height: 80px;"></textarea>
+      </div>
+
+      <!-- Quick Reason Chips -->
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Hızlı Ceza Maddeleri:</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <button type="button" onclick="setBanReasonPreset('Hile / 3. Parti Zararlı Yazılım Kullanımı')" class="reason-preset-btn danger">Hile / 3. Parti</button>
+          <button type="button" onclick="setBanReasonPreset('RDM / VDM (Toplu Katliam & Kural İhlali)')" class="reason-preset-btn danger">RDM / VDM</button>
+          <button type="button" onclick="setBanReasonPreset('Ağır Hakaret / Ailevi Değerlere Küfür / Toksisite')" class="reason-preset-btn danger">Ağır Hakaret / Küfür</button>
+          <button type="button" onclick="setBanReasonPreset('Bug Abuse / Dupe / Ekonomi İstismarı')" class="reason-preset-btn danger">Bug Abuse / Dupe</button>
+          <button type="button" onclick="setBanReasonPreset('Sunucu Düzenini & Rol Ortamını Kasten Bozma')" class="reason-preset-btn danger">Sunucu Düzeni</button>
+          <button type="button" onclick="setBanReasonPreset('Ağır Rol Bölme / İnisiyatif İhlali (Fail RP)')" class="reason-preset-btn danger">Ağır Fail RP</button>
+        </div>
+      </div>
+
+      <!-- Integration Option -->
+      <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="ban-modal-sync-discord" checked style="accent-color: #ef4444; width: 16px; height: 16px; cursor: pointer;">
+          <label for="ban-modal-sync-discord" style="font-size: 12px; color: #e2e8f0; cursor: pointer;">
+            Discord & Whitelist Ceza Listesine ve Ceza Paneline Kaydet
+          </label>
+        </div>
+        <span style="font-size: 10px; color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle-check" style="margin-right: 3px;"></i>Otomatik</span>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div style="padding: 14px 22px; background: rgba(0, 0, 0, 0.4); border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+      <button type="button" onclick="closeActivePlayerBanModal()" style="background: rgba(255, 255, 255, 0.06); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+        Vazgeç
+      </button>
+      <button type="button" id="btn-submit-active-player-ban" onclick="executeBanPlayer()" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; border: none; padding: 8px 20px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); transition: all 0.2s;">
+        <i class="fa-solid fa-gavel"></i> Oyuncuyu Banla
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes livePulseAnim {
+  0% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+@keyframes spinAnim {
+  to { transform: rotate(360deg); }
+}
+
+.reason-preset-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.reason-preset-btn:hover {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+.reason-preset-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.duration-preset-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.duration-preset-btn:hover, .duration-preset-btn.active {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+.duration-preset-btn.perma:hover, .duration-preset-btn.perma.active {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: #ef4444;
+  color: #fff;
+}
+</style>
+
+<script>
+  let activePlayersCached = [];
+  let activeDetailsPlayerId = null;
+  let leafletActiveMap = null;
+  let leafletMapMarkers = {};
+  let currentActivePlayersView = 'table';
+
+  document.addEventListener("DOMContentLoaded", () => {
+    var section = document.getElementById("active-players-mgmt");
+    if (section) {
+      var observer = new MutationObserver(function() {
+        if (section.classList.contains('active')) {
+          fetchActivePlayersWithCharacters();
+        }
+      });
+      observer.observe(section, { attributes: true, attributeFilter: ['class', 'style'] });
+    }
+
+    if (window.location.hash === "#active-players-mgmt") {
+      fetchActivePlayersWithCharacters();
+    }
+
+    setInterval(function() {
+      var sec = document.getElementById("active-players-mgmt");
+      if (sec && sec.classList.contains('active')) {
+        fetchActivePlayersWithCharacters();
+      }
+    }, 8000);
+  });
+
+  window.switchActivePlayersView = function(view) {
+    currentActivePlayersView = view;
+    const tableWrap = document.getElementById("active-players-table-wrapper");
+    const mapWrap = document.getElementById("active-players-map-wrapper");
+    const btnTable = document.getElementById("btn-view-table");
+    const btnMap = document.getElementById("btn-view-map");
+
+    if (view === 'map') {
+      tableWrap.style.display = "none";
+      mapWrap.style.display = "block";
+      btnMap.style.background = "rgba(0, 113, 227, 0.2)";
+      btnMap.style.color = "#fff";
+      btnMap.style.borderColor = "rgba(0, 113, 227, 0.4)";
+
+      btnTable.style.background = "rgba(255, 255, 255, 0.04)";
+      btnTable.style.color = "var(--text-muted)";
+      btnTable.style.borderColor = "var(--border-color)";
+
+      initLeafletFiveMMap();
+    } else {
+      tableWrap.style.display = "block";
+      mapWrap.style.display = "none";
+      btnTable.style.background = "rgba(0, 113, 227, 0.2)";
+      btnTable.style.color = "#fff";
+      btnTable.style.borderColor = "rgba(0, 113, 227, 0.4)";
+
+      btnMap.style.background = "rgba(255, 255, 255, 0.04)";
+      btnMap.style.color = "var(--text-muted)";
+      btnMap.style.borderColor = "var(--border-color)";
+    }
+  };
+
+  function initLeafletFiveMMap() {
+    if (leafletActiveMap || typeof L === 'undefined') {
+      if (leafletActiveMap) {
+        leafletActiveMap.invalidateSize();
+        updateLeafletMapMarkers();
+      }
+      return;
+    }
+
+    // GTA V Coordinate Space: X (-4000 to +4000), Y (-4000 to +8000)
+    const gtavBounds = [[-4000, -4000], [8000, 4000]];
+
+    leafletActiveMap = L.map('active-players-map', {
+      crs: L.CRS.Simple,
+      minZoom: -3,
+      maxZoom: 4,
+      zoomSnap: 0.5
+    });
+
+    // GTA V High Definition Atlas Map Overlay (Local Asset)
+    const gtavMapOverlayUrl = '/images/gta_map.png';
+
+    L.imageOverlay(gtavMapOverlayUrl, gtavBounds, {
+      opacity: 0.95,
+      attribution: 'FiveM GTA V Atlas Map'
+    }).addTo(leafletActiveMap);
+
+    leafletActiveMap.fitBounds(gtavBounds);
+    leafletActiveMap.setView([1500, 0], -1);
+
+    updateLeafletMapMarkers();
+  }
+
+  function updateLeafletMapMarkers() {
+    if (!leafletActiveMap || typeof L === 'undefined') return;
+
+    const currentIds = new Set(activePlayersCached.map(p => p.id));
+    Object.keys(leafletMapMarkers).forEach(id => {
+      if (!currentIds.has(Number(id)) && !currentIds.has(id)) {
+        leafletActiveMap.removeLayer(leafletMapMarkers[id]);
+        delete leafletMapMarkers[id];
+      }
+    });
+
+    activePlayersCached.forEach((p, idx) => {
+      // GTA V coordinates [latitude=Y, longitude=X]
+      let lat = (p.coords && typeof p.coords.y === 'number') ? p.coords.y : (Math.sin(idx + 1) * 1400 + 1000);
+      let lng = (p.coords && typeof p.coords.x === 'number') ? p.coords.x : (Math.cos(idx + 1) * 1400);
+
+      const charName = (p.characterNames || []).join(', ') || 'Karakter Yok';
+      const tooltipContent = `#${p.id} ${p.name || 'Oyuncu'} (${charName})`;
+
+      const popupHtml = `
+        <div style="font-family: 'Inter', sans-serif; padding: 6px; color: #fff; min-width: 180px;">
+          <div style="font-weight: 800; font-size: 14px; color: var(--primary); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-gamepad"></i> #${p.id} ${p.name || 'Oyuncu'}
+          </div>
+          <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 4px;">
+            <strong>Karakter:</strong> ${charName}
+          </div>
+          <div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">
+            <strong>Ping:</strong> <span style="color: ${p.ping < 50 ? '#34d399' : '#f87171'};">${p.ping || 0}ms</span>
+          </div>
+          <div style="display: flex; gap: 6px; margin-top: 6px;">
+            <button onclick="openLiveScreenModal('${p.id}', '${(p.name || '').replace(/'/g, "\\'")}', '${p.ping || 0}')" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <i class="fa-solid fa-desktop"></i> Ekran İzle
+            </button>
+            <button onclick="viewPlayerDetails('${p.discordId || ''}', '${p.id}', '${(p.name || '').replace(/'/g, "\\'")}')" style="background: var(--primary); color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <i class="fa-solid fa-circle-info"></i> Detay
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (leafletMapMarkers[p.id]) {
+        leafletMapMarkers[p.id].setLatLng([lat, lng]);
+        leafletMapMarkers[p.id].setTooltipContent(tooltipContent);
+      } else {
+        const marker = L.circleMarker([lat, lng], {
+          radius: 8,
+          fillColor: '#10b981',
+          color: '#ffffff',
+          weight: 2.5,
+          opacity: 1,
+          fillOpacity: 0.95
+        }).addTo(leafletActiveMap);
+
+        marker.bindTooltip(tooltipContent, {
+          permanent: false,
+          direction: 'top',
+          offset: [0, -6],
+          className: 'gtav-map-tooltip'
+        });
+
+        marker.bindPopup(popupHtml);
+        leafletMapMarkers[p.id] = marker;
+      }
+    });
+  }
+
+  async function fetchActivePlayersWithCharacters() {
+    const tbody = document.getElementById("active-players-table-body");
+    if (!tbody) return;
+
+    try {
+      const res = await fetch("/api/fivem/active-players-characters");
+      const data = await res.json();
+      if (data.success) {
+        activePlayersCached = data.players || [];
+        filterActivePlayersTable();
+        updateLeafletMapMarkers();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function filterActivePlayersTable() {
+    const rawQuery = document.getElementById("search-active-players-input").value.toLowerCase().trim();
+    const cleanIdQuery = rawQuery.startsWith("#") ? rawQuery.substring(1) : rawQuery;
+    const tbody = document.getElementById("active-players-table-body");
+    const badge = document.getElementById("active-players-total-badge");
+
+    if (badge) {
+      badge.innerText = `${activePlayersCached.length} Oyuncu Aktif`;
+    }
+
+    const filtered = activePlayersCached.filter(p => {
+      const charStr = (p.characterNames || []).join(", ").toLowerCase();
+      const inGameIdStr = String(p.id != null ? p.id : "").toLowerCase();
+      const hashedIdStr = "#" + inGameIdStr;
+      const pName = (p.name || "").toLowerCase();
+      const pDiscordId = (p.discordId || "").toLowerCase();
+      const identifiersMatch = (p.identifiers || []).some(id => String(id).toLowerCase().includes(rawQuery));
+
+      return (
+        inGameIdStr === cleanIdQuery ||
+        hashedIdStr.includes(rawQuery) ||
+        inGameIdStr.includes(cleanIdQuery) ||
+        pName.includes(rawQuery) ||
+        pDiscordId.includes(rawQuery) ||
+        charStr.includes(rawQuery) ||
+        identifiersMatch
+      );
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 24px 0;">Aktif oyuncu bulunamadı.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    let html = '';
+    filtered.forEach(p => {
+      let charactersList = '<span style="color: var(--text-muted); font-style: italic;">Karakter Yok</span>';
+      if (p.characterNames && p.characterNames.length > 0) {
+        charactersList = p.characterNames.map(cn => `<span style="background: rgba(59, 130, 246, 0.12); color: #60a5fa; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px; display: inline-block;"><i class="fa-solid fa-user" style="font-size: 10px; margin-right: 3px;"></i>${cn}</span>`).join(" ");
+      }
+
+      const safeName = (p.name || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+      html += `
+        <tr>
+          <td style="font-weight: 700; color: var(--primary); font-family: monospace;">#${p.id}</td>
+          <td style="font-weight: 600; color: #fff;">${p.name}</td>
+          <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">${p.discordId || "Yok"}</td>
+          <td>${charactersList}</td>
+          <td style="font-family: monospace; color: ${p.ping < 50 ? '#34d399' : '#f87171'}; font-weight: 700;"><i class="fa-solid fa-bolt" style="font-size: 10px; margin-right: 4px;"></i>${p.ping}ms</td>
+          <td style="text-align: right; white-space: nowrap; display: flex; gap: 6px; justify-content: flex-end;">
+            <button onclick="openLiveScreenModal('${p.id}', '${safeName}', '${p.ping || 0}')" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+              <i class="fa-solid fa-desktop"></i> Ekran İzle
+            </button>
+            <button onclick="openKickModal('${p.id}', '${safeName}', '${p.discordId || ""}')" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Sunucudan Kickle">
+              <i class="fa-solid fa-user-xmark"></i> Kick
+            </button>
+            <button onclick="openBanModal('${p.id}', '${safeName}', '${p.discordId || ""}')" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Sunucudan Yasakla">
+              <i class="fa-solid fa-gavel"></i> Ban
+            </button>
+            <button onclick="viewPlayerDetails('${p.discordId || ""}', '${p.id}', '${safeName}')" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">
+              <i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i> Detay
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = html;
+  }
+
+  window.copyModalIdentifier = function(elemId, btn) {
+    const el = document.getElementById(elemId);
+    if (!el) return;
+    const val = el.getAttribute("data-real-ip") || el.getAttribute("data-full-val") || el.innerText;
+    if (!val || val === "-" || val === "Bulunamadı") return;
+    navigator.clipboard.writeText(val).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check" style="color: #34d399;"></i>';
+      setTimeout(() => {
+        btn.innerHTML = orig;
+      }, 1500);
+    });
+  };
+
+  window.toggleModalIpVisibility = function(btn) {
+    const el = document.getElementById("modal-ident-ip");
+    if (!el) return;
+    const realIp = el.getAttribute("data-real-ip");
+    if (!realIp || realIp === "-" || realIp === "Bulunamadı") return;
+    const isHidden = el.getAttribute("data-hidden") === "true";
+    if (isHidden) {
+      el.innerText = realIp;
+      el.setAttribute("data-hidden", "false");
+      btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    } else {
+      el.innerText = "••••••••••••";
+      el.setAttribute("data-hidden", "true");
+      btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    }
+  };
+
+  function setModalIdentValue(elemId, val) {
+    const el = document.getElementById(elemId);
+    const btn = document.getElementById(elemId + "-btn");
+    if (!el) return;
+    if (val && String(val).trim().length > 0) {
+      el.innerText = String(val).trim();
+      el.setAttribute("data-full-val", String(val).trim());
+      el.style.color = "#e2e8f0";
+      el.style.fontStyle = "normal";
+      if (btn) btn.style.display = "inline-flex";
+    } else {
+      el.innerText = "Bulunamadı";
+      el.removeAttribute("data-full-val");
+      el.style.color = "var(--text-muted)";
+      el.style.fontStyle = "italic";
+      if (btn) btn.style.display = "none";
+    }
+  }
+
+  function setModalIdentIp(val) {
+    const el = document.getElementById("modal-ident-ip");
+    const toggleBtn = document.getElementById("modal-ident-ip-toggle-btn");
+    const copyBtn = document.getElementById("modal-ident-ip-btn");
+    if (!el) return;
+    if (val && String(val).trim().length > 0) {
+      const cleanIp = String(val).trim();
+      el.setAttribute("data-real-ip", cleanIp);
+      el.setAttribute("data-hidden", "true");
+      el.innerText = "••••••••••••";
+      el.style.color = "#e2e8f0";
+      el.style.fontStyle = "normal";
+      if (toggleBtn) {
+        toggleBtn.style.display = "inline-flex";
+        toggleBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+      }
+      if (copyBtn) copyBtn.style.display = "inline-flex";
+    } else {
+      el.innerText = "Bulunamadı";
+      el.removeAttribute("data-real-ip");
+      el.setAttribute("data-hidden", "false");
+      el.style.color = "var(--text-muted)";
+      el.style.fontStyle = "italic";
+      if (toggleBtn) toggleBtn.style.display = "none";
+      if (copyBtn) copyBtn.style.display = "none";
+    }
+  }
+
+  function renderPlayerIdentifiers(playerObj, fallbackDiscordId = "") {
+    const info = (playerObj && playerObj.generalInfo) ? playerObj.generalInfo : {};
+    const identifiersList = (playerObj && Array.isArray(playerObj.identifiers)) ? playerObj.identifiers : [];
+
+    const getVal = (key) => {
+      let val = "";
+      if (info && info[key]) {
+        val = info[key];
+      } else {
+        const match = identifiersList.find(id => typeof id === "string" && id.toLowerCase().startsWith(key.toLowerCase() + ":"));
+        if (match) {
+          const colonIdx = match.indexOf(":");
+          val = match.substring(colonIdx + 1);
+        } else if (playerObj && playerObj[key] !== undefined && playerObj[key] !== null) {
+          val = String(playerObj[key]);
+        }
+      }
+      if (val && typeof val === "string" && val.toLowerCase().startsWith(key.toLowerCase() + ":")) {
+        val = val.substring(key.length + 1);
+      }
+      return val ? String(val).trim() : "";
+    };
+
+    const fivem = getVal("fivem");
+    const discord = getVal("discord") || (playerObj ? playerObj.discordId : "") || fallbackDiscordId || "";
+    const license2 = getVal("license2") || getVal("licanse2");
+    const license = getVal("license") || getVal("licanse");
+    const steam = getVal("steam");
+    const xbl = getVal("xbl") || getVal("live");
+    const ip = getVal("ip") || (playerObj && playerObj.endpoint ? String(playerObj.endpoint).split(":")[0] : "") || (playerObj && playerObj.ip ? String(playerObj.ip) : "");
+
+    setModalIdentValue("modal-ident-fivem", fivem);
+    setModalIdentValue("modal-ident-discord", discord);
+    setModalIdentValue("modal-ident-license2", license2);
+    setModalIdentValue("modal-ident-license", license);
+    setModalIdentValue("modal-ident-steam", steam);
+    setModalIdentValue("modal-ident-xbl", xbl);
+    setModalIdentIp(ip);
+  }
+
+  async function viewPlayerDetails(discordId, serverId, serverName) {
+    const modal = document.getElementById("player-details-modal");
+    if (!modal) return;
+
+    activeDetailsPlayerId = serverId;
+
+    const elJob = document.getElementById("cmd-setjob-job");
+    if (elJob) elJob.value = "";
+    const elGrade = document.getElementById("cmd-setjob-grade");
+    if (elGrade) elGrade.value = "";
+    const elGang = document.getElementById("cmd-setgang-gang");
+    if (elGang) elGang.value = "";
+    const elGangGrade = document.getElementById("cmd-setgang-grade");
+    if (elGangGrade) elGangGrade.value = "";
+    const elItem = document.getElementById("cmd-giveitem-item");
+    if (elItem) elItem.value = "";
+    const elAmount = document.getElementById("cmd-giveitem-amount");
+    if (elAmount) elAmount.value = "";
+    const elDm = document.getElementById("cmd-dm-message");
+    if (elDm) elDm.value = "";
+    const elPed = document.getElementById("cmd-pedver-model");
+    if (elPed) elPed.value = "";
+    const elPlate = document.getElementById("cmd-vreturn-plate");
+    if (elPlate) elPlate.value = "";
+
+    document.getElementById("modal-player-title").innerText = `${serverName} Detayları`;
+    document.getElementById("modal-player-id").innerText = serverId;
+    document.getElementById("modal-player-name").innerText = serverName;
+    
+    let playerObj = Array.isArray(activePlayersCached)
+      ? activePlayersCached.find(p => String(p.id) === String(serverId) || (discordId && p.discordId && String(p.discordId) === String(discordId)))
+      : null;
+
+    document.getElementById("modal-player-ping").innerHTML = (playerObj && playerObj.ping !== undefined && playerObj.ping !== null)
+      ? `<i class="fa-solid fa-bolt"></i> ${playerObj.ping}ms` 
+      : "-";
+
+    renderPlayerIdentifiers(playerObj, discordId);
+
+    document.getElementById("modal-discord-loading").style.display = "block";
+    document.getElementById("modal-discord-content").style.display = "none";
+    document.getElementById("modal-characters-loading").style.display = "block";
+    
+    const charContent = document.getElementById("modal-characters-content");
+    charContent.innerHTML = "";
+
+    // Show modal
+    modal.style.display = "flex";
+    modal.style.pointerEvents = "auto";
+    setTimeout(() => {
+      modal.style.opacity = "1";
+      modal.querySelector(".modal-content").style.transform = "scale(1)";
+    }, 10);
+
+    if (!discordId) {
+      document.getElementById("modal-discord-loading").style.display = "none";
+      document.getElementById("modal-discord-content").style.display = "block";
+      document.getElementById("modal-discord-username").innerText = "Yok";
+      document.getElementById("modal-discord-id").innerText = "Bulunamadı";
+      document.getElementById("modal-discord-avatar").src = "";
+      document.getElementById("modal-discord-whitelist").innerHTML = `<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> Whitelist Yok</span>`;
+      document.getElementById("modal-discord-warnings").innerText = "0";
+      
+      document.getElementById("modal-characters-loading").style.display = "none";
+      charContent.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-style: italic; padding: 16px;">Bu oyuncuya bağlı Discord hesabı bulunmadığı için karakter bilgisi çekilemedi.</div>`;
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/fivem/player-detail/${encodeURIComponent(discordId)}?serverId=${encodeURIComponent(serverId || "")}`);
+      const data = await res.json();
+      
+      document.getElementById("modal-discord-loading").style.display = "none";
+      
+      if (data.success) {
+        if (data.onlinePlayer) {
+          renderPlayerIdentifiers(data.onlinePlayer, discordId);
+          if (data.onlinePlayer.ping !== undefined && data.onlinePlayer.ping !== null) {
+            document.getElementById("modal-player-ping").innerHTML = `<i class="fa-solid fa-bolt"></i> ${data.onlinePlayer.ping}ms`;
+          }
+        }
+        // Discord User Info
+        document.getElementById("modal-discord-content").style.display = "block";
+        const du = data.discordUser;
+        if (du) {
+          document.getElementById("modal-discord-username").innerText = du.username || "Bilinmiyor";
+          document.getElementById("modal-discord-id").innerText = du.discordId;
+          document.getElementById("modal-discord-avatar").src = du.avatarUrl || "";
+          document.getElementById("modal-discord-whitelist").innerHTML = du.isWhitelist 
+            ? `<span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> Whitelist Var</span>`
+            : `<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> Whitelist Yok</span>`;
+          document.getElementById("modal-discord-warnings").innerText = du.warnings || "0";
+        } else {
+          document.getElementById("modal-discord-username").innerText = "Bilinmeyen Discord Kullanıcısı";
+          document.getElementById("modal-discord-id").innerText = discordId;
+          document.getElementById("modal-discord-whitelist").innerHTML = `<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> Whitelist Yok (Kayıtsız)</span>`;
+          document.getElementById("modal-discord-warnings").innerText = "0";
+        }
+
+        // Characters Info
+        document.getElementById("modal-characters-loading").style.display = "none";
+        const chars = data.characters || [];
+        if (chars.length > 0 && chars[0].license) {
+          const licEl = document.getElementById("modal-ident-license");
+          if (licEl && (licEl.innerText === "Bulunamadı" || licEl.innerText === "-")) {
+            setModalIdentValue("modal-ident-license", chars[0].license.replace(/^license:/i, ""));
+          }
+        }
+        if (chars.length === 0) {
+          charContent.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-style: italic; padding: 16px;">Karakter veritabanında bu oyuncuya ait karakter kaydı bulunamadı.</div>`;
+        } else {
+          let html = "";
+          chars.forEach(c => {
+            let cash = 0, bank = 0;
+            if (c.money) {
+              cash = c.money.cash || 0;
+              bank = c.money.bank || 0;
+            }
+            
+            const jobLabel = c.job ? c.job.label : "Civilian";
+            const jobGrade = c.job ? (c.job.grade?.name || c.job.grade?.label || c.job.grade || "Freelancer") : "Freelancer";
+            
+            const safeCharId = (c._id || "").toString();
+            const safeCitizenId = (c.citizenid || "").replace(/'/g, "\\'");
+            const safeCharName = `${c.firstname || ''} ${c.lastname || ''}`.trim().replace(/'/g, "\\'");
+
+            html += `
+              <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 6px;">
+                  <div style="font-weight: 700; color: #fff; font-size: 14px;">
+                    <i class="fa-solid fa-user" style="color: var(--primary); margin-right: 6px;"></i> ${c.firstname} ${c.lastname} 
+                    <span style="font-size: 11px; font-weight: 500; color: var(--text-muted); font-family: monospace;">(CID: ${c.cid || 1})</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; font-family: monospace;">
+                      ${c.citizenid}
+                    </span>
+                    <button onclick="openCharEditModal('${safeCitizenId}')"
+                      style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); padding: 3px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer; transition: background 0.2s; white-space: nowrap;">
+                      <i class="fa-solid fa-pen-to-square" style="margin-right: 4px;"></i> Düzenle
+                    </button>
+                    <button onclick="deleteCharacterFromModal('${safeCharId}', '${safeCitizenId}', '${safeCharName}')"
+                      style="background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35); padding: 3px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer; transition: background 0.2s; white-space: nowrap;">
+                      <i class="fa-solid fa-trash" style="margin-right: 4px;"></i> Sil
+                    </button>
+                  </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div>
+                    <div style="color: var(--text-muted); font-size: 11px;"><i class="fa-solid fa-briefcase" style="margin-right: 4px;"></i> Meslek</div>
+                    <div style="font-weight: 600; color: #fff;">${jobLabel} - <span style="font-size: 11px; color: var(--text-muted);">${jobGrade}</span></div>
+                  </div>
+                  <div>
+                    <div style="color: var(--text-muted); font-size: 11px;"><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> Doğum Tarihi</div>
+                    <div style="font-weight: 600; color: #fff;">${c.birthdate || "-"}</div>
+                  </div>
+                  <div style="grid-column: span 2; display: flex; gap: 20px; background: rgba(0,0,0,0.15); padding: 10px; border-radius: 8px; margin-top: 8px;">
+                    <div>
+                      <span style="color: var(--text-muted); font-size: 11px;"><i class="fa-solid fa-wallet" style="margin-right: 4px; color: #34d399;"></i> Nakit:</span>
+                      <strong style="color: #34d399; font-family: monospace;">$${cash.toLocaleString()}</strong>
+                    </div>
+                    <div>
+                      <span style="color: var(--text-muted); font-size: 11px;"><i class="fa-solid fa-building-columns" style="margin-right: 4px; color: #60a5fa;"></i> Banka:</span>
+                      <strong style="color: #60a5fa; font-family: monospace;">$${bank.toLocaleString()}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          charContent.innerHTML = html;
+        }
+      } else {
+        document.getElementById("modal-discord-loading").innerText = "Hata oluştu.";
+        document.getElementById("modal-characters-loading").innerText = "Karakter verileri yüklenemedi.";
+      }
+    } catch (err) {
+      console.error(err);
+      document.getElementById("modal-discord-loading").innerText = "Bağlantı hatası.";
+      document.getElementById("modal-characters-loading").innerText = "Veri çekme hatası.";
+    }
+  }
+
+  function closePlayerDetailsModal() {
+    const modal = document.getElementById("player-details-modal");
+    if (!modal) return;
+    modal.style.opacity = "0";
+    modal.querySelector(".modal-content").style.transform = "scale(0.9)";
+    modal.style.pointerEvents = "none";
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 300);
+  }
+
+  window.refreshActivePlayerDetails = function() {
+    if (typeof activeDetailsPlayerId !== 'undefined' && activeDetailsPlayerId) {
+      const playerObj = Array.isArray(activePlayersCached) ? activePlayersCached.find(p => String(p.id) === String(activeDetailsPlayerId)) : null;
+      if (playerObj) {
+        viewPlayerDetails(playerObj.discordId || "", playerObj.id, playerObj.name);
+      }
+    }
+  };
+
+  async function submitSetJob() {
+    if (!activeDetailsPlayerId) return;
+    const job = document.getElementById("cmd-setjob-job").value.trim();
+    const grade = document.getElementById("cmd-setjob-grade").value.trim() || "0";
+    if (!job) {
+      alert("Meslek adı girmelisiniz!");
+      return;
+    }
+    
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "setjob",
+          targetPlayer: activeDetailsPlayerId,
+          job: job,
+          grade: grade
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Setjob komutu kuyruğa eklendi.", "success");
+        document.getElementById("cmd-setjob-job").value = "";
+        document.getElementById("cmd-setjob-grade").value = "";
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (err) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  }
+
+  async function submitPedMenu() {
+    if (!activeDetailsPlayerId) return;
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "pedmenu",
+          targetPlayer: activeDetailsPlayerId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Pedmenu komutu kuyruğa eklendi.", "success");
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (err) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  }
+
+  async function submitKill() {
+    if (!activeDetailsPlayerId) return;
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "kill",
+          targetPlayer: activeDetailsPlayerId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Kill komutu kuyruğa eklendi.", "success");
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (err) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  }
+
+  async function submitRevive() {
+    if (!activeDetailsPlayerId) return;
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "revive",
+          targetPlayer: activeDetailsPlayerId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Canlandırma komutu kuyruğa eklendi.", "success");
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (err) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  }
+
+
+
+  async function submitPedVer() {
+    if (!activeDetailsPlayerId) return;
+    const model = document.getElementById("cmd-pedver-model").value.trim();
+    if (!model) {
+      alert("Ped model kodu girmelisiniz!");
+      return;
+    }
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "pedver",
+          targetPlayer: activeDetailsPlayerId,
+          ped: model
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Ped verme komutu kuyruğa eklendi.", "success");
+        document.getElementById("cmd-pedver-model").value = "";
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (err) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  }
+
+  async function submitPedAl() {
+    if (!activeDetailsPlayerId) return;
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "pedal",
+          targetPlayer: activeDetailsPlayerId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Ped geri alma komutu kuyruğa eklendi.", "success");
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (err) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  }
+
+  async function submitSetGang() {
+    if (!activeDetailsPlayerId) return;
+    const gang = document.getElementById("cmd-setgang-gang").value.trim();
+    const grade = document.getElementById("cmd-setgang-grade").value.trim() || "0";
+    if (!gang) {
+      alert("Çete adı girmelisiniz!");
+      return;
+    }
+    
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "setgang",
+          targetPlayer: activeDetailsPlayerId,
+          gang: gang,
+          grade: grade
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Setgang komutu kuyruğa eklendi.", "success");
+        document.getElementById("cmd-setgang-gang").value = "";
+        document.getElementById("cmd-setgang-grade").value = "";
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (err) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  }
+
+  async function submitGiveItem() {
+    if (!activeDetailsPlayerId) return;
+    const item = document.getElementById("cmd-giveitem-item").value.trim();
+    const amount = document.getElementById("cmd-giveitem-amount").value.trim() || "1";
+    if (!item) {
+      alert("Eşya adı girmelisiniz!");
+      return;
+    }
+    
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "giveitem",
+          targetPlayer: activeDetailsPlayerId,
+          item: item,
+          amount: amount
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Eşya verme komutu FiveM sunucusuna iletildi.", "success");
+        document.getElementById("cmd-giveitem-item").value = "";
+        document.getElementById("cmd-giveitem-amount").value = "";
+        if (typeof refreshActivePlayerDetails === "function") {
+          setTimeout(refreshActivePlayerDetails, 1500);
+        }
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (err) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  }
+
+  async function submitDM() {
+    if (!activeDetailsPlayerId) return;
+    const message = document.getElementById("cmd-dm-message").value.trim();
+    if (!message) {
+      alert("Gönderilecek mesajı girmelisiniz!");
+      return;
+    }
+    
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "send_dm",
+          targetPlayer: activeDetailsPlayerId,
+          reason: message
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("DM mesajı gönderildi.", "success");
+        document.getElementById("cmd-dm-message").value = "";
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (err) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  }
+
+  async function deleteCharacterFromModal(characterId, citizenid, charName) {
+    const confirmed = confirm(
+      `"${charName}" (${citizenid}) isimli karakteri veritabanından kalıcı olarak silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch("/api/fivem/character/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ characterId, citizenid })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message || `"${charName}" silindi.`, "success");
+        // Modalı yenile: aynı oyuncunun detaylarını tekrar çek
+        const playerObj = Array.isArray(activePlayersCached) ? activePlayersCached.find(p => String(p.id) === String(activeDetailsPlayerId)) : null;
+        if (playerObj && playerObj.discordId) {
+          viewPlayerDetails(playerObj.discordId, playerObj.id, playerObj.name);
+        } else {
+          // Karakter bölümünü temizle
+          const charContent = document.getElementById("modal-characters-content");
+          if (charContent) {
+            const deletedCard = charContent.querySelector(`[data-citizenid='${citizenid}']`);
+            if (deletedCard) deletedCard.remove();
+          }
+        }
+      } else {
+        showToast(data.message || "Karakter silinirken hata oluştu.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  }
+
+  // Para Ver: Nakit / Banka tip seçici
+  let selectedMoneyType = 'cash';
+  function setMoneyType(type) {
+    selectedMoneyType = type;
+    const cashBtn = document.getElementById('givemoney-type-cash');
+    const bankBtn = document.getElementById('givemoney-type-bank');
+    if (!cashBtn || !bankBtn) return;
+    if (type === 'cash') {
+      cashBtn.style.background = 'rgba(52,211,153,0.25)';
+      cashBtn.style.color = '#34d399';
+      bankBtn.style.background = 'transparent';
+      bankBtn.style.color = 'var(--text-muted)';
+    } else {
+      bankBtn.style.background = 'rgba(96,165,250,0.25)';
+      bankBtn.style.color = '#60a5fa';
+      cashBtn.style.background = 'transparent';
+      cashBtn.style.color = 'var(--text-muted)';
+    }
+  }
+
+  async function submitGiveMoney() {
+    if (!activeDetailsPlayerId) return;
+    const amount = document.getElementById('cmd-givemoney-amount').value.trim();
+    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+      alert('Geçerli bir miktar girmelisiniz!');
+      return;
+    }
+    try {
+      const res = await fetch('/api/fivem/bridge/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'givemoney',
+          targetPlayer: activeDetailsPlayerId,
+          type: selectedMoneyType,
+          amount: amount
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const typeLabel = selectedMoneyType === 'bank' ? 'Banka' : 'Nakit';
+        showToast(`$${Number(amount).toLocaleString()} ${typeLabel} olarak verildi.`, 'success');
+        document.getElementById('cmd-givemoney-amount').value = '';
+        if (typeof refreshActivePlayerDetails === "function") {
+          setTimeout(refreshActivePlayerDetails, 1500);
+        }
+      } else {
+        showToast(data.message || 'Hata oluştu.', 'error');
+      }
+    } catch (err) {
+      showToast('Sunucuya erişilemedi.', 'error');
+    }
+  }
+
+  // Custom Dropdown: Işınlama konum seçici
+  function toggleTpDropdown() {
+    const list   = document.getElementById('tp-dropdown-list');
+    const arrow  = document.getElementById('tp-dropdown-arrow');
+    const trigger = document.getElementById('tp-dropdown-trigger');
+    if (!list) return;
+    const isOpen = list.style.display === 'block';
+    list.style.display  = isOpen ? 'none' : 'block';
+    arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    trigger.style.borderColor = isOpen ? 'rgba(255,255,255,0.12)' : 'rgba(167,139,250,0.5)';
+  }
+
+  function selectTpPreset(locationKey, label) {
+    const lbl     = document.getElementById('tp-dropdown-label');
+    const list    = document.getElementById('tp-dropdown-list');
+    const arrow   = document.getElementById('tp-dropdown-arrow');
+    const trigger = document.getElementById('tp-dropdown-trigger');
+    if (lbl)  lbl.textContent  = label;
+    if (list) list.style.display = 'none';
+    if (arrow) arrow.style.transform = 'rotate(0deg)';
+    if (trigger) trigger.style.borderColor = 'rgba(255,255,255,0.12)';
+
+    // Seçilen lokasyon key'ini sakla
+    window._selectedTpLocationKey = locationKey || null;
+
+    const input = document.getElementById('cmd-tp-coords');
+    if (locationKey) {
+      // Preset seçildiğinde koordinat kutusunu temizle ve placeholder güncelle
+      if (input) {
+        input.value = '';
+        input.placeholder = `"${label}" lokasyonu seçildi — veya buraya XYZ girin`;
+      }
+    } else {
+      if (input) {
+        input.value = '';
+        input.placeholder = 'Koordinat (örn: -1034.72, -2733.09, 20.17)';
+      }
+    }
+  }
+
+  // Dropdown dışına tıklanınca kapat
+  document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('tp-dropdown-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      const list   = document.getElementById('tp-dropdown-list');
+      const arrow  = document.getElementById('tp-dropdown-arrow');
+      const trigger = document.getElementById('tp-dropdown-trigger');
+      if (list)  list.style.display  = 'none';
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+      if (trigger) trigger.style.borderColor = 'rgba(255,255,255,0.12)';
+    }
+  });
+
+  async function submitTeleport() {
+    if (!activeDetailsPlayerId) return;
+
+    const raw         = (document.getElementById('cmd-tp-coords').value || '').trim();
+    const locationKey = window._selectedTpLocationKey || null;
+
+    // Ne location key ne de koordinat girilmişse uyar
+    if (!locationKey && !raw) {
+      alert('Koordinat giriniz veya hazır konum seçiniz!');
+      return;
+    }
+
+    let body = { action: 'teleport', targetPlayer: activeDetailsPlayerId };
+    let toastMsg = '';
+
+    if (raw) {
+      // Manuel XYZ koordinatı öncelikli
+      const parts = raw.split(',').map(v => parseFloat(v.trim()));
+      if (parts.length < 3 || parts.some(isNaN)) {
+        alert('Geçerli koordinat formatı: X, Y, Z (örn: -1034.72, -2733.09, 20.17)');
+        return;
+      }
+      const [x, y, z] = parts;
+      body.x = x; body.y = y; body.z = z;
+      toastMsg = `Oyuncu ışınlandı → ${x}, ${y}, ${z}`;
+    } else {
+      // Lokasyon key'i kullan
+      body.location = locationKey;
+      const label = document.getElementById('tp-dropdown-label').textContent || locationKey;
+      toastMsg = `Oyuncu ışınlandı → ${label}`;
+    }
+
+    try {
+      const res = await fetch('/api/fivem/bridge/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(toastMsg, 'success');
+        // Sıfırla
+        document.getElementById('cmd-tp-coords').value = '';
+        document.getElementById('cmd-tp-coords').placeholder = 'Koordinat (örn: -1034.72, -2733.09, 20.17)';
+        const lbl = document.getElementById('tp-dropdown-label');
+        if (lbl) lbl.textContent = 'Hazır konum seçin (opsiyonel)';
+        window._selectedTpLocationKey = null;
+      } else {
+        showToast(data.message || 'Hata oluştu.', 'error');
+      }
+    } catch (err) {
+      showToast('Sunucuya erişilemedi.', 'error');
+    }
+  }
+
+  let currentStreamingPlayerId = null;
+  let screenHudClockTimer = null;
+
+  window.onLiveScreenBackdropClick = function(e) {
+    if (e && e.target && e.target.id === "live-screen-modal") {
+      closeLiveScreenModal(e);
+    }
+  };
+
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+      const modal = document.getElementById("live-screen-modal");
+      if (modal && modal.style.display !== "none") {
+        closeLiveScreenModal(e);
+      }
+    }
+  });
+
+  window.openLiveScreenModal = async function(playerId, playerName, ping) {
+    if (!playerId) return;
+    currentStreamingPlayerId = String(playerId);
+
+    const modal = document.getElementById("live-screen-modal");
+    const modalContent = modal ? modal.querySelector(".modal-content") : null;
+    const loader = document.getElementById("live-screen-loader");
+    const viewport = document.getElementById("live-screen-viewport");
+    const nameEl = document.getElementById("live-screen-player-name");
+    const idEl = document.getElementById("live-screen-player-id");
+    const pingEl = document.getElementById("live-screen-ping");
+    const fpsStat = document.getElementById("live-screen-fps-stat");
+    const lagStat = document.getElementById("live-screen-lag-stat");
+    const hudTime = document.getElementById("live-screen-hud-time");
+    const hudRes = document.getElementById("live-screen-hud-resolution");
+
+    if (nameEl) nameEl.innerText = playerName || "Oyuncu";
+    if (idEl) idEl.innerText = "#" + playerId;
+    if (pingEl) pingEl.innerHTML = '<i class="fa-solid fa-bolt" style="margin-right: 3px;"></i>' + (ping || 0) + 'ms';
+    if (loader) loader.style.display = "flex";
+    if (fpsStat) fpsStat.innerText = "60.0";
+    if (lagStat) lagStat.innerText = "Ultra Düşük";
+    if (hudRes) hudRes.innerText = "1920x1080 (Full HD)";
+
+    if (modal) {
+      modal.style.display = "flex";
+      requestAnimationFrame(() => {
+        modal.style.opacity = "1";
+        if (modalContent) modalContent.style.transform = "scale(1)";
+      });
+    }
+
+    if (screenHudClockTimer) clearInterval(screenHudClockTimer);
+    screenHudClockTimer = setInterval(() => {
+      if (hudTime) hudTime.innerText = new Date().toLocaleTimeString();
+    }, 1000);
+    if (hudTime) hudTime.innerText = new Date().toLocaleTimeString();
+
+    const speedSelect = document.getElementById("live-screen-speed-select");
+    const interval = speedSelect ? parseInt(speedSelect.value, 10) : 16;
+    const quality = interval <= 20 ? 0.60 : (interval <= 40 ? 0.65 : 0.70);
+
+    try {
+      await fetch("/api/fivem/screen/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetPlayer: playerId,
+          interval: interval,
+          quality: quality
+        })
+      });
+    } catch (err) {}
+
+    if (viewport) {
+      viewport.onload = function() {
+        if (loader) loader.style.display = "none";
+        if (hudRes && viewport.naturalWidth) {
+          hudRes.innerText = viewport.naturalWidth + "x" + viewport.naturalHeight + " (Full HD)";
+        }
+      };
+      viewport.src = "/api/fivem/screen/mjpeg/" + playerId + "?t=" + Date.now();
+      setTimeout(() => {
+        if (loader && viewport.complete && viewport.naturalWidth > 0) {
+          loader.style.display = "none";
+        }
+      }, 1200);
+    }
+  };
+
+  window.closeLiveScreenModal = async function(event) {
+    if (event && event.stopPropagation) {
+      event.stopPropagation();
+    }
+    const modal = document.getElementById("live-screen-modal");
+    const modalContent = modal ? modal.querySelector(".modal-content") : null;
+    const viewport = document.getElementById("live-screen-viewport");
+    const targetPlayer = currentStreamingPlayerId;
+
+    if (screenHudClockTimer) {
+      clearInterval(screenHudClockTimer);
+      screenHudClockTimer = null;
+    }
+
+    if (viewport) {
+      viewport.onload = null;
+      viewport.onerror = null;
+      viewport.src = "";
+    }
+
+    currentStreamingPlayerId = null;
+
+    if (modal) {
+      modal.style.opacity = "0";
+      if (modalContent) modalContent.style.transform = "scale(0.94)";
+      setTimeout(() => {
+        modal.style.display = "none";
+      }, 200);
+    }
+
+    if (targetPlayer) {
+      try {
+        await fetch("/api/fivem/screen/stop", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ targetPlayer: targetPlayer })
+        });
+      } catch (e) {}
+    }
+  };
+
+  window.changeLiveScreenSpeed = async function(newInterval) {
+    if (!currentStreamingPlayerId) return;
+    const intervalNum = parseInt(newInterval, 10) || 16;
+    const qualityNum = intervalNum <= 20 ? 0.60 : (intervalNum <= 40 ? 0.65 : 0.70);
+    const fpsStat = document.getElementById("live-screen-fps-stat");
+    try {
+      await fetch("/api/fivem/screen/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetPlayer: currentStreamingPlayerId,
+          interval: intervalNum,
+          quality: qualityNum
+        })
+      });
+      const labelText = intervalNum <= 20 ? "60 FPS" : (intervalNum <= 35 ? "30 FPS" : (intervalNum <= 70 ? "15 FPS" : (intervalNum <= 200 ? "5 FPS" : "1.2 FPS")));
+      if (fpsStat) {
+        fpsStat.innerText = intervalNum <= 20 ? "60.0" : (intervalNum <= 35 ? "30.0" : (intervalNum <= 70 ? "15.0" : "5.0"));
+      }
+      showToast("Yayın hızı güncellendi (" + labelText + ").", "info");
+    } catch (e) {}
+  };
+
+  window.downloadLiveScreenSnapshot = function() {
+    const viewport = document.getElementById("live-screen-viewport");
+    if (!viewport || !viewport.naturalWidth) {
+      showToast("Görüntü karesi henüz yüklenmedi.", "error");
+      return;
+    }
+    try {
+      const c = document.createElement("canvas");
+      c.width = viewport.naturalWidth || 1920;
+      c.height = viewport.naturalHeight || 1080;
+      const ctx = c.getContext("2d");
+      ctx.drawImage(viewport, 0, 0);
+      const link = document.createElement("a");
+      link.href = c.toDataURL("image/jpeg", 0.95);
+      link.download = "shield_player_" + (currentStreamingPlayerId || "screen") + "_" + Date.now() + ".jpg";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Full HD ekran fotoğrafı kaydedildi.", "success");
+    } catch (err) {
+      showToast("Fotoğraf alınırken hata oluştu.", "error");
+    }
+  };
+
+  window.toggleLiveScreenFullscreen = function() {
+    const container = document.getElementById("live-screen-container");
+    if (!container) return;
+    if (!document.fullscreenElement) {
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      } else if (container.webkitRequestFullscreen) {
+        container.webkitRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  window.quickActionScreenRevive = async function() {
+    if (!currentStreamingPlayerId) return;
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "revive", targetPlayer: currentStreamingPlayerId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Canlandırma komutu iletildi.", "success");
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (e) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  };
+
+  window.quickActionScreenKill = async function() {
+    if (!currentStreamingPlayerId) return;
+    if (!confirm("Bu oyuncuyu öldürmek istediğinize emin misiniz?")) return;
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "kill", targetPlayer: currentStreamingPlayerId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Öldürme komutu iletildi.", "success");
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (e) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  };
+
+  window.quickActionScreenDm = async function() {
+    if (!currentStreamingPlayerId) return;
+    const msg = prompt("Oyuncuya iletilecek yetkili mesajını giriniz:");
+    if (!msg || !msg.trim()) return;
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "send_dm",
+          targetPlayer: currentStreamingPlayerId,
+          reason: msg.trim()
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Yetkili mesajı oyuncuya iletildi.", "success");
+      } else {
+        showToast(data.message || "Hata oluştu.", "error");
+      }
+    } catch (e) {
+      showToast("Sunucuya erişilemedi.", "error");
+    }
+  };
+
+  /* ==========================================================================
+     KICK & BAN MODAL CONTROLLERS
+     ========================================================================== */
+  let targetKickPlayerId = null;
+  let targetKickPlayerName = "";
+  let targetKickDiscordId = "";
+
+  let targetBanPlayerId = null;
+  let targetBanPlayerName = "";
+  let targetBanDiscordId = "";
+
+  window.openKickModal = function(playerId, playerName, discordId) {
+    if (!playerId && typeof activeDetailsPlayerId !== "undefined") {
+      playerId = activeDetailsPlayerId;
+    }
+    if (!playerName) {
+      const elName = document.getElementById("modal-player-name");
+      playerName = elName ? elName.innerText : ("Oyuncu #" + playerId);
+    }
+    if (!discordId) {
+      const playerObj = Array.isArray(activePlayersCached) ? activePlayersCached.find(p => String(p.id) === String(playerId)) : null;
+      discordId = playerObj ? (playerObj.discordId || "") : "";
+    }
+
+    targetKickPlayerId = playerId;
+    targetKickPlayerName = playerName || ("Oyuncu #" + playerId);
+    targetKickDiscordId = discordId || "";
+
+    const idEl = document.getElementById("kick-modal-player-id");
+    const nameEl = document.getElementById("kick-modal-player-name");
+    const discEl = document.getElementById("kick-modal-discord-id");
+    const inputEl = document.getElementById("kick-modal-reason-input");
+
+    if (idEl) idEl.innerText = "#" + playerId;
+    if (nameEl) nameEl.innerText = targetKickPlayerName;
+    if (discEl) discEl.innerText = "Discord: " + (targetKickDiscordId || "Bilinmiyor");
+    if (inputEl) inputEl.value = "";
+
+    const modal = document.getElementById("active-player-kick-modal");
+    if (!modal) return;
+    modal.style.display = "flex";
+    modal.style.pointerEvents = "auto";
+    setTimeout(() => {
+      modal.style.opacity = "1";
+      const card = modal.querySelector(".modal-content");
+      if (card) card.style.transform = "scale(1)";
+      if (inputEl) inputEl.focus();
+    }, 10);
+  };
+
+  window.closeActivePlayerKickModal = function() {
+    const modal = document.getElementById("active-player-kick-modal");
+    if (!modal) return;
+    modal.style.opacity = "0";
+    const card = modal.querySelector(".modal-content");
+    if (card) card.style.transform = "scale(0.94)";
+    modal.style.pointerEvents = "none";
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 250);
+  };
+
+  window.onActivePlayerKickBackdropClick = function(e) {
+    if (e.target && e.target.id === "active-player-kick-modal") {
+      closeActivePlayerKickModal();
+    }
+  };
+
+  window.setKickReasonPreset = function(reasonText) {
+    const input = document.getElementById("kick-modal-reason-input");
+    if (!input) return;
+    input.value = reasonText;
+    input.focus();
+  };
+
+  window.executeKickPlayer = async function() {
+    if (!targetKickPlayerId) {
+      showToast("Hedef oyuncu seçilmedi.", "error");
+      return;
+    }
+    const reasonInput = document.getElementById("kick-modal-reason-input");
+    const reason = (reasonInput ? reasonInput.value : "").trim();
+    if (!reason) {
+      showToast("Lütfen bir kick sebebi belirtiniz! (Zorunlu)", "error");
+      if (reasonInput) reasonInput.focus();
+      return;
+    }
+
+    const btn = document.getElementById("btn-submit-active-player-kick");
+    const origBtnText = btn ? btn.innerHTML : "";
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kickleniyor...';
+    }
+
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "kick",
+          targetPlayer: targetKickPlayerId,
+          playerName: targetKickPlayerName,
+          discordId: targetKickDiscordId,
+          reason: reason
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Oyuncu #${targetKickPlayerId} sunucudan başarıyla kicklendi.`, "success");
+        closeActivePlayerKickModal();
+        if (typeof closePlayerDetailsModal === "function") {
+          closePlayerDetailsModal();
+        }
+        if (typeof fetchActivePlayersWithCharacters === "function") {
+          setTimeout(fetchActivePlayersWithCharacters, 800);
+        }
+      } else {
+        showToast(data.message || "Kick işlemi başarısız oldu.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Sunucuya bağlanırken hata oluştu.", "error");
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = origBtnText;
+      }
+    }
+  };
+
+  window.openBanModal = function(playerId, playerName, discordId) {
+    if (!playerId && typeof activeDetailsPlayerId !== "undefined") {
+      playerId = activeDetailsPlayerId;
+    }
+    if (!playerName) {
+      const elName = document.getElementById("modal-player-name");
+      playerName = elName ? elName.innerText : ("Oyuncu #" + playerId);
+    }
+    if (!discordId) {
+      const playerObj = Array.isArray(activePlayersCached) ? activePlayersCached.find(p => String(p.id) === String(playerId)) : null;
+      discordId = playerObj ? (playerObj.discordId || "") : "";
+    }
+
+    targetBanPlayerId = playerId;
+    targetBanPlayerName = playerName || ("Oyuncu #" + playerId);
+    targetBanDiscordId = discordId || "";
+
+    const idEl = document.getElementById("ban-modal-player-id");
+    const nameEl = document.getElementById("ban-modal-player-name");
+    const discEl = document.getElementById("ban-modal-discord-id");
+    const inputEl = document.getElementById("ban-modal-reason-input");
+
+    if (idEl) idEl.innerText = "#" + playerId;
+    if (nameEl) nameEl.innerText = targetBanPlayerName;
+    if (discEl) discEl.innerText = "Discord: " + (targetBanDiscordId || "Bilinmiyor");
+    if (inputEl) inputEl.value = "";
+
+    setBanDurationPreset('3_days');
+
+    const modal = document.getElementById("active-player-ban-modal");
+    if (!modal) return;
+    modal.style.display = "flex";
+    modal.style.pointerEvents = "auto";
+    setTimeout(() => {
+      modal.style.opacity = "1";
+      const card = modal.querySelector(".modal-content");
+      if (card) card.style.transform = "scale(1)";
+      if (inputEl) inputEl.focus();
+    }, 10);
+  };
+
+  window.closeActivePlayerBanModal = function() {
+    const modal = document.getElementById("active-player-ban-modal");
+    if (!modal) return;
+    modal.style.opacity = "0";
+    const card = modal.querySelector(".modal-content");
+    if (card) card.style.transform = "scale(0.94)";
+    modal.style.pointerEvents = "none";
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 250);
+  };
+
+  window.onActivePlayerBanBackdropClick = function(e) {
+    if (e.target && e.target.id === "active-player-ban-modal") {
+      closeActivePlayerBanModal();
+    }
+  };
+
+  window.onBanModalDurationSelectChange = function(val) {
+    updateBanDurationUI(val);
+  };
+
+  window.setBanDurationPreset = function(presetKey) {
+    const select = document.getElementById("ban-modal-duration-select");
+    if (select) select.value = presetKey;
+    updateBanDurationUI(presetKey);
+  };
+
+  function updateBanDurationUI(val) {
+    const customWrap = document.getElementById("ban-modal-custom-duration-wrap");
+    const badge = document.getElementById("ban-duration-summary-badge");
+
+    document.querySelectorAll(".duration-preset-btn").forEach(btn => {
+      btn.classList.remove("active");
+    });
+
+    const durationLabels = {
+      "1_hour": "1 Saat",
+      "3_hours": "3 Saat",
+      "6_hours": "6 Saat",
+      "12_hours": "12 Saat",
+      "1_day": "1 Gün",
+      "3_days": "3 Gün",
+      "7_days": "7 Gün",
+      "14_days": "14 Gün",
+      "30_days": "30 Gün",
+      "perma": "⛔ Kalıcı (Perma)",
+      "custom": "Özel Süre"
+    };
+
+    if (val === "custom") {
+      if (customWrap) customWrap.style.display = "flex";
+      if (badge) badge.innerText = "Özel Süre";
+    } else {
+      if (customWrap) customWrap.style.display = "none";
+      if (badge) badge.innerText = durationLabels[val] || val;
+      document.querySelectorAll(".duration-preset-btn").forEach(btn => {
+        const onclickAttr = btn.getAttribute("onclick") || "";
+        if (onclickAttr.includes(`'${val}'`)) {
+          btn.classList.add("active");
+        }
+      });
+    }
+  }
+
+  window.setBanReasonPreset = function(reasonText) {
+    const input = document.getElementById("ban-modal-reason-input");
+    if (!input) return;
+    input.value = reasonText;
+    input.focus();
+  };
+
+  window.executeBanPlayer = async function() {
+    if (!targetBanPlayerId) {
+      showToast("Hedef oyuncu seçilmedi.", "error");
+      return;
+    }
+    const reasonInput = document.getElementById("ban-modal-reason-input");
+    const reason = (reasonInput ? reasonInput.value : "").trim();
+    if (!reason) {
+      showToast("Lütfen bir banlama sebebi belirtiniz! (Zorunlu)", "error");
+      if (reasonInput) reasonInput.focus();
+      return;
+    }
+
+    const durationSelect = document.getElementById("ban-modal-duration-select");
+    const durationVal = durationSelect ? durationSelect.value : "3_days";
+    
+    let durationText = "";
+    let durationSeconds = 0;
+    let isPerma = false;
+
+    if (durationVal === "custom") {
+      const customNum = parseInt(document.getElementById("ban-modal-custom-value")?.value, 10);
+      const customUnit = document.getElementById("ban-modal-custom-unit")?.value || "days";
+      if (isNaN(customNum) || customNum <= 0) {
+        showToast("Lütfen geçerli bir özel süre miktarı giriniz!", "error");
+        document.getElementById("ban-modal-custom-value")?.focus();
+        return;
+      }
+      if (customUnit === "hours") {
+        durationSeconds = customNum * 3600;
+        durationText = `${customNum} Saat`;
+      } else {
+        durationSeconds = customNum * 86400;
+        durationText = `${customNum} Gün`;
+      }
+    } else if (durationVal === "perma") {
+      isPerma = true;
+      durationText = "Kalıcı (Perma)";
+      durationSeconds = 0;
+    } else {
+      const durationMap = {
+        "1_hour": { sec: 3600, label: "1 Saat" },
+        "3_hours": { sec: 3 * 3600, label: "3 Saat" },
+        "6_hours": { sec: 6 * 3600, label: "6 Saat" },
+        "12_hours": { sec: 12 * 3600, label: "12 Saat" },
+        "1_day": { sec: 86400, label: "1 Gün" },
+        "3_days": { sec: 3 * 86400, label: "3 Gün" },
+        "7_days": { sec: 7 * 86400, label: "7 Gün" },
+        "14_days": { sec: 14 * 86400, label: "14 Gün" },
+        "30_days": { sec: 30 * 86400, label: "30 Gün" }
+      };
+      const mapped = durationMap[durationVal] || { sec: 3 * 86400, label: "3 Gün" };
+      durationSeconds = mapped.sec;
+      durationText = mapped.label;
+    }
+
+    const syncDiscord = document.getElementById("ban-modal-sync-discord")?.checked ?? true;
+
+    const btn = document.getElementById("btn-submit-active-player-ban");
+    const origBtnText = btn ? btn.innerHTML : "";
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yasaklanıyor...';
+    }
+
+    try {
+      const res = await fetch("/api/fivem/bridge/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "ban",
+          targetPlayer: targetBanPlayerId,
+          playerName: targetBanPlayerName,
+          discordId: targetBanDiscordId,
+          reason: reason,
+          duration: durationVal,
+          durationText: durationText,
+          durationSeconds: durationSeconds,
+          isPerma: isPerma,
+          syncDiscord: syncDiscord
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Oyuncu #${targetBanPlayerId} başarıyla yasaklandı. (${durationText})`, "success");
+        closeActivePlayerBanModal();
+        if (typeof closePlayerDetailsModal === "function") {
+          closePlayerDetailsModal();
+        }
+        if (typeof fetchActivePlayersWithCharacters === "function") {
+          setTimeout(fetchActivePlayersWithCharacters, 800);
+        }
+      } else {
+        showToast(data.message || "Banlama işlemi başarısız oldu.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Sunucuya bağlanırken hata oluştu.", "error");
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = origBtnText;
+      }
+    }
+  };
+
+</script>

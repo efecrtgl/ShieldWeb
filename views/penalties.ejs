@@ -1,0 +1,420 @@
+<%- include('partials/header') %>
+
+<main class="container">
+  <!-- Hero Section -->
+  <div style="text-align: center; margin-bottom: 56px; position: relative;">
+    <div style="display: inline-flex; justify-content: center; align-items: center; width: 64px; height: 64px; background: rgba(239, 68, 68, 0.15); border-radius: 20px; border: 1px solid rgba(239, 68, 68, 0.3); margin-bottom: 20px; box-shadow: 0 0 25px rgba(239, 68, 68, 0.2);">
+      <i class="fa-solid fa-scale-balanced" style="font-size: 26px; color: var(--danger);"></i>
+    </div>
+    <h1 style="font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 900; margin-bottom: 12px; color: #fff; letter-spacing: -0.02em;">
+      Ceza Yönetmeliği
+    </h1>
+    <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 650px; margin: 0 auto; line-height: 1.7;">
+      EmpireV'in düzenini sağlamak için öngörülebilir ve adil cezalandırma sistemi.
+    </p>
+  </div>
+
+  <section id="rules-section">
+    <!-- Navigation Tabs -->
+    <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 32px; flex-wrap: wrap;">
+      <button class="btn tab-btn active" onclick="switchRulesTab('ooc')" id="tab-ooc">OOC / Topluluk</button>
+      <button class="btn tab-btn" onclick="switchRulesTab('ic')" id="tab-ic">IC / Roleplay</button>
+      <button class="btn tab-btn" onclick="switchRulesTab('sensitive')" id="tab-sensitive">Hassas İçerik / 18+</button>
+      <button class="btn tab-btn" onclick="switchRulesTab('redline')" id="tab-redline">Kırmızı Çizgi & Perma</button>
+      <button class="btn tab-btn" onclick="switchRulesTab('increment')" id="tab-increment">Kademeli Artış & Hükümler</button>
+    </div>
+
+    <!-- Explanation Box -->
+    <div class="glass-card" style="padding: 24px; margin-bottom: 40px; border-left: 4px solid var(--primary-light);">
+      <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; margin-bottom: 12px; color: #fff;">
+        <i class="fa-solid fa-circle-info" style="color: var(--primary-light); margin-right: 8px;"></i> Bu Belge Nasıl Okunur?
+      </h3>
+      <p style="font-size: 13.5px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+        Bu yönetmelik, EmpireV'de bir kuralın ihlali hâlinde uygulanacak yaptırımları tanımlar. Amaç, cezaları öngörülebilir ve adil kılmaktır: her oyuncu hangi davranışın ne getireceğini önceden bilir, her yetkili de kafasına göre değil bu tabloya göre karar verir. Öngörülebilirlik, adaletin yarısıdır.
+      </p>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); font-size: 12.5px; color: var(--text-secondary);">
+          <strong style="color: #fff; display: block; margin-bottom: 4px;">1. Orantılılık</strong> Ceza, verdiği zarara göre ölçeklenir. Boş ticket ile RDM aynı kefeye konmaz.
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); font-size: 12.5px; color: var(--text-secondary);">
+          <strong style="color: #fff; display: block; margin-bottom: 4px;">2. Tutarlılık</strong> Aynı ağırlıktaki ihlaller aynı cezayı alır; ihlaller ağırlık katmanlarına göre gruplanmıştır.
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); font-size: 12.5px; color: var(--text-secondary);">
+          <strong style="color: #fff; display: block; margin-bottom: 4px;">3. Kademeli Artış</strong> Tekrar eden ihlal ağırlaşır. Uyarılar birikir ve merdivende WL'ye dönüşür.
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); font-size: 12.5px; color: var(--text-secondary);">
+          <strong style="color: #fff; display: block; margin-bottom: 4px;">4. Niyet ve Bağlam</strong> Kaza ile kasıt ayrılır. Niyet, POV kaydı üzerinden yönetici tarafından belirlenir.
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); font-size: 12.5px; color: var(--text-secondary);">
+          <strong style="color: #fff; display: block; margin-bottom: 4px;">5. Kanıt ve Savunma</strong> Kararlar POV/kanıt üzerinden verilir. Kaydı olmayan tarafın savunma hakkı doğmaz.
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); font-size: 12.5px; color: var(--text-secondary);">
+          <strong style="color: #fff; display: block; margin-bottom: 4px;">6. Dayanak Zorunluluğu</strong> Hiçbir ceza dayanaksız değildir; her ceza ya bir maddeye ya da en yakın maddenin kıyasına bağlıdır.
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); align-items: center;">
+        <span style="font-size: 12px; font-weight: 800; color: #fff; margin-right: 10px; text-transform: uppercase;">Renk Kodları:</span>
+        <span class="badge-rules badge-warning">UYARI (nX)</span>
+        <span class="badge-rules badge-danger">GÜN / HAFTA WL</span>
+        <span class="badge-rules badge-perma">PERMA</span>
+        <span class="badge-rules badge-success">SERBEST / RIZA</span>
+        <span class="badge-rules badge-purple">YÖNETİCİ TAKDİRİ</span>
+      </div>
+      <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 16px; font-style: italic;">
+        * "nX Uyarı", ilgili ihlalin kaç uyarı puanı taşıdığını gösterir. Uyarılar birikir; toplam uyarı, Kademeli Artış Merdiveni'ne göre WL cezasına dönüşür. Uyarılar için zaman aşımı yoktur; sicilde birikir.
+      </p>
+    </div>
+
+    <!-- OOC / Topluluk Tab content -->
+    <div id="rules-ooc" class="rules-tab-content">
+      <div class="glass-card" style="padding: 32px; margin-bottom: 32px;">
+        <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--primary-light); margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+          <span style="background: var(--primary-glow); padding: 4px 10px; border-radius: 6px; font-size: 14px; color: #fff; font-weight: 900;">A</span> OOC / Topluluk İhlalleri
+        </h3>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 24px;">Discord, destek (ticket) ve genel sohbet düzenine ilişkin ihlaller. Bu maddeler oyun içi role değil, topluluk düzenine dokunur.</p>
+        
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>İhlal</th>
+                <th style="width: 200px; text-align: center;">Yaptırım</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="font-weight: 600; color: #fff;">Yetkilileri kandırmak / yalan beyan</td><td style="text-align: center;"><span class="badge-rules badge-danger">1 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Destekte (ticket) saygısızlık — aşırıya kaçarsa 2 Gün WL</td><td style="text-align: center;"><span class="badge-rules badge-danger">1 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Genel sohbette tartışmak</td><td style="text-align: center;"><span class="badge-rules badge-warning">2X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Gereksiz yere yetkili etiketlemek</td><td style="text-align: center;"><span class="badge-rules badge-warning">1X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Report / ticket suistimali (yalan şikayet)</td><td style="text-align: center;"><span class="badge-rules badge-warning">2X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Reklam / başka sunucu tanıtımı</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding: 32px;">
+        <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--danger); margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+          <span style="background: rgba(239, 68, 68, 0.2); padding: 4px 10px; border-radius: 6px; font-size: 14px; color: var(--danger); font-weight: 900;">B</span> OOC / Topluluk Güvenliği (Ağır)
+        </h3>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 24px;">Gerçek oyuncuya ve topluluğun güvenliğine yönelen ihlaller. Bu maddeler karaktere değil, kişiye yönelik olduğu için en ağır yaptırımları taşır.</p>
+        
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>İhlal</th>
+                <th style="width: 200px; text-align: center;">Yaptırım</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="font-weight: 600; color: #fff;">Ban atlatma (alt hesapla girme) — yeni hesap da banlanır</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Hesap satışı / alışı / paylaşımı</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Yönetici talimatına uymamak — talimatın çok dışına çıkarsa yönetici takdiri</td><td style="text-align: center;"><span class="badge-rules badge-purple">MIN. 2X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Zorunlu POV'u ibraz etmemek / kasten vermemek</td><td style="text-align: center;"><span class="badge-rules badge-purple" style="line-height: 1.2;">SAVUNMA DÜŞER<br><small style="opacity: 0.8;">+2X UYARI</small></span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">OOC ırkçılık / gerçek dünya nefret söylemi</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">OOC taciz / harassment</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Cinsel taciz</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Doxxing / kişisel bilgi ifşası</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Gerçek hayat tehdidi</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15); padding: 16px 20px; border-radius: 12px; margin-top: 24px; font-size: 12.5px; color: var(--text-muted); line-height: 1.6; display: flex; gap: 12px; align-items: flex-start;">
+          <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning); font-size: 16px; margin-top: 2px;"></i>
+          <div>
+            <strong style="color: #fff;">Kritik Ayrım:</strong> Legal birim rollerinde memurların IC ırkçılık yapması, sonucu olan (yakalanınca CK) bir rol mekaniğidir ve yukarıdaki OOC ırkçılık maddesinden ayrıdır. Bu tablo yalnızca gerçek oyuncuya yönelen OOC nefret söylemini cezalandırır.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IC / Roleplay Tab content -->
+    <div id="rules-ic" class="rules-tab-content" style="display: none;">
+      <div class="glass-card" style="padding: 32px;">
+        <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--primary-light); margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+          <span style="background: var(--primary-glow); padding: 4px 10px; border-radius: 6px; font-size: 14px; color: #fff; font-weight: 900;">C</span> IC / Roleplay İhlalleri
+        </h3>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 24px;">Oyun içi rol kalitesine ve gerçekçiliğe dokunan ihlaller; hafiften ağıra sıralanmıştır. Sunucunun sosyal tarafı “hard” olduğundan, fear-RP ve value of life ihlalleri burada ağır tutulur.</p>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>İhlal</th>
+                <th style="width: 200px; text-align: center;">Yaptırım</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="color: #e2e8f0;">Hatalı /do–/me kullanımı</td><td style="text-align: center;"><span class="badge-rules badge-warning">1X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">Rolsüz araç çalmak</td><td style="text-align: center;"><span class="badge-rules badge-warning">1X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">IC ismini başvuruda belirttiği şekilde kullanmamak</td><td style="text-align: center;"><span class="badge-rules badge-warning">1X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">Çatışmada emote atmak</td><td style="text-align: center;"><span class="badge-rules badge-warning">1X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">Non-RP Driving (gerçekçi olmayan sürüş)</td><td style="text-align: center;"><span class="badge-rules badge-warning">2X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">Refuse RP (role girmeyi reddetme)</td><td style="text-align: center;"><span class="badge-rules badge-warning">2X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">Kaza rolüne girmemek</td><td style="text-align: center;"><span class="badge-rules badge-warning">2X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">Role Check'e uymamak</td><td style="text-align: center;"><span class="badge-rules badge-warning">2X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">Trolling / Mic spam / Soundboard</td><td style="text-align: center;"><span class="badge-rules badge-warning">2X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">Cop-Bait (normal)</td><td style="text-align: center;"><span class="badge-rules badge-warning">2X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">Ölü/düşmüş kişiyi izinsiz loot / öldürdüğünü soymak</td><td style="text-align: center;"><span class="badge-rules badge-warning">2X UYARI</span></td></tr>
+              <tr><td style="color: #e2e8f0;">Fresh char abuse (yeni karakterle hemen ağır illegal)</td><td style="text-align: center;"><span class="badge-rules badge-warning">2X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Low RP (yüzeysel / eksik rol)</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Ölüye trashtalk (ölmüş / downed karaktere hakaret)</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Gereksiz agresif rol</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Fail-RP</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Power Gaming</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">IC–OOC Mixing</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Character Mixing (bilgi/eşya/para taşıma)</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Aynı olayda iki kendi karakterinle bulunmak</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Force RP</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Fear-RP ihlali</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">No Value of Life</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">NLR ihlali</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Revenge Kill</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Rol Block (RP-crashing)</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">OOC Çıkmak (breaking character)</td><td style="text-align: center;"><span class="badge-rules badge-warning">3X UYARI</span></td></tr>
+              <tr><td style="font-weight: 700; color: #f87171;">Güvenli Bölge ihlali</td><td style="text-align: center;"><span class="badge-rules badge-danger">1 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 700; color: #f87171;">Ağır / rol bölen Cop-Bait</td><td style="text-align: center;"><span class="badge-rules badge-danger">1 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 700; color: #f87171;">Gerçek dünya dinini IC'ye dayatma</td><td style="text-align: center;"><span class="badge-rules badge-danger">1 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 700; color: #f87171;">Combat Log</td><td style="text-align: center;"><span class="badge-rules badge-danger">1 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 700; color: #f87171;">Karakter değişim cooldown ihlali</td><td style="text-align: center;"><span class="badge-rules badge-danger">1 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 700; color: #f87171;">Bug Abuse</td><td style="text-align: center;"><span class="badge-rules badge-danger">1 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 700; color: #f87171;">Absürt / Gayri Ciddi Rol</td><td style="text-align: center;"><span class="badge-rules badge-danger">1 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 700; color: #ef4444;">Stream Sniping</td><td style="text-align: center;"><span class="badge-rules badge-danger">2 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 700; color: #ef4444;">Meta Gaming</td><td style="text-align: center;"><span class="badge-rules badge-danger">2 GÜN WL</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hassas Icerik Tab content -->
+    <div id="rules-sensitive" class="rules-tab-content" style="display: none;">
+      <div class="glass-card" style="padding: 32px;">
+        <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--warning); margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+          <span style="background: rgba(245, 158, 11, 0.2); padding: 4px 10px; border-radius: 6px; font-size: 14px; color: var(--warning); font-weight: 900;">D</span> Hassas İçerik / 18+
+        </h3>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 24px;">Yetişkin içerik ve hassas temalara ilişkin sınırlar. ERP rıza esaslıdır; ancak minör içeriği hiçbir koşulda esnetilemeyen, takdire kapalı bir kırmızı çizgidir.</p>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>İhlal</th>
+                <th style="width: 200px; text-align: center;">Yaptırım</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="font-weight: 600; color: #fff;">ERP — yalnızca yetişkin bireyler arası, karşılıklı açık rıza ve özel alanda</td><td style="text-align: center;"><span class="badge-rules badge-success">SERBEST (RIZA)</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Rıza dışı cinsel içerik / ERP dayatması</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Rıza dışı işkence / travma / rahatsız edici içerik dayatması</td><td style="text-align: center;"><span class="badge-rules badge-purple">TAKDİR</span></td></tr>
+              <tr><td style="font-weight: 800; color: var(--danger);">Reşit olmayan / minör temalı herhangi bir uygunsuz veya cinsel içerik</td><td style="text-align: center;"><span class="badge-rules badge-perma" style="background: #991b1b; border-color: #7f1d1d;">SIFIR TOLERANS</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); padding: 16px 20px; border-radius: 12px; margin-top: 24px; font-size: 12.5px; color: var(--text-muted); line-height: 1.6; display: flex; gap: 12px; align-items: flex-start;">
+          <i class="fa-solid fa-circle-info" style="color: var(--danger); font-size: 16px; margin-top: 2px;"></i>
+          <div>
+            ERP rıza esaslıdır; ancak son satır hiçbir koşulda, hiçbir "rıza" veya rol bahanesiyle esnetilemez. Bu, sunucunun en katı ve tartışmasız kırmızı çizgisidir.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kirmizi Cizgi & Perma Tab content -->
+    <div id="rules-redline" class="rules-tab-content" style="display: none;">
+      <div class="glass-card" style="padding: 32px;">
+        <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--danger); margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+          <span style="background: rgba(239, 68, 68, 0.2); padding: 4px 10px; border-radius: 6px; font-size: 14px; color: var(--danger); font-weight: 900;">E</span> Kırmızı Çizgi — Perma / Ağır Yaptırım
+        </h3>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 24px;">Karakter emeğini bir anda yok eden veya sistemi/topluluğu doğrudan bozan ihlaller. RDM ve VDM'de kaza-kasıt ayrımı POV kaydı üzerinden yapılır.</p>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>İhlal</th>
+                <th style="width: 200px; text-align: center;">Yaptırım</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="font-weight: 600; color: #fff;">RDM (kasıtlı)</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">RDM (kaza) — POV incelemesiyle</td><td style="text-align: center;"><span class="badge-rules badge-purple">YÖNETİCİ TAKDİRİ</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">VDM (kasıtlı)</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">VDM (kaza) — POV incelemesiyle</td><td style="text-align: center;"><span class="badge-rules badge-purple">YÖNETİCİ TAKDİRİ</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Dupe (item/para çoğaltma)</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Cheat / aimbot / izinsiz third-party</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">Ağır exploit</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">DDK (Dini Değerlere Küfür)</td><td style="text-align: center;"><span class="badge-rules badge-perma">PERMA</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">ADK (Ailevi Değerlere Küfür)</td><td style="text-align: center;"><span class="badge-rules badge-warning">3 GÜN WL</span></td></tr>
+              <tr><td style="font-weight: 600; color: #fff;">TT / Ragebait / OOC Toksiklik (IC trashtalk hariç)</td><td style="text-align: center;"><span class="badge-rules badge-danger">1 GÜN WL</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 16px 20px; border-radius: 12px; margin-top: 24px; font-size: 12.5px; color: var(--text-muted); line-height: 1.6;">
+          <strong style="color: #fff;">Kaza / kasıt ayrımı:</strong> RDM/VDM'de niyet, tarafımıza iletilen POV kayıtları üzerinden, o desteğe bakan yönetici tarafından belirlenir. Kasıt tespit edilirse Perma; net kaza ise ceza uyarı bandında kalır. TT tekrarında ceza 1 Hafta WL'ye yükselir.
+        </div>
+      </div>
+    </div>
+
+    <!-- Kademeli Artis & Hukumler Tab content -->
+    <div id="rules-increment" class="rules-tab-content" style="display: none;">
+      <div class="glass-card" style="padding: 32px; margin-bottom: 32px;">
+        <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--primary-light); margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+          <span style="background: var(--primary-glow); padding: 4px 10px; border-radius: 6px; font-size: 14px; color: #fff; font-weight: 900;">F</span> Kademeli Artış Merdiveni
+        </h3>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 24px;">Uyarılar birikir. Toplam aktif uyarı sayısı aşağıdaki eşiklere ulaştığında, uyarı otomatik olarak WL cezasına dönüşür. Bu merdiven, cezanın hem kademeli hem de sınırlı olmasını güvence altına alır.</p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; text-align: center; margin-bottom: 24px;">
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 24px 20px; border-radius: 16px; transition: var(--transition);">
+            <div style="font-family: var(--font-display); font-size: 28px; font-weight: 900; color: var(--warning); margin-bottom: 12px; text-shadow: 0 0 15px rgba(245, 158, 11, 0.3);">4X</div>
+            <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.05em; color: #fff; background: rgba(239, 68, 68, 0.2); padding: 6px 0; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.4);">1 GÜN WL</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 24px 20px; border-radius: 16px;">
+            <div style="font-family: var(--font-display); font-size: 28px; font-weight: 900; color: var(--warning); margin-bottom: 12px; text-shadow: 0 0 15px rgba(245, 158, 11, 0.3);">5X</div>
+            <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.05em; color: #fff; background: rgba(239, 68, 68, 0.3); padding: 6px 0; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.5);">2 GÜN WL</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 24px 20px; border-radius: 16px;">
+            <div style="font-family: var(--font-display); font-size: 28px; font-weight: 900; color: var(--warning); margin-bottom: 12px; text-shadow: 0 0 15px rgba(245, 158, 11, 0.3);">6X</div>
+            <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.05em; color: #fff; background: rgba(239, 68, 68, 0.4); padding: 6px 0; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.6);">3 GÜN WL</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 24px 20px; border-radius: 16px;">
+            <div style="font-family: var(--font-display); font-size: 28px; font-weight: 900; color: var(--warning); margin-bottom: 12px; text-shadow: 0 0 15px rgba(245, 158, 11, 0.3);">7X</div>
+            <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.05em; color: #fff; background: rgba(239, 68, 68, 0.5); padding: 6px 0; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.7);">4 GÜN WL</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 24px 20px; border-radius: 16px;">
+            <div style="font-family: var(--font-display); font-size: 28px; font-weight: 900; color: var(--warning); margin-bottom: 12px; text-shadow: 0 0 15px rgba(245, 158, 11, 0.3);">8X</div>
+            <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.05em; color: #fff; background: rgba(239, 68, 68, 0.6); padding: 6px 0; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.8);">5 GÜN WL</div>
+          </div>
+        </div>
+
+        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.7; margin: 0; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+          <strong style="color: #fff;">8X üstü veya süregelen ihlal:</strong> konu yönetim incelemesine taşınır ve uzun süreli WL ya da Perma ile sonuçlanabilir.<br>
+          <strong style="color: #fff;">Özel yasaklı roller:</strong> Legal/İllegal kural kitapçığındaki özel yasaklı rollerde ceza, ihlalin büyüklüğüne göre yetkili takdirindedir; ancak takdir bu merdivenin dışına çıkamaz.
+        </p>
+      </div>
+
+      <div class="glass-card" style="padding: 32px;">
+        <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--success); margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+          <span style="background: rgba(16, 185, 129, 0.2); padding: 4px 10px; border-radius: 6px; font-size: 14px; color: var(--success); font-weight: 900;">G</span> Genel Hüküm — Kıyas ve Takdir
+        </h3>
+        
+        <div style="border-left: 4px solid var(--success); padding: 16px 20px; margin-bottom: 24px; background: rgba(16, 185, 129, 0.05); border-radius: 0 12px 12px 0;">
+          <p style="font-size: 14px; color: #fff; font-style: italic; line-height: 1.7; margin: 0;">
+            "Bir davranışın bu yönetmelikte birebir karşılığı bulunmasa bile; RP'ye, oyunculara veya topluluğa zarar veren her eylem, en yakın maddeye kıyasla ve kademeli merdiven içinde cezalandırılır. Yönetici takdiri bu merdivenin dışına çıkamaz ve tüm kararlar POV/kanıt üzerinden verilir."
+          </p>
+        </div>
+
+        <p style="font-size: 13.5px; color: var(--text-muted); line-height: 1.7; margin-bottom: 0;">
+          Dolayısıyla hiçbir ceza dayanaksız değildir: her ceza ya doğrudan bir maddeye, ya da en yakın maddenin kıyasına bağlanır. “Bunun maddesi yok” savunması geçersizdir; çünkü kıyas ve merdiven sistemi, keyfîliği değil öngörülebilir ve sınırlı takdiri güvence altına alır.<br><br>
+          <small style="opacity: 0.6;">* Bu belge EmpireV Ceza Yönetmeliği'nin genel RP ihlalleri bölümüdür. Legal birim, soygun ve çete ihlallerinin yaptırımları kendi bölümlerinde işlenir ve nihai sürümde tek bir Ana Ceza Yönetmeliği'nde birleştirilir.</small>
+        </p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<style>
+  .tab-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    font-weight: 700;
+    padding: 14px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    transform: translateY(-2px);
+  }
+  .tab-btn.active {
+    background: var(--primary-glow);
+    border-color: var(--primary-light);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(224, 169, 139, 0.25);
+  }
+  
+  /* Modern Badge Styles */
+  .badge-rules {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: 6px;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .badge-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+  .badge-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+  .badge-perma {
+    background: #ef4444;
+    color: #fff;
+    border: 1px solid #b91c1c;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  }
+  .badge-purple {
+    background: rgba(224, 169, 139, 0.15);
+    color: var(--primary-light);
+    border: 1px solid rgba(224, 169, 139, 0.3);
+  }
+  .badge-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+</style>
+
+<script>
+  function switchRulesTab(tabName) {
+    document.querySelectorAll(".rules-tab-content").forEach(el => {
+      el.style.display = "none";
+    });
+    
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.classList.remove("active");
+    });
+    
+    const targetContent = document.getElementById("rules-" + tabName);
+    if (targetContent) {
+      targetContent.style.display = "block";
+      // Add subtle fade-in animation
+      targetContent.style.animation = "fadeUp 0.4s ease-out forwards";
+    }
+    
+    const targetBtn = document.getElementById("tab-" + tabName);
+    if (targetBtn) {
+      targetBtn.classList.add("active");
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get("tab");
+    if (activeTab) {
+      switchRulesTab(activeTab);
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

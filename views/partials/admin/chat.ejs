@@ -1,0 +1,393 @@
+<style>
+  .chat-message-row {
+    display: flex;
+    gap: 12px;
+    max-width: 85%;
+    position: relative;
+  }
+  .chat-message-row:hover .chat-message-actions {
+    opacity: 1;
+  }
+  .chat-message-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+    padding: 0 4px;
+  }
+  .chat-action-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 4px;
+    transition: color 0.15s;
+    outline: none;
+  }
+  .chat-action-btn:hover {
+    color: #fff;
+  }
+  .chat-action-btn.delete-btn:hover {
+    color: var(--danger);
+  }
+  #admin-chat-trigger:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 28px rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.45);
+  }
+</style>
+
+<div id="admin-chat-widget" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; font-family: var(--font-main);">
+  <button id="admin-chat-trigger" style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 8px 24px rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.3); outline: none;">
+    <i class="fa-solid fa-comments" style="font-size: 22px;"></i>
+  </button>
+
+  <div id="admin-chat-window" style="position: absolute; bottom: 72px; right: 0; width: 380px; height: 500px; max-height: calc(100vh - 120px); background: rgba(12, 13, 16, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div style="padding: 16px 20px; background: rgba(1, 2, 4, 0.4); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; user-select: none;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-comments text-primary" style="font-size: 14px;"></i>
+        <span style="font-weight: 800; font-family: var(--font-display); color: #fff; font-size: 13px;">Admin Sohbet</span>
+        <span id="chat-status-dot" style="width: 7px; height: 7px; background-color: var(--warning); border-radius: 50%; display: inline-block;"></span>
+        <span id="chat-status-text" style="font-size: 10px; color: var(--text-muted);">Bağlanıyor...</span>
+      </div>
+      <button id="admin-chat-close" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 4px; transition: color 0.15s; outline: none;">
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+    </div>
+
+    <div id="chat-messages-container" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;"></div>
+
+    <div style="padding: 12px 16px; background: rgba(1, 2, 4, 0.4); border-top: 1px solid var(--border-color); display: flex; gap: 10px; align-items: center;">
+      <input type="text" id="chat-message-input" placeholder="Bir mesaj yazın..." style="flex: 1; border-radius: 8px; padding: 8px 12px; font-size: 12.5px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.08); color: #fff; outline: none;" autocomplete="off">
+      <button id="chat-send-btn" style="height: 34px; width: 34px; border-radius: 8px; background: var(--primary); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 0 10px var(--primary-glow);">
+        <i class="fa-solid fa-paper-plane" style="font-size: 12px;"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const currentUserId = "<%= user.id %>";
+    const messagesContainer = document.getElementById("chat-messages-container");
+    const messageInput = document.getElementById("chat-message-input");
+    const sendBtn = document.getElementById("chat-send-btn");
+    const statusDot = document.getElementById("chat-status-dot");
+    const statusText = document.getElementById("chat-status-text");
+    const chatTrigger = document.getElementById("admin-chat-trigger");
+    const chatWindow = document.getElementById("admin-chat-window");
+    const chatClose = document.getElementById("admin-chat-close");
+
+    let eventSource = null;
+    let isOpen = false;
+
+    const toggleChat = () => {
+      isOpen = !isOpen;
+      if (isOpen) {
+        chatWindow.style.opacity = "1";
+        chatWindow.style.pointerEvents = "auto";
+        chatWindow.style.transform = "translateY(0) scale(1)";
+        chatTrigger.innerHTML = '<i class="fa-solid fa-xmark" style="font-size: 22px;"></i>';
+        loadHistory();
+        setTimeout(scrollToBottom, 50);
+      } else {
+        chatWindow.style.opacity = "0";
+        chatWindow.style.pointerEvents = "none";
+        chatWindow.style.transform = "translateY(20px) scale(0.95)";
+        chatTrigger.innerHTML = '<i class="fa-solid fa-comments" style="font-size: 22px;"></i>';
+      }
+    };
+
+    chatTrigger.addEventListener("click", toggleChat);
+    chatClose.addEventListener("click", toggleChat);
+
+    function scrollToBottom() {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function formatTime(dateStr) {
+      const d = new Date(dateStr);
+      const hrs = String(d.getHours()).padStart(2, "0");
+      const mins = String(d.getMinutes()).padStart(2, "0");
+      return hrs + ":" + mins;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.innerText = text;
+      return div.innerHTML;
+    }
+
+    function appendMessage(msg) {
+      const isMe = msg.senderId === currentUserId;
+
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "chat-message-row";
+      msgDiv.setAttribute("data-id", msg._id);
+      msgDiv.style.display = "flex";
+      msgDiv.style.gap = "10px";
+      msgDiv.style.maxWidth = "85%";
+      msgDiv.style.alignSelf = isMe ? "flex-end" : "flex-start";
+      msgDiv.style.flexDirection = isMe ? "row-reverse" : "row";
+      msgDiv.style.animation = "fadeIn 0.2s ease-out";
+
+      const avatarUrl = msg.senderAvatar || `https://cdn.discordapp.com/embed/avatars/${parseInt(msg.senderId) % 5}.png`;
+      const rankName = msg.senderRankName || "Yetkili";
+      const rankColor = msg.senderRankColor || "#9ca3af";
+      const badgeBorderColor = rankColor + "44";
+      const badgeBgColor = rankColor + "11";
+
+      const senderHeader = isMe
+        ? `<span style="font-weight: 700; color: var(--text-main);">${escapeHtml(msg.senderUsername)}</span>`
+        : `<span style="font-weight: 700; color: var(--text-main);">${escapeHtml(msg.senderUsername)}</span>
+           <span style="font-size: 8px; font-weight: 800; padding: 1px 4px; border-radius: 4px; border: 1px solid ${badgeBorderColor}; color: ${rankColor}; background: ${badgeBgColor}; text-transform: uppercase;">${escapeHtml(rankName)}</span>`;
+
+      const bubbleStyle = isMe
+        ? `background: rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.12); border: 1px solid rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.25); border-radius: 14px 4px 14px 14px; padding: 8px 12px; color: #fff; font-size: 13px; line-height: 1.4; box-shadow: 0 4px 12px rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.05);`
+        : `background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 4px 14px 14px 14px; padding: 8px 12px; color: var(--text-main); font-size: 13px; line-height: 1.4;`;
+
+      let actionsHtml = "";
+      if (isMe) {
+        actionsHtml = `
+          <div class="chat-message-actions">
+            <button class="chat-action-btn" onclick="window.editMessageInline('${msg._id}')" title="Düzenle">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="chat-action-btn delete-btn" onclick="window.deleteMessage('${msg._id}')" title="Sil">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+      }
+
+      const editedSuffix = msg.edited ? ' <span class="edited-flag" style="font-size: 9px; opacity: 0.6; font-style: italic;">(düzenlendi)</span>' : '';
+
+      msgDiv.innerHTML = `
+        <img src="${avatarUrl}" style="width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--border-color); object-fit: cover; flex-shrink: 0;" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+        <div style="display: flex; flex-direction: column; gap: 3px; align-items: ${isMe ? 'flex-end' : 'flex-start'};">
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
+            ${senderHeader}
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-direction: ${isMe ? 'row-reverse' : 'row'};">
+            <div id="bubble-${msg._id}" style="${bubbleStyle}">
+              <span id="text-${msg._id}">${escapeHtml(msg.message)}</span>${editedSuffix}
+            </div>
+            ${actionsHtml}
+          </div>
+          <span style="font-size: 8px; color: var(--text-muted); margin-top: 1px;">
+            ${formatTime(msg.createdAt)}
+          </span>
+        </div>
+      `;
+
+      messagesContainer.appendChild(msgDiv);
+    }
+
+    window.editMessageInline = (id) => {
+      const textSpan = document.getElementById(`text-${id}`);
+      const bubbleDiv = document.getElementById(`bubble-${id}`);
+      if (!textSpan || !bubbleDiv) return;
+
+      const currentText = textSpan.innerText;
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = currentText;
+      input.style.background = "rgba(0,0,0,0.3)";
+      input.style.border = "1px solid var(--border-color)";
+      input.style.color = "#fff";
+      input.style.borderRadius = "4px";
+      input.style.padding = "4px 8px";
+      input.style.fontSize = "13px";
+      input.style.width = "180px";
+      input.style.outline = "none";
+
+      const saveBtn = document.createElement("button");
+      saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+      saveBtn.style.background = "var(--primary)";
+      saveBtn.style.border = "none";
+      saveBtn.style.color = "#fff";
+      saveBtn.style.borderRadius = "4px";
+      saveBtn.style.padding = "4px 8px";
+      saveBtn.style.cursor = "pointer";
+      saveBtn.style.fontSize = "11px";
+
+      const cancelBtn = document.createElement("button");
+      cancelBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      cancelBtn.style.background = "rgba(255,255,255,0.05)";
+      cancelBtn.style.border = "1px solid var(--border-color)";
+      cancelBtn.style.color = "var(--text-muted)";
+      cancelBtn.style.borderRadius = "4px";
+      cancelBtn.style.padding = "4px 8px";
+      cancelBtn.style.cursor = "pointer";
+      cancelBtn.style.fontSize = "11px";
+
+      const controls = document.createElement("div");
+      controls.style.display = "flex";
+      controls.style.gap = "4px";
+      controls.style.marginTop = "6px";
+      controls.style.justifyContent = "flex-end";
+
+      controls.appendChild(cancelBtn);
+      controls.appendChild(saveBtn);
+
+      const originalHtml = bubbleDiv.innerHTML;
+      bubbleDiv.innerHTML = "";
+      bubbleDiv.appendChild(input);
+      bubbleDiv.appendChild(controls);
+      input.focus();
+
+      const restore = () => {
+        bubbleDiv.innerHTML = originalHtml;
+      };
+
+      cancelBtn.addEventListener("click", restore);
+
+      const save = async () => {
+        const newText = input.value.trim();
+        if (!newText) return;
+        saveBtn.disabled = true;
+        cancelBtn.disabled = true;
+        try {
+          const response = await fetch(`/admin/chat/edit/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: newText })
+          });
+          const data = await response.json();
+          if (!data.success) {
+            alert(data.message || "Düzenleme başarısız.");
+            restore();
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Bağlantı hatası.");
+          restore();
+        }
+      };
+
+      saveBtn.addEventListener("click", save);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") save();
+        if (e.key === "Escape") restore();
+      });
+    };
+
+    window.deleteMessage = async (id) => {
+      if (!confirm("Bu mesajı silmek istediğinizden emin misiniz?")) return;
+      try {
+        const response = await fetch(`/admin/chat/delete/${id}`, {
+          method: "POST"
+        });
+        const data = await response.json();
+        if (!data.success) {
+          alert(data.message || "Mesaj silinemedi.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Bağlantı hatası.");
+      }
+    };
+
+    async function loadHistory() {
+      try {
+        const response = await fetch("/admin/chat/messages");
+        const data = await response.json();
+        if (data.success && data.messages) {
+          messagesContainer.innerHTML = "";
+          data.messages.forEach(msg => appendMessage(msg));
+          scrollToBottom();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function startSSE() {
+      if (eventSource) {
+        eventSource.close();
+      }
+
+      eventSource = new EventSource("/admin/chat/stream");
+
+      eventSource.onopen = () => {
+        statusDot.style.backgroundColor = "var(--success)";
+        statusDot.style.animation = "pulse 2s infinite";
+        statusText.innerText = "Bağlandı";
+      };
+
+      eventSource.onerror = () => {
+        statusDot.style.backgroundColor = "var(--danger)";
+        statusDot.style.animation = "none";
+        statusText.innerText = "Bağlantı kesildi";
+        setTimeout(startSSE, 5000);
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === "message") {
+            appendMessage(payload.data);
+            scrollToBottom();
+          } else if (payload.type === "edit") {
+            const bubbleDiv = document.getElementById(`bubble-${payload.data._id}`);
+            if (bubbleDiv) {
+              const editedSuffix = ' <span class="edited-flag" style="font-size: 9px; opacity: 0.6; font-style: italic;">(düzenlendi)</span>';
+              bubbleDiv.innerHTML = `<span id="text-${payload.data._id}">${escapeHtml(payload.data.message)}</span>${editedSuffix}`;
+            }
+          } else if (payload.type === "delete") {
+            const msgDiv = document.querySelector(`.chat-message-row[data-id="${payload.data.id}"]`);
+            if (msgDiv) {
+              msgDiv.style.transition = "all 0.3s ease";
+              msgDiv.style.opacity = "0";
+              msgDiv.style.transform = "scale(0.9)";
+              setTimeout(() => {
+                msgDiv.remove();
+              }, 300);
+            }
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+    }
+
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) return;
+
+      messageInput.value = "";
+      messageInput.disabled = true;
+      sendBtn.disabled = true;
+
+      try {
+        const response = await fetch("/admin/chat/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await response.json();
+        if (!data.success) {
+          alert(data.message || "Mesaj gönderilemedi.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Bağlantı hatası oluştu.");
+      } finally {
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        messageInput.focus();
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    messageInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    startSSE();
+  })();
+</script>

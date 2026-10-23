@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= locals.pageTitle ? locals.pageTitle + ' — ' : '' %>EmpireV</title>
+  <link rel="icon" type="image/png" href="/images/logo.png">
+  <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    html, body {
+      background-color: #06070b !important;
+      color: #ffffff;
+      color-scheme: dark;
+    }
+  </style>
+  <script src="/js/toastManager.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="/js/light-pillar.js" defer></script>
+  <% if (locals.themeColor) { %>
+    <style>
+      :root {
+        --primary: <%= locals.themeColor %>;
+        --primary-glow: rgba(<%= locals.themeColorRgb %>, 0.25);
+        --border-focus: rgba(<%= locals.themeColorRgb %>, 0.5);
+      }
+    </style>
+  <% } %>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    function hidePreloader() {
+      const loader = document.getElementById('preloader');
+      if (loader) {
+        loader.style.opacity = '0';
+        loader.style.pointerEvents = 'none';
+        setTimeout(() => {
+          loader.style.visibility = 'hidden';
+        }, 150);
+      }
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      hidePreloader();
+    } else {
+      document.addEventListener('DOMContentLoaded', hidePreloader);
+      window.addEventListener('load', hidePreloader);
+      window.addEventListener('pageshow', hidePreloader);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+      // Mobile Menu Toggle
+      const toggleBtn = document.getElementById("mobile-toggle-btn");
+      const menuWrapper = document.querySelector(".nav-menu-wrapper");
+      if (toggleBtn && menuWrapper) {
+        toggleBtn.addEventListener("click", () => {
+          toggleBtn.classList.toggle("open");
+          menuWrapper.classList.toggle("open");
+        });
+        
+        document.querySelectorAll(".nav-menu .nav-link").forEach(link => {
+          link.addEventListener("click", () => {
+            toggleBtn.classList.remove("open");
+            menuWrapper.classList.remove("open");
+          });
+        });
+      }
+
+      // Active Page Highlight
+      const path = window.location.pathname;
+      document.querySelectorAll(".nav-menu .nav-link").forEach(link => {
+        const href = link.getAttribute("href");
+        if (href === path || (href !== "/" && path.startsWith(href))) {
+          link.classList.add("active");
+        } else {
+          link.classList.remove("active");
+        }
+      });
+    });
+  </script>
+  <style>
+    /* Hakkımızda Glass Dropdown Styling */
+    .nav-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 14px);
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: rgba(11, 13, 22, 0.96);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      width: 190px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(224, 169, 139, 0.15);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      padding: 8px;
+    }
+
+    .nav-dropdown-wrapper:hover .nav-dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .nav-dropdown-wrapper:hover .fa-chevron-down {
+      transform: rotate(180deg);
+    }
+
+    .nav-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      color: #ffffff !important;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .nav-dropdown-item i {
+      color: var(--primary-light);
+    }
+
+    .nav-dropdown-item:hover {
+      background: rgba(224, 169, 139, 0.16);
+      color: #ffffff !important;
+      transform: translateX(4px);
+    }
+
+    @media (max-width: 1080px) {
+      .nav-dropdown-menu {
+        position: static;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+        background: transparent;
+        border: none;
+        width: 100%;
+        box-shadow: none;
+        padding: 0;
+        margin-top: 5px;
+        display: none;
+      }
+      .nav-dropdown-wrapper:hover .nav-dropdown-menu {
+        display: block;
+      }
+      .nav-dropdown-item {
+        padding: 10px 24px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="preloader" class="preloader">
+    <div class="dots-wrapper">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <!-- LightPillar WebGL Background Effect (React Bits) -->
+  <div id="light-pillar-bg" 
+       class="light-pillar-container"
+       data-top-color="#ffffff"
+       data-bottom-color="#000000"
+       data-intensity="1.2"
+       data-rotation-speed="0.6"
+       data-glow-amount="0.001"
+       data-pillar-width="6.5"
+       data-pillar-height="0.4"
+       data-noise-intensity="0"
+       data-pillar-rotation="49"
+       data-interactive="false"
+       data-mix-blend-mode="luminosity">
+  </div>
+
+  <header class="navbar">
+    <div class="navbar-container">
+      <a href="/" class="nav-brand">
+        <img src="/images/logo.png" alt="EmpireV Logo"> EmpireV
+      </a>
+
+      <button class="mobile-menu-toggle" id="mobile-toggle-btn" aria-label="Menu Toggle">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+
+      <nav class="nav-menu-wrapper">
+        <ul class="nav-menu">
+          <% if (locals.modules && (
+            (locals.modules.rules || (locals.moduleDetails && locals.moduleDetails.rules && locals.moduleDetails.rules.behavior === 'preloader')) ||
+            (locals.modules.penalties || (locals.moduleDetails && locals.moduleDetails.penalties && locals.moduleDetails.penalties.behavior === 'preloader')) ||
+            (locals.modules.faq || (locals.moduleDetails && locals.moduleDetails.faq && locals.moduleDetails.faq.behavior === 'preloader'))
+          )) { %>
+          <li class="nav-dropdown-wrapper" style="position: relative;">
+            <a href="#" class="nav-link" style="display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-house"></i> Hakkımızda <i class="fa-solid fa-chevron-down" style="font-size: 10px; transition: transform 0.3s ease;"></i>
+            </a>
+            <div class="nav-dropdown-menu">
+              <ul class="nav-dropdown-list" style="list-style: none; padding: 4px; margin: 0; display: flex; flex-direction: column; gap: 2px;">
+                <% if (locals.modules.rules || (locals.moduleDetails && locals.moduleDetails.rules && locals.moduleDetails.rules.behavior === 'preloader')) { %>
+                <li>
+                  <a href="/rules" class="nav-dropdown-item">
+                    <i class="fa-solid fa-gavel" style="font-size: 12px;"></i> Sunucu Kuralları
+                  </a>
+                </li>
+                <li>
+                  <a href="/legal-rules" class="nav-dropdown-item">
+                    <i class="fa-solid fa-building-shield" style="font-size: 12px;"></i> Legal Kurallar
+                  </a>
+                </li>
+                <% } %>
+                <% if (locals.modules.penalties || (locals.moduleDetails && locals.moduleDetails.penalties && locals.moduleDetails.penalties.behavior === 'preloader')) { %>
+                <li>
+                  <a href="/penalties" class="nav-dropdown-item">
+                    <i class="fa-solid fa-scale-balanced" style="font-size: 12px;"></i> Ceza Listesi
+                  </a>
+                </li>
+                <% } %>
+                <% if (locals.modules.faq || (locals.moduleDetails && locals.moduleDetails.faq && locals.moduleDetails.faq.behavior === 'preloader')) { %>
+                <li>
+                  <a href="/faq" class="nav-dropdown-item">
+                    <i class="fa-solid fa-circle-question" style="font-size: 12px;"></i> Sıkça Sorulanlar
+                  </a>
+                </li>
+                <% } %>
+              </ul>
+            </div>
+          </li>
+          <% } %>
+          <% if (locals.modules && (locals.modules.stats || (locals.moduleDetails && locals.moduleDetails.stats && locals.moduleDetails.stats.behavior === 'preloader'))) { %>
+            <li><a href="/stats" class="nav-link"><i class="fa-solid fa-chart-simple"></i> İstatistikler</a></li>
+          <% } %>
+          <% if (locals.modules && (locals.modules.gallery || (locals.moduleDetails && locals.moduleDetails.gallery && locals.moduleDetails.gallery.behavior === 'preloader'))) { %>
+            <li><a href="/gallery" class="nav-link"><i class="fa-solid fa-images"></i> Galeri</a></li>
+          <% } %>
+          <% if (locals.modules && (locals.modules.team || (locals.moduleDetails && locals.moduleDetails.team && locals.moduleDetails.team.behavior === 'preloader'))) { %>
+            <li><a href="/team" class="nav-link"><i class="fa-solid fa-users"></i> Ekibimiz</a></li>
+          <% } %>
+          <li><a href="/streamers" class="nav-link"><i class="fa-solid fa-headset"></i> Streamer's</a></li>
+          <% if (locals.modules && (locals.modules.applications || (locals.moduleDetails && locals.moduleDetails.applications && locals.moduleDetails.applications.behavior === 'preloader'))) { %>
+            <li><a href="/applications" class="nav-link"><i class="fa-solid fa-file-signature"></i> Başvurular</a></li>
+          <% } %>
+          <li><a href="/characters" class="nav-link"><i class="fa-solid fa-person-circle-check"></i> Karakterler</a></li>
+          <% if (locals.modules && (locals.modules.donate || (locals.moduleDetails && locals.moduleDetails.donate && locals.moduleDetails.donate.behavior === 'preloader'))) { %>
+            <li><a href="/donate" class="nav-link"><i class="fa-solid fa-coins"></i> Mağaza & Kredi</a></li>
+          <% } %>
+        </ul>
+      </nav>
+      <div class="nav-actions">
+        <% if (locals.user) { %>
+          <div class="user-menu-container">
+            <button class="avatar-btn">
+              <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'" class="avatar-img">
+            </button>
+            <div class="user-dropdown">
+              <div class="dropdown-header">
+                <div class="dropdown-avatar-wrapper">
+                  <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'" class="dropdown-avatar">
+                  <span class="avatar-status-dot"></span>
+                </div>
+                <div class="dropdown-user-info">
+                  <span class="dropdown-name"><%= user.username %></span>
+                  <span class="dropdown-role" style="color: <%= locals.userPermissions && userPermissions.rankColor ? userPermissions.rankColor : 'var(--primary-light)' %>">
+                    <%= user.isSuperuser ? 'Superuser' : (locals.userPermissions && userPermissions.rankName ? userPermissions.rankName : 'Oyuncu') %>
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Credits Balance Card -->
+              <div class="dropdown-balance-card">
+                <div class="balance-info">
+                  <div class="balance-label"><i class="fa-solid fa-coins"></i> Kredi Bakiyesi</div>
+                  <div class="balance-value"><%= locals.userCredits || 0 %> <span class="currency-symbol">KV</span></div>
+                </div>
+                <a href="/donate" class="balance-action-btn" title="Kredi Yükle">
+                  <i class="fa-solid fa-plus"></i>
+                </a>
+              </div>
+
+              <div class="dropdown-divider"></div>
+
+              <div class="dropdown-items-list">
+                <% if (locals.userPermissions && (userPermissions.isSuperuser || Object.values(userPermissions).some(v => v === true))) { %>
+                  <a href="/admin/dashboard" class="dropdown-item admin-link">
+                    <i class="fa-solid fa-shield-halved"></i> Yönetim Paneli
+                  </a>
+                <% } %>
+                <a href="/characters" class="dropdown-item">
+                  <i class="fa-solid fa-id-card-clip"></i> Karakterlerim
+                </a>
+                <a href="/donate" class="dropdown-item">
+                  <i class="fa-solid fa-basket-shopping"></i> Mağaza & Market
+                </a>
+                <a href="/applications" class="dropdown-item">
+                  <i class="fa-solid fa-file-invoice"></i> Başvurularım
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="/auth/logout" class="dropdown-item logout-link">
+                  <i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap
+                </a>
+              </div>
+            </div>
+          </div>
+        <% } else { %>
+          <a href="/auth/login<%= (locals.currentPath && locals.currentPath !== '/') ? '?next=' + encodeURIComponent(locals.currentPath) : '' %>" class="nav-btn-discord"><i class="fa-brands fa-discord"></i> Discord ile Giriş</a>
+        <% } %>
+      </div>
+    </div>
+  </header>

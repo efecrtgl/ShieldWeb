@@ -1,0 +1,1670 @@
+<%- include('partials/header') %>
+
+<style>
+  .rules-container {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 40px;
+    margin-top: 40px;
+    align-items: start;
+  }
+
+  .rules-sidebar {
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    background: rgba(12, 13, 16, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .rules-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .rules-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+  }
+
+  .rules-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .rules-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .rules-menu-link:hover, .rules-menu-link.active {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--primary);
+  }
+  
+  .rules-menu-link.active {
+    border-left: 2px solid var(--primary);
+    border-radius: 0 8px 8px 0;
+    padding-left: 10px;
+  }
+
+  .rules-content {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .rule-section {
+    scroll-margin-top: 100px;
+  }
+
+  .rule-card {
+    background: rgba(12, 13, 16, 0.45);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .rule-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .rule-title span {
+    background: var(--primary);
+    box-shadow: 0 0 10px var(--primary-glow);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  .rules-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .rules-list li {
+    font-size: 14px;
+    color: var(--text-main);
+    line-height: 1.6;
+    position: relative;
+    padding-left: 20px;
+  }
+
+  .rules-list li::before {
+    content: "•";
+    color: var(--primary);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  .rules-alert {
+    background: rgba(245, 158, 11, 0.03);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    padding: 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+
+  .rules-table th, .rules-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+  }
+
+  .rules-table th {
+    color: var(--text-muted);
+    font-weight: 600;
+    background: rgba(255,255,255,0.01);
+  }
+
+  .rules-table td {
+    color: var(--text-main);
+  }
+
+  .badge-hard {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--primary);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  .badge-arcade {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  .dept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .dept-card {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s;
+  }
+
+  .dept-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 0;
+  }
+
+  .faq-question {
+    font-weight: 700;
+    color: #fff;
+    font-size: 14.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .faq-answer {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .accent-bar {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--purple) 100%);
+    height: 8px;
+    border-radius: 4px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .accent-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 20%;
+    background: #eab308;
+  }
+
+  @media (max-width: 991px) {
+    .rules-container {
+      grid-template-columns: 1fr;
+    }
+    .rules-sidebar {
+      position: static;
+      max-height: 300px;
+    }
+  }
+</style>
+
+<main class="container" style="padding-bottom: 80px;">
+  <div style="margin-top: 40px; text-align: center;">
+    <h1 style="font-family: var(--font-display); font-size: 36px; font-weight: 900; color: #fff; margin-bottom: 8px;">
+      LEGAL BİRİMLER KURAL KİTAPÇIĞI
+    </h1>
+    <p style="color: var(--text-muted); font-size: 14.5px; max-width: 750px; margin: 0 auto; line-height: 1.6;">
+      Shield 2.0 Resmî Legal Roleplay Mevzuatı — Kolluk · İtfaiye · Sağlık · Yargı · Federal Adalet (DOJ/USMS) · GTF · Kamu Hizmeti · Basın<br>
+      <span style="font-size: 12.5px; color: #94a3b8;">(Adalet Bakanlığı, U.S. Marshals Service, Grappler Kullanım Talimatı, South Side Shotfire ve Kod 99 Rejimi entegredir)</span>
+    </p>
+  </div>
+
+  <div class="rules-container">
+    <!-- Left Sidebar Table of Contents -->
+    <aside class="rules-sidebar">
+      <ul class="rules-menu">
+        <li><a href="#sec-amac" class="rules-menu-link active"><i class="fa-solid fa-circle-info"></i> I. Amaç ve Kapsam</a></li>
+        <li><a href="#sec-felsefe" class="rules-menu-link"><i class="fa-solid fa-compass"></i> II. Roleplay Felsefesi</a></li>
+        <li><a href="#sec-sozluk" class="rules-menu-link"><i class="fa-solid fa-book"></i> III. Ortak Tanımlar</a></li>
+        <li><a href="#sec-etik" class="rules-menu-link"><i class="fa-solid fa-scale-balanced"></i> IV. Etik ve Davranış</a></li>
+        <li><a href="#sec-kiyafet" class="rules-menu-link"><i class="fa-solid fa-shirt"></i> V. Görünüm ve Ekipman</a></li>
+        <li><a href="#sec-sivil" class="rules-menu-link"><i class="fa-solid fa-user-shield"></i> VI. Sivil Hayat ve LEOSA</a></li>
+        <li><a href="#sec-hiyerarsi" class="rules-menu-link"><i class="fa-solid fa-sitemap"></i> VII. Hiyerarşi ve Disiplin</a></li>
+        <li><a href="#sec-telsiz" class="rules-menu-link"><i class="fa-solid fa-walkie-talkie"></i> VIII. Telsiz ve MDT</a></li>
+        <li><a href="#sec-gozalti" class="rules-menu-link"><i class="fa-solid fa-handcuffs"></i> IX. Haklar ve Prosedürler</a></li>
+        <li><a href="#sec-guc" class="rules-menu-link"><i class="fa-solid fa-shield-halved"></i> X. Güç Kullanımı</a></li>
+        <li><a href="#sec-trafik" class="rules-menu-link"><i class="fa-solid fa-car"></i> XI. Kovalama ve PIT</a></li>
+        <li><a href="#sec-soygun" class="rules-menu-link"><i class="fa-solid fa-vault"></i> XII. Soygun ve Çatışma</a></li>
+        <li><a href="#sec-hood" class="rules-menu-link"><i class="fa-solid fa-map-location-dot"></i> XIII. South Side Girişleri</a></li>
+        <li><a href="#sec-arama" class="rules-menu-link"><i class="fa-solid fa-house-laptop"></i> XIV. Mülk ve Araç Arama</a></li>
+        <li><a href="#sec-olayyeri" class="rules-menu-link"><i class="fa-solid fa-kit-medical"></i> XV. Olay Yeri Yönetimi</a></li>
+        <li><a href="#sec-doj" class="rules-menu-link"><i class="fa-solid fa-scale-balanced"></i> XVI. DOJ ve Yargı Kuralları</a></li>
+        <li><a href="#sec-gtf" class="rules-menu-link"><i class="fa-solid fa-mask"></i> XVII. GTF ve Federal Yapılar</a></li>
+        <li><a href="#sec-departmanlar" class="rules-menu-link"><i class="fa-solid fa-building-shield"></i> XVIII. Departman Standartları</a></li>
+        <li><a href="#sec-anlasmazlik" class="rules-menu-link"><i class="fa-solid fa-handshake-slash"></i> XIX. Çözüm Usulleri</a></li>
+        <li><a href="#sec-yasaklar" class="rules-menu-link"><i class="fa-solid fa-triangle-exclamation"></i> XX. Yasaklar ve İhlaller</a></li>
+        <li><a href="#sec-egitim" class="rules-menu-link"><i class="fa-solid fa-graduation-cap"></i> XXI. Eğitim ve Yetki</a></li>
+        <li><a href="#sec-sss" class="rules-menu-link"><i class="fa-solid fa-circle-question"></i> XXII. Sık Sorulan Sorular</a></li>
+        <li><a href="#sec-matris" class="rules-menu-link"><i class="fa-solid fa-table"></i> XXIII. Hızlı Müdahale Matrisi</a></li>
+        <li><a href="#sec-onaylar" class="rules-menu-link"><i class="fa-solid fa-stamp"></i> XXIV. Yönetim Onayları</a></li>
+      </ul>
+    </aside>
+
+    <!-- Right Side Rule Content -->
+    <div class="rules-content">
+      
+      <!-- I. BELGENİN AMACI, KAPSAMI VE HUKUKİ ÖNCELİK -->
+      <section id="sec-amac" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">I. Belgenin Amacı, Kapsamı ve Hukuki Öncelik</h2>
+          <ul class="rules-list">
+            <li>Bu kitapçık; Shield sunucusundaki tüm legal birimlerin (kolluk, itfaiye, sağlık, yargı, kamu hizmeti ve basın) görev, yetki, kıyafet, prosedür, disiplin ve koordinasyon kurallarını tanımlayan <b>ana mevzuattır</b>.</li>
+            <li>Kapsanan kurumlar: MRPD, VPD, Vespucci PD, DSD, PBSO, BCSD, SAHP, SAPR, LSFD, EMS, DOJ, GTF, LSDWP, Weazel News ve federal üst yönetim (FBI/DHS).</li>
+            <li>Bu belge, mevcut Shield kural setindeki hiçbir kesin hükmü değiştirmez veya yumuşatmaz; onları legal birim düzeyinde uygular ve detaylandırır.</li>
+            <li>Legal personel; hem bu kitapçığa, hem Genel Kitapçığa, hem de (illegal oyuncularla etkileşimde) İllegal Kitapçığın ilgili hükümlerine tabidir.</li>
+            <li>Sunucu kuralı ihlallerinde bu belge ceza uydurmaz: "Ceza Yönetmeliği ve yönetim takdiri uygulanır." Bu kitapçık yalnızca <b>departman içi disiplin sonuçlarını</b> düzenler.</li>
+            <li>Bu belgede açıkça yazmayan mekanik, sayı veya yetki uydurulamaz; belirsizlikte ticket açılır.</li>
+          </ul>
+          <div class="rules-alert" style="margin-top: 20px;">
+            <b>HIZLI KONTROL LİSTESİ:</b> Doğru belgede miyim? &rarr; Legal personelsen evet. Çelişki mi var? &rarr; Öncelik sırasını uygula. Cevap yok mu? &rarr; Ticket.
+          </div>
+        </div>
+      </section>
+
+      <!-- II. SHIELD LEGAL ROLEPLAY FELSEFESİ -->
+      <section id="sec-felsefe" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">II. Shield Legal Roleplay Felsefesi</h2>
+          <ul class="rules-list">
+            <li><b>Legal birimler sunucunun vitrinidir.</b> Standartlarınız sivillerden ve illegal oyunculardan yüksektir; kuralların en katı uygulandığı yer departmanlardır.</li>
+            <li>Sunucu dengesi <b>%80 Hard Social RP / %20 Arcade Gun RP</b>'dir. Sosyal etkileşimde (durdurma, gözaltı, ifade, hastane, mahkeme) gerçekçilik tavizsizdir; sistemsel soygun/çatışma mekaniklerinde rakamsal kurallar (bekleme süreleri, kişi sayıları) aynen uygulanır.</li>
+            <li>Legal personel <b>"kazanmak için rol yapan"</b> yapıda olamaz. Ego yapmak, baitlemek, mekanik avantaj kovalamak, gereksiz sertlik ve "suçlu avı" zihniyeti yasaktır.</li>
+            <li>Her işlem şu dörtlüye dayanır: <b>IC gerekçe &rarr; role uygun iletişim &rarr; makul şüphe/prosedür &rarr; kayıt-rapor</b>.</li>
+            <li><b>Hataya hatayla karşılık verilmez.</b> Karşı taraf kural bozarsa: sahneyi mümkün olduğunca sürdür, POV al, ticket'a bırak. Sahneyi bilerek ezmek legal personel için ağır ihlaldir.</li>
+            <li>Fear-RP, Value of Life, etki-tepki, yaralanma ve travma legal karakterler için de geçerlidir. Polis de vurulunca acı çeker, silah doğrultulunca canını düşünür.</li>
+            <li>Rehine güvenliği her zaman yakalamadan önce gelir. <b>Rehine varken clean shot yasaktır; ilk ateş gelmeden ölümcül güç kullanılmaz</b>.</li>
+            <li>POV zorunluluğu (çatışma, soygun, kaçırma, CK, kalıcı hasar, hit&run) legal personel için de geçerlidir; ayrıca bodycam rolü bu kaydın IC karşılığıdır.</li>
+          </ul>
+          <div class="accent-bar"></div>
+          <div style="font-size: 12px; color: var(--text-muted); text-align: center; font-style: italic;">
+            %80 Hard Social RP · %20 Arcade Gun RP — bu oran her kuralın ruhunu belirler.
+          </div>
+        </div>
+      </section>
+
+      <!-- III. ORTAK TANIMLAR SÖZLÜĞÜ -->
+      <section id="sec-sozluk" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">III. Ortak Tanımlar Sözlüğü</h2>
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th style="width: 220px;">Terim</th>
+                <th>Anlamı</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>10-kodları / Kod 1-2-3</b></td>
+                <td>Telsiz kısaltmaları. Kod 1: acele yok; Kod 2: hızlı ama siren yok; Kod 3: siren+tepe lambası acil.</td>
+              </tr>
+              <tr>
+                <td><b>Makul Şüphe (Reasonable Suspicion)</b></td>
+                <td>Somut, ifade edilebilir gözleme dayalı şüphe (silah sesi, bağrışma, kaçma). Durdurma ve Stop&Frisk için yeterlidir.</td>
+              </tr>
+              <tr>
+                <td><b>Olası Neden (Probable Cause)</b></td>
+                <td>Suç işlendiğine dair makul kanaat oluşturan delil düzeyi. Gözaltı ve araç araması için gereklidir.</td>
+              </tr>
+              <tr>
+                <td><b>Savcı İzni</b></td>
+                <td>Mülk aramaları ve ağır operasyonlar için DOJ savcılığından alınan izin (Genel Kit. 4.2).</td>
+              </tr>
+              <tr>
+                <td><b>Felony Stop</b></td>
+                <td>Ağır suç şüphelisinin ekip desteğiyle, prosedürlü araçtan indirilmesi (Legal Kit. 1.7).</td>
+              </tr>
+              <tr>
+                <td><b>Pursuit</b></td>
+                <td>Resmî araç kovalamacası; max 4 ekip (2 arkada, 2 paralel).</td>
+              </tr>
+              <tr>
+                <td><b>PIT</b></td>
+                <td>Kaçan aracın arka çeyreğine kontrollü temasla döndürme. Polis için kovalamacanın 5. dakikasından sonra.</td>
+              </tr>
+              <tr>
+                <td><b>Roll Call</b></td>
+                <td>Vardiya başı yoklama/görev dağılımı; atlamadan devriyeye çıkılamaz.</td>
+              </tr>
+              <tr>
+                <td><b>MDT</b></td>
+                <td>Mobil Data Terminali: sicil, plaka, arama kaydı, rapor sistemi.</td>
+              </tr>
+              <tr>
+                <td><b>Bodycam</b></td>
+                <td>Vücut kamerası; mesaide zorunlu. IC delil = OOC POV karşılığı.</td>
+              </tr>
+              <tr>
+                <td><b>LEOSA</b></td>
+                <td>Görev dışı (sivil) silah taşıma lisansı. Yalnızca hukuka uygun <b>gizli taşıma</b> yetkisi verir; kullanma serbestisi vermez.</td>
+              </tr>
+              <tr>
+                <td><b>Duty Belt</b></td>
+                <td>Görev kemeri (holster, taser, kelepçe, telsiz). Mesai ekipmanıdır.</td>
+              </tr>
+              <tr>
+                <td><b>GTF</b></td>
+                <td>Gang Task Force. Çete/organize suç soruşturma birimi; üyeliği ifşa edilmez.</td>
+              </tr>
+              <tr>
+                <td><b>LSDA</b></td>
+                <td>Kolluk koordinasyon, denetim ve operasyonel destek mekanizması; mahkemeleri korur.</td>
+              </tr>
+              <tr>
+                <td><b>Law Enforcement (LE) Yapısı</b></td>
+                <td>Yalnızca DOJ + LSDA koordinasyonudur. Departmanların üst hiyerarşisi <b>değildir</b>.</td>
+              </tr>
+              <tr>
+                <td><b>Debrief</b></td>
+                <td>Operasyon sonrası değerlendirme toplantısı ve raporu.</td>
+              </tr>
+              <tr>
+                <td><b>Olay Amiri (IC Commander)</b></td>
+                <td>Sahnedeki en kıdemli memur; olay komutası ondadır.</td>
+              </tr>
+              <tr>
+                <td><b>Legal Blacklist</b></td>
+                <td>Belirli legal rollere kesin yasak (yönetim yaptırımı).</td>
+              </tr>
+              <tr>
+                <td><b>Bad-Cop / Bad-Doc</b></td>
+                <td>Yetkinin suça alet edilmesi (rüşvet, sahte delil/rapor, örgüt ortaklığı). Kesin yasaktır.</td>
+              </tr>
+              <tr>
+                <td><b>Mutual Aid</b></td>
+                <td>Yetki alanı dışındaki departmanın, aktif olaya destek çağrısıyla katılması.</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size:12px; color:var(--text-muted); font-style:italic; margin-top:15px;">
+            * Genel Kitapçık Bölüm 1'deki tüm terimler (Fear-RP, NLR, POV, CK/PK vb.) burada da aynı anlamla geçerlidir.
+          </p>
+        </div>
+      </section>
+
+      <!-- IV. TÜM LEGAL PERSONEL İÇİN ORTAK ETİK VE DAVRANIŞ KURALLARI -->
+      <section id="sec-etik" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">IV. Tüm Legal Personel İçin Ortak Etik ve Davranış Kuralları</h2>
+          <ul class="rules-list">
+            <li><b>1. Tarafsızlık:</b> Legal personel protestoya katılamaz, destekleyemez; siyasi taraf tutamaz (Legal Kit. 1.1).</li>
+            <li><b>2. Söz vermeme:</b> Şüpheliye, mağdura veya vatandaşa "asla söz verilmez"; verilen söz yalan ifade sayılır (Legal Kit. 1.1).</li>
+            <li><b>3. Bilgi güvenliği:</b> Üst düzey bilgi sızdırmak yasaktır; cezası <b>karaktere CK</b>'dır (Legal Kit. 1.1). Soruşturma, operasyon, GTF/undercover kimlikleri ve MDT verileri sızdırılamaz.</li>
+            <li><b>4. Bad-cop yasağı:</b> Rüşvet, kişisel intikam, suç örgütüyle gizli ortaklık, sahte delil, keyfî güç, yetkinin kişisel menfaate kullanılması kesin yasaktır. <i>İstisna:</i> Yönetim onaylı rüşvet/rol pası çerçevesi (admin rol pasları — Legal Kit. 3.4) münferit ve izlemeli bir rol mekaniğidir; kendiliğinden başlatılamaz.</li>
+            <li><b>5. IC ırkçılık mekaniği:</b> Legal rollerde IC ırkçılık yapılabilir ancak yakalanınca karaktere <b>CK</b> atılır. Bu bir rol mekaniğidir; OOC ırkçılık her hâlde <b>Perma</b>'dır (Ceza Yön. B).</li>
+            <li><b>6. Küfür:</b> Şüpheliye küfredilemez (aksiyon içinde/yaralıyken istisna — Legal Kit. 1.4). Küfür tutuklama sebebi değildir; ifade özgürlüğüdür. Hedef gösterme ise farklıdır ve işlem konusu olabilir.</li>
+            <li><b>7. Ego yasağı:</b> Kişisel husumetle işlem yapmak, keyfî durdurma/arama, "ders verme" tavrı, gereksiz kelepçe/taser ve şüpheliyi küçümseme yasaktır.</li>
+            <li><b>8. Sahne saygısı:</b> Karşı taraf fail-RP yaparsa hataya hatayla karşılık verilmez; kayıt alınır, sahne mümkün olduğunca korunur, ticket'a bırakılır (Genel Kit. 10).</li>
+            <li><b>9. Baiting'e tepki:</b> Cop-bait/EMS-bait yapan oyuncuya karşı orantısız güçle "cezalandırma" yapılamaz; makul IC tepki + POV + ticket izlenir.</li>
+            <li><b>10. Departmanlar arası saygı:</b> Tüm departmanlar eşittir; başka birim personeline hakaret, küçümseme ve sahne çalma yasaktır (Legal Kit. 5).</li>
+            <li><b>11. Aktif olaya müdahale zorunludur</b> (Legal Kit. 1.4). Aktif legal birim varken role refuse atmak yasaktır (Legal Kit. 1.6).</li>
+            <li><b>12. Alkol/madde:</b> Mesaide alkol ve madde kesin yasaktır. Duruşma günü mahkeme taraflarına alkol yasağı ayrıca geçerlidir (Legal Kit. 3.4).</li>
+          </ul>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px;">
+            <div style="background: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.15); padding: 16px; border-radius: 10px;">
+              <h4 style="color: var(--success); margin: 0 0 8px 0; font-size: 13px;"><i class="fa-solid fa-circle-check"></i> DOĞRU UYGULAMA</h4>
+              <p style="font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                Şüpheli sana hakaret ediyor &rarr; cezaya "+5 kamu" ekleyebilirsin, tartışmaya girmezsin.
+              </p>
+            </div>
+            <div style="background: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.15); padding: 16px; border-radius: 10px;">
+              <h4 style="color: var(--danger); margin: 0 0 8px 0; font-size: 13px;"><i class="fa-solid fa-circle-xmark"></i> YANLIŞ UYGULAMA</h4>
+              <p style="font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                Hakarete hakaretle karşılık vermek, tasere davranmak, "seni süründürürüm" tavrı.
+              </p>
+            </div>
+          </div>
+          <div class="rules-alert" style="margin-top: 20px;">
+            <b>HIZLI KONTROL LİSTESİ:</b> IC gerekçem var mı? Prosedür işledim mi? Bodycam açık mı? Ego mu konuşuyor, karakter mi? Karşı taraf hata yaptıysa POV aldım mı?
+          </div>
+        </div>
+      </section>
+
+      <!-- V. KIYAFET, SAÇ, DÖVME, EKİPMAN, BODYCAM VE KİMLİK YÖNETMELİĞİ -->
+      <section id="sec-kiyafet" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">V. Kıyafet, Saç, Dövme, Ekipman, Bodycam ve Kimlik Yönetmeliği</h2>
+          
+          <h4 style="color: #fff; font-size: 14.5px; margin-top: 0; margin-bottom: 12px;">5.1 Genel Görünüm Standardı (tüm legal birimler)</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Saç <b>doğal renklerde</b> (kızıl istisna — Legal Kit. 1.2), bakımlı ve mesleğe uygun olmalıdır; üniforma/kask/ekipman kullanımını engelleyemez.</li>
+            <li>2. Troll, neon, çizgi film tarzı, aşırı dikkat çekici saç/sakal modelleri yasaktır.</li>
+            <li>3. Görünen dövmeler sınırlıdır; <b>cinsel içerikli, nefret içerikli, siyasi propaganda, çete bağlantılı, sexist veya mesleki itibarı zedeleyen dövmeler kesin yasaktır</b> (Legal Kit. 1.2). Üniforma altında görünmesi istenmeyen dövmeler kapatılır.</li>
+            <li>4. <b>Takı yasağı:</b> Üniformayla yalnızca saat takılır; kolye, yüzük, bileklik, maskot, moda aksesuarı yasaktır (Legal Kit. 1.2). <i>Istisna:</i> Alyans (sade), tıbbi bileklik ve dedektif/undercover görev gereği sivil aksesuar.</li>
+            <li>5. Üniforma; görev, rütbe, birim ve operasyon türü dışında keyfî değiştirilemez.</li>
+            <li>6. <b>Üniforma çekmek / departman kimliği taklidi / başka birimin ekipmanını izinsiz kullanmak ağır ihlaldir.</b> Departmanlar arası üniforma çekmek sunucu düzeyinde <b>BAN</b> sebebidir (Legal Kit. 5); departman içi karşılığı derhal ihraçtır.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">5.2 Zorunlu Ekipman</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Mesaide <b>bodycam zorunludur</b> (Legal Kit. 1.2); açık tutulur, kayıt IC delildir.</li>
+            <li>2. Telsiz, GPS, kimlik kartı, duty belt ve nizami holster mesai boyunca üzerinizdedir; roll call atmadan devriyeye çıkılmaz (Legal Kit. 1.4).</li>
+            <li>3. <b>Zırh (ağır yelek) yalnızca Night-Shift'te (00.00–06.00) giyilir</b> (Legal Kit. 1.2). Standart hafif yelek gündüz devriyesinde serbesttir. Operasyon/SWAT çağrısı istisnadır.</li>
+            <li>4. Kargo pantolon patrol üniformasında yasaktır (Legal Kit. 1.2).</li>
+            <li>5. Ağır silah şaka amaçlı bile doğrultulmaz; toplu alanda silah holsterda ve kilitli taşınır (Legal Kit. 1.5).</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">5.3 Görev Tipine Göre Kıyafet Sınıfları (tüm kolluk departmanları için ortak şablon)</h4>
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th style="width: 120px;">Sınıf</th>
+                <th style="width: 180px;">Kullanım</th>
+                <th>İçerik</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>A — Tören/Resmî</b></td>
+                <td>Tören, mahkeme tanıklığı, resmî temsil</td>
+                <td>Tam resmî üniforma, rütbe işaretleri, şapka</td>
+              </tr>
+              <tr>
+                <td><b>B — Günlük Devriye</b></td>
+                <td>Standart mesai</td>
+                <td>Patrol üniforması, duty belt, hafif yelek, bodycam</td>
+              </tr>
+              <tr>
+                <td><b>C — Gece Vardiyası</b></td>
+                <td>00.00–06.00</td>
+                <td>B sınıfı + zırh izni</td>
+              </tr>
+              <tr>
+                <td><b>D — Trafik</b></td>
+                <td>Trafik görevi (özellikle SAHP)</td>
+                <td>B sınıfı + reflektif yelek/eldiven</td>
+              </tr>
+              <tr>
+                <td><b>E — Operasyon/Tactical</b></td>
+                <td>Onaylı operasyon, SWAT çağrısı</td>
+                <td>Taktik set; yalnızca eğitim+yetki+görev+çağrı şartıyla (Legal Kit. 1.2: AIR/MARINE/SWAT kıyafetleri eğitim harici giyilmez)</td>
+              </tr>
+              <tr>
+                <td><b>F — Dedektif/Undercover</b></td>
+                <td>Soruşturma, gizli görev</td>
+                <td>Sivil görünüm; teşhir yasağı (bkz. Bölüm VI)</td>
+              </tr>
+              <tr>
+                <td><b>G — Saha Güvenliği</b></td>
+                <td>Olay yeri çevre güvenliği</td>
+                <td>B sınıfı + şerit/koni ekipmanı</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size:12px; color:var(--text-muted); font-style:italic; margin-top:15px;">
+            * Her departmanın renk/rozet farkları Bölüm XVIII'de tanımlıdır.
+          </p>
+          <div class="rules-alert" style="margin-top: 20px;">
+            <b>HIZLI KONTROL LİSTESİ:</b> Bodycam açık mı? Saat dışında takı var mı? Zırh giydiysen saat 00.00–06.00 arası mı veya operasyon onayın var mı? Kıyafet sınıfın görevinle uyumlu mu?
+          </div>
+        </div>
+      </section>
+
+      <!-- VI. SİVİL HAYAT, LEOSA, GİZLİ TAŞIMA, HOLSTER VE GÖREV DIŞI YETKİ SINIRLARI -->
+      <section id="sec-sivil" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">VI. Sivil Hayat, LEOSA, Gizli Taşıma, Holster ve Görev Dışı Yetki Sınırları</h2>
+          <ul class="rules-list">
+            <li>1. Sivilde yalnızca geçerli <b>LEOSA lisansına sahip personel</b> silah taşıyabilir. LEOSA olmayan personelin sivilde silah taşıması yasaktır.</li>
+            <li>2. <b>LEOSA yalnızca hukuka uygun TAŞIMA yetkisidir</b>; sınırsız veya sebepsiz KULLANMA yetkisi değildir. Sivildeki silah kullanımı, herhangi bir sivilin meşru müdafaa sınırlarına tabidir.</li>
+            <li>3. LEOSA sahibi personel silahını <b>gizli taşıma</b> esasına göre taşır: silah görünmez, bel içi/gizli holsterdadır.</li>
+            <li>4. <b>Dedektif statüsü dışında hiçbir personel</b> sivil kıyafetle açıkta holster, duty belt, polis tipi ekipman veya kolluk görünümü veren taşıma düzeni kullanamaz.</li>
+            <li>5. Dedektifler dahi holster kullanırken sivil görünüm, gizlilik, operasyon gereği ve <b>teşhir yasağı</b> ilkelerine uyar; "dedektif olduğunu belli etmek için" holster göstermek ihlaldir.</li>
+            <li>6. Sivilde taşınamayacaklar (tüm kolluk): polis tabancası dışı görev silahı, taser, kelepçe, görev telsizi, zırh, megafon, görev araç ekipmanı. <i>İstisna:</i> EMS personeli polisten aldığı taser/kelepçeyi yalnızca görev kapsamında kullanır (Legal Kit. 2); sivilde taşıyamaz.</li>
+            <li>7. Görev araçları sivilde kullanılamaz (EMS için açık hüküm — Legal Kit. 2; tüm departmanlara aynı mantıkla uygulanır).</li>
+            <li>8. <b>Görev dışı yetki yoktur:</b> Sivilken kimlik göstererek baskı kurmak, polislik taslamak, kişisel meseleye "memur sıfatıyla" müdahale etmek, sivilken durdurma/arama/gözaltı yapmak ağır disiplin ihlalidir. Sivil personel tanık olduğu suçu 911'e bildirir; müdahale etmez.</li>
+            <li>9. Avukatlar ruhsatla pistol alabilir ancak <b>polis tabancası taşıyamaz</b> (ban sebebi — Legal Kit. 3.3).</li>
+            <li>10. <b>LEOSA verilme şartları:</b> (a) asgari rütbe/kıdem şartını sağlamak, (b) silah eğitim sertifikası, (c) temiz disiplin sicili, (d) departman komutanlığı onayı. LEOSA kaydı MDT'de tutulur ve her an denetlenebilir.</li>
+            <li>11. LEOSA iptali sebepleri: sivilde silah teşhiri, yetki istismarı, disiplin cezası, mesai dışı olaya keyfî müdahale, silahın kaybı/çaldırılması (rapor edilmemesi ağırlaştırıcıdır).</li>
+          </ul>
+          <div class="rules-alert" style="margin-top: 20px;">
+            <b>HIZLI KONTROL LİSTESİ:</b> LEOSA'n var mı? Silah gizli mi? Holster görünüyor mu (dedektif değilsen ihlal)? Sivilken memurluk mu yapıyorsun?
+          </div>
+        </div>
+      </section>
+
+      <!-- VII. DEPARTMAN HİYERARŞİSİ, RÜTBE, ATAMA, TERFİ, DİSİPLİN VE İHRAÇ -->
+      <section id="sec-hiyerarsi" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">VII. Departman Hiyerarşisi, Rütbe, Atama, Terfi, Disiplin ve İhraç</h2>
+          
+          <h4 style="color: #fff; font-size: 14.5px; margin-top: 0; margin-bottom: 12px;">7.1 Hiyerarşi İlkeleri</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. **Her departmanın en yüksek rütbesi Captain'dır; üstünde rütbe olamaz** (Legal Kit. 1.1). Bu tavan tüm kolluk departmanları için ayrı ayrı geçerlidir.</li>
+            <li>2. Departmanlar arası hiyerarşi yoktur; **tüm departmanlar eşittir** (Legal Kit. 5). Bir departmanın Captain'ı diğer departmanın personeline emir veremez.</li>
+            <li>3. Ortak sahnede komuta, departman fark etmeksizin **olaya ilk müdahale eden birimin en kıdemli memurundadır** (olay amiri); yetki alanı sahibi departman gelirse komuta devri koordineli yapılır.</li>
+            <li>4. **Ekstra division açmak legal manager onayına bağlıdır** (Genel Kit. EK-B; Legal Kit. 1.1).</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">7.2 Ortak Rütbe Şeması (tüm PD/Sheriff/SAHP/SAPR)</h4>
+          <p style="font-size:13.5px; color:var(--text-main); line-height: 1.5; margin-bottom: 20px;">
+            Cadet (deneme) &rarr; Officer/Deputy I &rarr; Officer/Deputy II &rarr; Senior Officer/Deputy &rarr; Corporal &rarr; Sergeant &rarr; Lieutenant &rarr; Captain (tavan).<br>
+            <span style="color: var(--text-muted);">LSFD/EMS eşdeğeri:</span> Probationary &rarr; EMT/Firefighter &rarr; Paramedic/Engineer &rarr; Lieutenant &rarr; Captain/Chief Physician (tavan).
+          </p>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">7.3 Atama ve Terfi</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Terfi; kıdem + eğitim/sertifika + sicil + amir değerlendirmesi ile yapılır. Torpil, OOC arkadaşlık ve "aktiflik farmı" terfi gerekçesi olamaz.</li>
+            <li>2. Sergeant ve üstü terfilerde departman komutanlığı; Captain atamasında <b>legal yönetim</b> onayı gerekir.</li>
+            <li>3. Karakter kısıtları saklıdır: kolluk rolü yapan oyuncu illegal odaklı karakter açamaz; illegal karakterli oyuncu ikincil karakterle kolluk başvurusu yapamaz (Genel Kit. 3.3).</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">7.4 Deneme Süresi (Cadet/Probationary)</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Cadet tek başına devriyeye çıkamaz; daima FTO (eğitmen) partneriyle görev yapar.</li>
+            <li>2. Cadet; felony stop yönetemez, olay amiri olamaz, pursuit'te birincil araç olamaz, LEOSA alamaz.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">7.5 Departman İçi Disiplin Merdiveni</h4>
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th style="width: 80px;">Kademe</th>
+                <th style="width: 240px;">Yaptırım</th>
+                <th>Tipik Kullanım</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>1</b></td>
+                <td>Sözlü uyarı</td>
+                <td>İlk kez küçük prosedür hatası</td>
+              </tr>
+              <tr>
+                <td><b>2</b></td>
+                <td>Yazılı ihtar (sicile işler)</td>
+                <td>Tekrar/orta ihlal</td>
+              </tr>
+              <tr>
+                <td><b>3</b></td>
+                <td>Görevden uzaklaştırma (süreli)</td>
+                <td>Ciddi prosedür ihlali, güç istismarı şüphesi</td>
+              </tr>
+              <tr>
+                <td><b>4</b></td>
+                <td>Rütbe indirimi ve/veya silah-LEOSA iptali</td>
+                <td>Yetki istismarı, tekrar eden ağır ihlal</td>
+              </tr>
+              <tr>
+                <td><b>5</b></td>
+                <td>İhraç</td>
+                <td>Bad-cop/bad-doc, bilgi sızdırma, üniforma çekme</td>
+              </tr>
+              <tr>
+                <td><b>6</b></td>
+                <td>Legal blacklist / yönetim değerlendirmesi</td>
+                <td>Sunucu düzeyinde sonuç; <b>Ceza Yönetmeliği ve yönetim takdiri uygulanır</b></td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size:12.5px; color:var(--text-muted); line-height: 1.5; margin-top: 15px;">
+            <b>Ek sabit sonuçlar (PDF hükümleri, değiştirilemez):</b> bilgi sızdırma = <b>CK</b>; IC ırkçılıkta yakalanma = <b>CK</b>; bad-doc = <b>ihraç + hapis</b>; avukatın tutuklanması = <b>lisans iptali + ihraç</b>; DOJ personelinin (avukat hariç) illegal role girmesi = <b>ihraç</b>.
+          </p>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-top: 24px; margin-bottom: 12px;">7.6 İhraç ve İtiraz</h4>
+          <ul class="rules-list">
+            <li>1. İhraç kararını departman komutanlığı verir; personelin yazılı savunma hakkı vardır.</li>
+            <li>2. İtiraz mercii: departman komutanlığı &rarr; legal yönetim (federal üst yönetim). Karar kesindir.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- VIII. TELSİZ DİSİPLİNİ, MDT, RAPORLAMA, DELİL ZİNCİRİ VE BİLGİ GÜVENLİĞİ -->
+      <section id="sec-telsiz" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">VIII. Telsiz Disiplini, MDT, Raporlama, Delil Zinciri ve Bilgi Güvenliği</h2>
+          
+          <h4 style="color: #fff; font-size: 14.5px; margin-top: 0; margin-bottom: 12px;">8.1 Telsiz</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Telsiz kısa, net ve amaca uygun kullanılır; şakalaşma, müzik, spam ve OOC muhabbet yasaktır.</li>
+            <li>2. Aktif olay anonsu (kod, konum, birim sayısı, tehdit) standarttır. Kod kullanımı departman eğitiminde öğretilir.</li>
+            <li>3. Megafonu boş kullanmak ve araçta müzik açmak yasaktır; troll kullanım ban sebebidir (Legal Kit. 1.3).</li>
+            <li>4. GPS mesaide açık tutulur. <b>GPS'te "Gizli Görev / Undercover" yazan kişilerin yanına kasıtlı gidilmez</b>; yaklaşmadan önce GPS kontrol edilir (Legal Kit. 1.4).</li>
+            <li>5. <b>Ortak Telsiz Kod Tablosu</b> (tüm departmanlar aynı kodları kullanır — eyalet geneli yetki, ortak dil gerektirir):</li>
+          </ul>
+
+          <table class="rules-table" style="margin-bottom: 24px; max-width: 500px;">
+            <thead>
+              <tr>
+                <th style="width: 120px;">Kod</th>
+                <th>Anlamı</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Kod 1</b></td>
+                <td>Acele yok, rutin sevk</td>
+              </tr>
+              <tr>
+                <td><b>Kod 2</b></td>
+                <td>Hızlı, siren yok</td>
+              </tr>
+              <tr>
+                <td><b>Kod 3</b></td>
+                <td>Acil — siren + tepe lambası</td>
+              </tr>
+              <tr>
+                <td><b>Kod 4</b></td>
+                <td>Durum kontrol altında, ek birim gerekmez</td>
+              </tr>
+              <tr>
+                <td><b>Kod 5</b></td>
+                <td>Felony stop hazırlığı</td>
+              </tr>
+              <tr>
+                <td><b>Kod 6</b></td>
+                <td>Araçtan indim, kontrol yapıyorum</td>
+              </tr>
+              <tr>
+                <td><b>Kod 0 / Panik</b></td>
+                <td>Memur acil yardım — tüm müsait birimler</td>
+              </tr>
+              <tr>
+                <td><b>10-4</b></td>
+                <td>Anlaşıldı</td>
+              </tr>
+              <tr>
+                <td><b>10-20</b></td>
+                <td>Konum bildir</td>
+              </tr>
+              <tr>
+                <td><b>10-78</b></td>
+                <td>Destek talebi</td>
+              </tr>
+              <tr>
+                <td><b>Kod 99</b></td>
+                <td>Aktif soygun — yalnızca kart değeri kadar birim yanıt verir</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>6. Kod 0 / Panik anonsu, birim sayısı limitlerini kaldırmaz: aktif soygun sahnesinde memur paniği dahi kart değerini aşan giriş hakkı vermez; ek birimler perimetre dışında konuşlanır.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">8.2 MDT ve Rapor</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Her durdurma, gözaltı, arama, el koyma, güç kullanımı ve kaza MDT'ye raporlanır. Rapor: tarih/saat, konum, gerekçe (makul şüphe/olası neden), yapılan işlem, deliller, tanıklar, sonuç.</li>
+            <li>2. <b>Savcılığa dosya götürmek zorunludur</b> (Legal Kit. 1.1); ağır suç dosyaları savcılık görüşü olmadan kapatılamaz.</li>
+            <li>3. MDT'de sahte kayıt, kayıt silme veya kişisel amaçla sorgu (eski sevgili, husumetli kişi vb.) bad-cop kapsamındadır.</li>
+            <li>4. FBI personeli MDT'de sivil vatandaş olarak görünür; işlem sonrası sicili DHS temizler (Legal Kit. 4). Bu durum sorgulanmaz ve ifşa edilmez.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">8.3 Delil Zinciri</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Delil; toplayan memur, saat, yer ve tür bilgisiyle etiketlenir; MDT'ye işlenir ve delil odasına teslim edilir.</li>
+            <li>2. Bodycam kaydı, olay raporuna referansla eklenir. CK/kalıcı hasar/çatışma içeren olaylarda OOC POV zorunluluğu ayrıca geçerlidir (Genel Kit. 2.8).</li>
+            <li>3. Delil karartma, delil "kaybetme" ve sahte delil üretme bad-cop'tur; departman sonucu ihraçtır, sunucu sonucu için Ceza Yönetmeliği ve yönetim takdiri uygulanır.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">8.4 Bilgi Güvenliği</h4>
+          <ul class="rules-list">
+            <li>1. Soruşturma bilgisi, operasyon planı, MDT verisi, GTF/undercover kimliği ve hasta bilgisi (EMS) hiçbir sivile, basına veya ilgisiz personele sızdırılamaz. Üst düzey sızdırma = <b>CK</b> (Legal Kit. 1.1).</li>
+            <li>2. Kameralar 7/24 çalışır; elektrik kesintisinde 2 dk sonra jeneratör devreye girer (Legal Kit. 1.1). "Kamera yoktu" savunması geçersizdir.</li>
+            <li>3. Her personel kaynağı (araç/zırh/silah/mermi) yalnızca kendi departmanından alır; loglanır (Legal Kit. 5).</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- IX. DUR İHTARI, GÖZALTI, ARAMA, EL KOYMA, MİRANDA, AVUKAT VE ŞÜPHELİ HAKLARI -->
+      <section id="sec-gozalti" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">IX. Dur İhtarı, Gözaltı, Arama, El Koyma, Miranda, Avukat ve Şüpheli Hakları</h2>
+          
+          <h4 style="color: #fff; font-size: 14.5px; margin-top: 0; margin-bottom: 12px;">9.1 Durdurma</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Yaya/araç durdurma için **makul şüphe** gerekir; keyfî durdurma yasaktır.</li>
+            <li>2. Stop&Frisk yalnızca şüpheli kişilere yapılır (Legal Kit. 1.4): silah taşıdığına dair somut emare varsa dıştan yoklama yapılabilir.</li>
+            <li>3. On-foot kaçışta **ilk 45 saniye takip edilir ve durması için ihtar verilir** (Legal Kit. 1.4); ihtarsız fiziksel müdahale yapılmaz.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">9.2 Gözaltı</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Gözaltı için **olası neden** gerekir. Kelepçe; kaçma/saldırı riski veya ağır suçta uygulanır, keyfî değildir.</li>
+            <li>2. **Miranda hakları okunur** (Legal Kit. 1.4): <i>"Sessiz kalma hakkına sahipsin. Söyleyeceklerin aleyhine delil olarak kullanılabilir. Avukat tutma hakkın var; gücün yetmiyorsa devlet avukat atar."</i> Miranda okunmadan alınan ifade dosyada delil değeri taşımaz.</li>
+            <li>3. Üst araması gözaltıyla birlikte yapılabilir; bulunanlar tutanakla el konur ve MDT'ye işlenir.</li>
+            <li>4. Şüpheliye hakaret, aşağılama, "itiraf ettirme baskısı" yasaktır. İfade gönüllüdür; avukat talep ederse ifade avukat gelmeden alınmaz.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">9.3 Arama ve El Koyma</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. **Mülke girip arama için savcı izni gerekir**; makul şüphe (silah sesi, bağrışma) istisnadır (Genel Kit. 4.2). Ev baskını yalnızca geçerli IC sebep + gerekli izinlerle yapılır.</li>
+            <li>2. **Araç/mülk araması makul şüphe veya savcı iznine bağlıdır** (Legal Kit. 1.5). Rıza ile arama yapılabilir; rıza kayda geçirilir.</li>
+            <li>3. Acil durum istisnası: devam eden saldırı, rehine, can güvenliği &rarr; izinsiz giriş yapılabilir; gerekçe raporda yazılır ve savcılığa bildirir.</li>
+            <li>4. El konulan her eşya tutanaklıdır; "cebe atma" bad-cop'tur.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">9.4 Ceza Yazımı ve Haklar</h4>
+          <ul class="rules-list">
+            <li>1. **Cezalar toplanmaz; en yüksek suç yazılır** (hakaret başına +5 kamu eklenebilir — Legal Kit. 1.4).</li>
+            <li>2. Şüphelinin hakları: sebep öğrenme, Miranda, avukat, tıbbi müdahale (yaralıysa önce EMS), makul sürede işlem.</li>
+            <li>3. Ağır cezalarda mahkeme rolleri zorunludur (Legal Kit. 3.1); **müebbet yalnızca yönetim onayıyla yazılır** (EK-B).</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- X. GÜÇ KULLANIMI POLİTİKASI -->
+      <section id="sec-guc" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">X. Güç Kullanımı Politikası</h2>
+          <ul class="rules-list">
+            <li>1. **Güç basamağı: sözlü uyarı &rarr; taser &rarr; beanbag &rarr; lethal** (Legal Kit. 1.4). Basamak atlanamaz; ancak tehdit düzeyi doğrudan ölümcülse (ateş açıldı) lethal seviyeye geçilebilir.</li>
+            <li>2. Bıçaklı veya üzerine koşan saldırgana uyarı sonrası taser/lethal kullanılabilir (Legal Kit. 1.4).</li>
+            <li>3. Hamile/çocuk görünümlü/yaşlı/düşme riskli kişilere taser atılmaz (Legal Kit. 1.5).</li>
+            <li>4. **Rehine varken clean shot atılmaz**; rehine durumları anlaşmalı role çevrilir (Legal Kit. 1.5).</li>
+            <li>5. **Soyguncudan mermi gelmeden PD sıkamaz** (İllegal Kit. 5.2). İlk ateş ilkesi tüm sistemsel soygunlarda mutlaktır.</li>
+            <li>6. Ölümcül güç yalnızca; personelin veya üçüncü kişinin hayatına yönelik mevcut-ölümcül tehditte kullanılır. "Kaçıyor" tek başına ölümcül güç sebebi değildir.</li>
+            <li>7. Kelepçeli/etkisiz kişiye güç kullanımı, "intikam taseri", yerdeki kişiye ateş kesinlikle yasaktır.</li>
+            <li>8. Her güç kullanımı (taser dahil) rapor edilir; lethal kullanımda olay amiri + savcılık bilgilendirilir ve bodycam kaydı dosyaya eklenir.</li>
+            <li>9. Ağır silah (uzun namlu) yalnızca operasyon/aktif çatışma çağrısında araç gun rack'inden alınır; şaka amaçlı bile doğrultulamaz (Legal Kit. 1.3, 1.5).</li>
+            <li>10. Molotoflu/yanıcı alana yangın söndürücüsüz girilmez (Legal Kit. 1.5).</li>
+          </ul>
+          
+          <div class="rules-alert" style="margin-top: 20px;">
+            <b>Karar Ağacı — Güç Seviyesi:</b><br>
+            - Tehdit sözlü/pasif direniş &rarr; sözlü ikna, eskort tutuşu.<br>
+            - Aktif direniş, silahsız &rarr; taser (risk grubu değilse) / beanbag.<br>
+            - Kesici alet, yaklaşan saldırgan &rarr; ihtar + taser/lethal.<br>
+            - Ateşli silah doğrultuldu/ateş açıldı &rarr; lethal meşru; rehine varsa clean shot yine yasak &rarr; müzakere.
+          </div>
+        </div>
+      </section>
+
+      <!-- XI. TRAFİK DURDURMA, KOVALAMACA, PIT, SPIKE, BARİKAT, PURSUIT VE FELONY STOP -->
+      <section id="sec-trafik" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XI. Trafik Durdurma, Kovalamaca, PIT, Spike, Barikat, Pursuit ve Felony Stop</h2>
+          
+          <h4 style="color: #fff; font-size: 14.5px; margin-top: 0; margin-bottom: 12px;">11.1 Rutin Trafik Durdurma</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Tepe lambasıyla işaret verilir; güvenli noktada durulur. Yaklaşım tek memur (partner kapakta), eller görünür istenir; ehliyet/ruhsat MDT'den sorgulanır.</li>
+            <li>2. Overhead lamp, plaka okuyucu ve radar mesaide açıktır; gun rack bilinerek rol yapılır (Legal Kit. 1.3).</li>
+            <li>3. Rutin durdurma ile high-risk stop karıştırılmaz: silah emaresi, çalıntı araç, ağır suç kaydı &rarr; felony stop prosedürüne geçilir.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">11.2 Pursuit (Kovalamaca)</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. **Pursuit'te max 4 ekip kalır: 2 arkada, 2 paralel** (Legal Kit. 1.3). Fazla birim geri çekilir, çevre kontrolüne geçer.</li>
+            <li>2. Kovalarken **önüne kırma, kasıtlı hamle, sebepsiz peşe takılma yasaktır** (Legal Kit. 1.6). Kasıtlı RAM ve araç parçalama VDM'dir.</li>
+            <li>3. **RAM yalnızca aracı etkisiz kılmak için** ve zorunlu olmadıkça şehir içinde kullanılmaz (Legal Kit. 1.3).</li>
+            <li>4. Kovalamacada karşı araçtaki kişiye öldürmek için ateş edilmez; yalnızca aracı durdurmak için lastiğe sıkılabilir (İllegal Kit. 3.3 ile uyumlu).</li>
+            <li>5. Motosikletliye tekme atılamaz (Legal Kit. 1.3).</li>
+            <li>6. Helikopter (AIR) destekte: flyby yasak, akrobasi/iniş (acil hariç) yasak, aynı bölgede en fazla 1 dk kalınır (Legal Kit. 1.3).</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">11.3 PIT</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. **Polis PIT'i, kovalamaca başladıktan en az 5 dk sonra atılabilir** (Legal Kit. 1.3 — legal birimlere özel spesifik hüküm; oyuncular arası 10 dk kuralı sivillere aittir).</li>
+            <li>2. Şehir içi PIT tehlikelidir ve kaçınılır; sürücünün sivilleri tehlikeye atması veya kamu malına zarar vermesi istisnadır (Legal Kit. 1.3).</li>
+            <li>3. PIT durdurma amaçlıdır; imha amaçlı temas VDM'dir. Yüksek hızda, uçurum/köprü kenarında, kalabalıkta PIT atılmaz.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">11.4 Spike ve Barikat</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Spike (dikenli şerit) kaçış güzergâhına, sivil trafiği yönlendirilmiş şekilde serilir; anons edilir; motosiklete spike atılmaz (düşme = ağır yaralanma riski, orantısızdır).</li>
+            <li>2. Roadblock kurulabilir ve sonrasında geri alınır (Legal Kit. 1.3). Barikat, kaçan aracın çarpması umulan "duvar" olarak kullanılamaz; kaçış yolu bırakılır. Barikata sebepsiz hasar verip geçmek (illegal taraf için) ayrıca yasaktır (Legal Kit. 1.6).</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">11.5 Felony Stop</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Felony stop; ağır suç şüphelisi aracın kontrollü indirilmesidir. **En az 2 birim sahaya gelince başlar; en kıdemli memur yönetir** (Legal Kit. 1.7 — spesifik prosedür hükmü). Standart hedef 3 ekiptir (Legal Kit. 1.3); 2 birim asgari başlatma eşiği, 3 birim tercih edilen güvenli standarttır. Riskin yüksek olduğu (çok şüpheli, ağır silah) durumlarda 3. ekip beklenir.</li>
+            <li>2. Prosedür (Legal Kit. 1.7): 1) Araçtakilere ani hareketten kaçınmaları ihtar edilir; telsizden destek istenir. 2) Sürücüye camı açması ve anahtarı dışarı atması söylenir. 3) Sol elle kapıyı dışarıdan açması, eller görünür şekilde inmesi istenir. 4) Direktife uyulmazsa ölümcül güç kullanılacağı net dille ihtar edilir. 5) Kişi geri geri yürütülür, ekip hizasına çağrılır, yüzüstü yatırılıp kelepçelenir. 6) Araçtaki diğer kişiler için aynı döngü tek tek tekrarlanır; en son araç temizlenir.</li>
+            <li>3. Cadet felony stop yönetemez. Komutlar tek ağızdan verilir; çapraz bağırma yasaktır.</li>
+          </ul>
+
+          <!-- GRAPPLER TALİMATI v3.0 -->
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 20px; margin: 24px 0;">
+            <h4 style="color: #38bdf8; margin-top:0; font-size:15px;"><i class="fa-solid fa-bolt"></i> 11.6 — Grappler Kullanım Talimatı (Sürüm v3.0)</h4>
+            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+              Grappler Kiti; yüksek riskli araç takiplerini güvenli şekilde sonlandırmak amacıyla kullanılan özel bir müdahale ekipmanıdır. Yalnızca eğitimi alıp MDT'de sertifikalandırılmış personel tarafından yetkili araçlarda kullanılır. Cadet'ler Grappler kullanamaz.
+            </p>
+            
+            <table class="rules-table" style="margin-top: 15px;">
+              <thead>
+                <tr>
+                  <th style="color: #38bdf8;">NORMAL KULLANIM ŞARTLARI (Tümü Birlikte Aranır)</th>
+                  <th style="color: #ef4444;">İSTİSNAİ KULLANIM (Süre ve PIT Şartı Aranmaz)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <ul style="margin:0; padding-left:18px; font-size:12px; line-height:1.7;">
+                      <li>En az <strong>10 dakika</strong> aktif takip sürmüş olmalıdır.</li>
+                      <li>En az <strong>3 başarılı PIT manevrası</strong> uygulanmış ve sonuç alınamamış olmalıdır.</li>
+                      <li>Takibi yöneten amir veya en kıdemli memur tarafından <strong>telsiz onayı</strong> verilmiş olmalıdır.</li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul style="margin:0; padding-left:18px; font-size:12px; line-height:1.7;">
+                      <li>Terör eylemi gerçekleştiren şüpheliler.</li>
+                      <li>Kırmızı Bülten (Federal yakalama kararı) olan şahıslar.</li>
+                      <li>Rehine veya toplu saldırı olayları.</li>
+                      <li>Kolluk kuvvetlerine ölümcül ateş açan şüpheliler.</li>
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <p style="font-size: 12px; color: #ef4444; margin-top: 12px; font-weight: 600;">
+              🚫 YASAK KULLANIMLAR: Motosiklet ve 2 tekerlekli araçlara karşı Grappler atılamaz. Eğlence amacıyla veya şüpheliyi araçtan düşürmek için kullanılamaz. Araç durduktan sonra Grappler tek başına araçtan indirme yetkisi vermez (Felony Stop uygulanır).
+            </p>
+          </div>
+
+          <!-- NON-RP SÜRÜŞ PROTOKOLÜ v3.0 -->
+          <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); padding: 18px; border-radius: 12px; margin-top: 24px;">
+            <h4 style="color: #fca5a5; margin-top:0; font-size:15px;"><i class="fa-solid fa-ban"></i> 11.7 — Non-RP Sürüş ve Rol Dışı Hareket Protokolü (v3.0)</h4>
+            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+              Bu protokol; abartı ve gerçekçilikten kopuk sürüş (fizik dışı sürüş, sürekli duvar/araç sekmesi, uçurumdan-dağdan atlama, VDM/RDM, sahneyi ezme) durumlarında uygulanır.
+            </p>
+            <p style="margin-top:10px; color:#fca5a5; font-weight:700; font-size:13px;">ZORUNLU ADIM ZİNCİRİ:</p>
+            <ol style="margin:0; padding-left:20px; color:var(--text-muted); font-size:13px; line-height:1.7;">
+              <li><strong>Telsizden bildir:</strong> "Non-RP sürüş — takip bırakılıyor" anonsu yapılır. Takip başka birimce devralınamaz.</li>
+              <li><strong>Kimlik Tespiti:</strong> Oyuncu ID'si, plaka, araç modeli/rengi not edilir.</li>
+              <li><strong>Takibi Bırak:</strong> Araç güvenli şekilde yavaşlatılır ve kovalamaca derhal sonlandırılır.</li>
+              <li><strong>Kayıt (POV) & Ticket:</strong> En az 30 saniyelik kesintisiz POV ile ticket açılır. Tartışma OOC'ye taşınmaz.</li>
+              <li><strong>MDT Şerhi:</strong> MDT'ye "Takip non-RP sürüş nedeniyle sonlandırıldı" kaydı işlenir.</li>
+            </ol>
+            <div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(239,68,68,0.2); color:#ef4444; font-weight:700; font-size:12px;">
+              ⚠️ DİKKAT (v3.0 REVİZYONU): "Sahne bozulmasın diye takip ettim", "Amir devam dedi" gerekçeleri İSTİSNA SAYILMAZ! Non-RP sürüşe non-RP ile veya RAM/Grappler ile karşılık veren memur disiplin işlemine tabi tutulur.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- XII. REHİNE, SOYGUN, AKTİF ÇATIŞMA VE BÜYÜK OLAY MÜDAHALE PROTOKOLÜ -->
+      <section id="sec-soygun" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XII. Rehine, Soygun, Aktif Çatışma ve Büyük Olay Müdahale Protokolü</h2>
+          
+          <h4 style="color: #fff; font-size: 14.5px; margin-top: 0; margin-bottom: 12px;">12.1 Değiştirilemez Soygun Mekanikleri (İllegal Kit. 5 — aynen korunur)</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Soyguncudan mermi gelmeden PD sıkamaz.</li>
+            <li>2. **İlk 8 dakika push atılmaz.**</li>
+            <li>3. **İlk 14 dakika hot drop bırakılamaz** (helikoptere ateş gelirse bırakılabilir).</li>
+            <li>4. **Rehine varsa clean shot atılamaz**; rehineye zarar verilirse PD içeri girip müdahale edebilir. Rehine başına 1 istek hakkı vardır.</li>
+            <li>5. PD kapının önünde müdahale eder; özel izin olmadan içeri giremez. Soyguncuların araca binerek kaçmasına izin verilir; **kovalamaca araca binince başlar**.</li>
+            <li>6. **Soyguna ekstra/izinsiz birim gelirse legaller kaybeder, illegaller otomatik kazanır.** Gerekli polis sayıları soygun kartlarındaki değerlerdir; fazlası gelmez. <b>PD önceliği metropolitan birimdir</b>.</li>
+            <li>7. Soygunlar anlaşmalı rollerdir; force oynanmaz, eğlence önceliklidir.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">12.2 Olay Akışı</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Anons &rarr; soygun tipine göre gerekli birim sayısı kadar ekip sevk edilir; fazla birim çevre kontrol/trafik yönetimine ayrılır ve olay perimetresine <b>girmez</b>.</li>
+            <li>2. Olay amiri: sahadaki en kıdemli memur. Görev dağıtır: müzakere, keskin gözlem (ateş serbestisi YOK), kaçış güzergâhı, kayıt.</li>
+            <li>3. Müzakere: rehine sağlığı teyidi &rarr; talep alma (rehine başına 1 istek) &rarr; takas/serbest bırakma koordinasyonu. Söz verilmez; "iletirim/değerlendiririm" dili kullanılır.</li>
+            <li>4. Süre sayacı olay amirince tutulur: 8 dk (push serbestisi) ve 14 dk (hot drop serbestisi) telsizden anons edilir.</li>
+            <li>5. Rehineye zarar geldiği anda içeri girme yetkisi doğar; giriş kararını olay amiri verir, EMS kapıda hazır bekletilir.</li>
+            <li>6. Olay sonrası: debrief + rapor + savcılığa dosya zorunludur.</li>
+            <li>7. Operasyonu bölge savcısı / federal memur / captain operasyon aracından izleyebilir (Legal Kit. 1.5).</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">12.3 Aktif Çatışma (soygun dışı)</h4>
+          <ul class="rules-list">
+            <li>1. İlk ateş prensibi ve güç basamağı geçerlidir; sivil tahliye ve perimetre önceliklidir.</li>
+            <li>2. Yaralı memur hastaneye gider; yaralı sivile ilk yardım yapılır (Legal Kit. 1.4). EMS güvenli koridor olmadan sıcak bölgeye sokulmaz.</li>
+            <li>3. Patlatma/büyük zarar içerecek her müdahale yönetim onayına (ticket) tabidir (EK-B).</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- XIII. HOOD / SOUTH SIDE / ÇETE BÖLGESİ MÜDAHALE PROTOKOLÜ -->
+      <section id="sec-hood" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XIII. Hood / South Side / Çete Bölgesi Müdahale Protokolü</h2>
+          <ul class="rules-list">
+            <li>1. **Onaylı bir hood'a girmek için en az 3 ekip (6 personel) gerekir**; SS'e tek girilmez (Legal Kit. 1.6). Tek ekip veya tek memurla South Side'a agresif giriş kesin yasaktır.</li>
+            <li>2. **Rutin devriye &ne; planlı operasyon:**</li>
+            <li style="list-style:none; padding-left: 20px;">
+              - <i>Rutin SS devriyesi:</i> Ana caddelerden, provokasyon yapmadan geçiş. Mahalleye giren rutin devriyeye çetelerin gereksiz agresif yapamayacağı kuralının (İllegal Kit. 6.8) aynası: devriye de çeteyi baitleyemez, sebepsiz durdurma yapamaz.<br>
+              - <i>Planlı operasyon (baskın/tutuklama):</i> 3 ekip/6 personel asgarisi + dosya/IC gerekçe + olay amiri + gerekirse savcı izni (mülk aramasında zorunlu).
+            </li>
+            <li>3. SS'te 4 polis agresif hareket ederse çetelerin aksiyon hakkı doğar (İllegal Kit. 6.8); bu nedenle SS'te agresif duruş ancak somut olay varsa sergilenir.</li>
+            <li>4. Hood baskınında karşılık hakkı mekaniği (İllegal Kit. 6.6) bilinir; PD operasyonu bu mekaniğin tarafı değildir ama sahne kalitesi için baskın sonrası bölgede oyalanılmaz, hedef tamamlanınca çıkılır.</li>
+            <li>5. Çete rengi, bandana ve maske kuralları (İllegal Kit. 6.10) istihbarat olarak MDT'ye işlenir; ancak "renk giymek" tek başına gözaltı sebebi değildir — makul şüphe yine gerekir.</li>
+            <li>6. İşbaşı memur SS'te kaçırılırsa: **NET DELİL + POV şartı illegal tarafa aittir** (Legal Kit. 1.6); kolluk paniğe kapılmadan rehine protokolünü işletir.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-top: 24px; margin-bottom: 12px;">Karar Tablosu — SS Girişi</h4>
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th style="width: 180px;">Durum</th>
+                <th style="width: 180px;">Asgari Kuvvet</th>
+                <th>Ek Şart</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Rutin geçiş devriyesi</b></td>
+                <td>1 ekip (2 kişi)</td>
+                <td>Ana cadde, durmadan geçiş, provokasyon yok</td>
+              </tr>
+              <tr>
+                <td><b>Çağrı üzerine müdahale (911)</b></td>
+                <td>3 ekip / 6 personel</td>
+                <td>Olay amiri belirlenir</td>
+              </tr>
+              <tr>
+                <td><b>Shotfire çağrısı (13.3)</b></td>
+                <td>3 ekip / 6 personel</td>
+                <td>13.3 Protokolü zorunlu; staging noktasında toplanılır</td>
+              </tr>
+              <tr>
+                <td><b>Planlı baskın/tutuklama</b></td>
+                <td>3 ekip / 6 personel+</td>
+                <td>Dosya + amir onayı + (mülk için) savcı izni</td>
+              </tr>
+              <tr>
+                <td><b>Mülk araması</b></td>
+                <td>3 ekip / 6 personel</td>
+                <td>Savcı izni zorunlu (makul şüphe istisnası saklı)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- 13.3 SOUTH SIDE SHOTFIRE PROTOKOLÜ v3.0 -->
+          <div style="background: rgba(220, 38, 38, 0.1); border: 2px solid #dc2626; padding: 18px; border-radius: 12px; margin-top: 24px;">
+            <h4 style="color: #f87171; margin-top:0; font-size:15px;"><i class="fa-solid fa-crosshairs"></i> 13.3 — South Side Shotfire Müdahale Protokolü (Sürüm v3.0)</h4>
+            <p style="font-size: 12.5px; color: #fca5a5; font-weight: 700; margin-bottom: 12px;">
+              SS SINIRLARI İÇİNDE SİLAH SESİ / AKTİF ATEŞ İHBARI — BU BÖLÜMÜN TÜMÜ BAĞLAYICIDIR:
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+              <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; text-align: center;">
+                <div style="color: #ef4444; font-weight: 800; font-size: 13px;">1. İLK MERMİ KARŞIDAN GELİR</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Silah sesi duymak ateş serbestisi değildir. Somut ölümcül tehdit olmadan ateş açılmaz.</div>
+              </div>
+              <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; text-align: center;">
+                <div style="color: #ef4444; font-weight: 800; font-size: 14px;">2. TEK GİRİLMEZ</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Shotfire çağrısına asgari 3 ekip / 6 personel ile toplanıp girilir.</div>
+              </div>
+              <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; text-align: center;">
+                <div style="color: #ef4444; font-weight: 800; font-size: 13px;">3. HEDEF GÖRÜLMEDEN ATEŞ YOK</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Pencereye, çalıya veya karanlığa körleme ateş açmak ağır ihlaldir.</div>
+              </div>
+            </div>
+            
+            <ul style="margin:0; padding-left:18px; font-size:12px; color:#cbd5e1; line-height:1.6;">
+              <li><strong>Staging (Toplanma):</strong> İlk ulaşan ekip SS dışında ana caddede toplanma noktası belirler. 6 kişi toplanmadan içeri girilmez.</li>
+              <li><strong>Giriş & Park:</strong> Giriş ana caddeden ve araçla yapılır. Dar sokaklara tek memur yayalamaz. Araçlar çıkış yönüne park edilir.</li>
+              <li><strong>Çatışma Sonrası:</strong> Bölge stabil olunca perimetre daraltılır ve Kod 4 anonsu ile çıkılır. Gösteri devriyesi ve oyalanma yasaktır.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- XIV. EV, İŞLETME, ARAÇ VE MÜLK ARAMASI; SAVCI İZNİ VE MAKUL ŞÜPHE -->
+      <section id="sec-arama" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XIV. Ev, İşletme, Araç ve Mülk Araması; Savcı İzni ve Makul Şüphe</h2>
+          <ul class="rules-list">
+            <li>1. **Ana kural: Mülke girip arama = savcı izni.** İstisna: makul şüphe (silah sesi, bağrışma) ve acil durum (Genel Kit. 4.2).</li>
+            <li>2. **Araç araması: makul şüphe veya savcı izni veya rıza** (Legal Kit. 1.5). Rıza her an geri alınabilir; alınırsa arama durur (o ana kadarki bulgular geçerlidir).</li>
+            <li>3. İşletme araması: açık alan/kamuya açık kısım gözle kontrolü serbest; kapalı bölüm/kasa/depo için mülk kuralları geçerlidir. İşletmeler safe zone'dur (Genel Kit. 7.1); arama sahnesi bunu kaldırmaz, yalnızca kolluk işlemi yapılır.</li>
+            <li>4. Savcı izni talebi içeriği: hedef adres/araç, şüpheli, suç, eldeki deliller, aramanın amacı, tahmini zaman. Savcı; kabul, kapsam daraltma veya ret verebilir. Ret gerekçelidir ve dosyaya girer.</li>
+            <li>5. El koyma: tutanak + MDT kaydı + delil zinciri (Bölüm VIII.3). Kaçırma/rehinle mülk-işletme-araç transferi zorlanamaz (Genel Kit. 4.3) — kolluk bu tür "zorla satış" iddialarında transferi geçersiz sayacak dosya hazırlar.</li>
+            <li>6. Yanlış adres/yanlış kişi aramasında derhal özür + hasar tutanağı + amir bilgilendirmesi yapılır; örtbas ağır ihlaldir.</li>
+          </ul>
+          
+          <div class="rules-alert" style="margin-top: 20px;">
+            <b>Karar Ağacı — Arama Dayanağı:</b><br>
+            Savcı iznim var &rarr; ara.<br>
+            Yok &rarr; Makul şüphe (somut, ifade edilebilir) var mı? &rarr; Evet: ara, gerekçeyi bodycam'e söyle, raporla.<br>
+            &rarr; Hayır: Rıza var mı? &rarr; Evet: kayda al, ara.<br>
+            &rarr; Hayır: Acil durum (can güvenliği/rehine) var mı? &rarr; Evet: gir, sonra raporla.<br>
+            &rarr; Hayır: arama yok.
+          </div>
+        </div>
+      </section>
+
+      <!-- XV. OLAY YERİ YÖNETİMİ, EMS GÜVENLİĞİ, YANGIN VE AFET MÜDAHALESİ -->
+      <section id="sec-olayyeri" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XV. Olay Yeri Yönetimi, EMS Güvenliği, Yangın ve Afet Müdahalesi</h2>
+          <ul class="rules-list">
+            <li>1. Olay yerinde ilk birim perimetre kurar (şerit/araç); olay amiri belirlenir; giren-çıkan kaydedilir.</li>
+            <li>2. **EMS önceliği her zaman hasta ve olay güvenliğidir.** EMS sıcak (aktif tehdit) bölgeye girmez; kolluk güvenli koridor açar. EMS tekin olmayan yere memurla gider (Legal Kit. 2).</li>
+            <li>3. **EMS mesai başında dokunulmazdır** (Legal Kit. 2). Kolluk, olay yerinde EMS'in çalışma alanını korur; EMS'e talimat verilmez, güvenlik koordinasyonu yapılır.</li>
+            <li>4. Yangın/tehlikeli madde: alan komutası LSFD'dedir; kolluk çevre güvenliği ve trafik alır, EMS triyaj noktasında bekler. Molotoflu alana yangın söndürücüsüz girilmez (Legal Kit. 1.5).</li>
+            <li>5. Triyaj: LSFD kurtarır &rarr; EMS sınıflar (kırmızı/sarı/yeşil) &rarr; hastane transferi. Ölü/downed kişilere sahne saygısı gösterilir; loot ve trashtalk sunucu ihlalidir.</li>
+            <li>6. Delil alanı ile müdahale alanı ayrılır; EMS müdahalesi delil bozdu diye engellenmez — <b>can &gt; delil</b>.</li>
+            <li>7. Büyük olay (çoklu yaralı, afet): olay amiri tek; departman temsilcileri komuta noktasında toplanır; telsizde olay kanalı ayrılır.</li>
+            <li>8. Basın hattı perimetre dışına kurulur (bkz. Bölüm XVIII — Weazel News).</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- XVI. DOJ, MAHKEME, SAVCI, YARGIÇ VE AVUKAT KURALLARI -->
+      <section id="sec-doj" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XVI. DOJ, Mahkeme, Savcı, Yargıç ve Avukat Kuralları</h2>
+          
+          <h4 style="color: #fff; font-size: 14px; margin-top: 0; margin-bottom: 12px;">16.1 DOJ'un Konumu</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. **Tüm legal departmanlar DOJ'a bağlı değildir; DOJ dosya bazlı koordinasyon sağlar** (Legal Kit. 3.1). DOJ; belgelerle koordinasyon sağlayabilir ama **force değildir; emir veremez, denetleyemez** (Legal Kit. 5).</li>
+            <li>2. DOJ = dosya, izin (arama/baskın/el koyma), mahkeme, savcılık ve hukuki koordinasyon. Departmanların günlük amiri değildir.</li>
+            <li>3. Tarafsızlık zorunludur; aksi ağır yaptırımdır (Legal Kit. 3.1). Yargı yetkisi 1957/1960/1964/1968/1998 dayanaklarına göredir; inisiyatif yoktur.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">16.2 Sayısal Limitler (değiştirilemez — Legal Kit. 3.2)</h4>
+          <table class="rules-table" style="max-width: 400px; margin-bottom: 24px;">
+            <thead>
+              <tr>
+                <th>Rol</th>
+                <th style="width: 150px; text-align: center;">Maks. Sayı</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Eyalet Savcısı</td>
+                <td style="text-align: center;"><b>1</b></td>
+              </tr>
+              <tr>
+                <td>Bölge Savcısı</td>
+                <td style="text-align: center;"><b>1</b></td>
+              </tr>
+              <tr>
+                <td>Bölge Savcı Yardımcısı</td>
+                <td style="text-align: center;"><b>2</b></td>
+              </tr>
+              <tr>
+                <td>Yargıç</td>
+                <td style="text-align: center;"><b>2</b></td>
+              </tr>
+              <tr>
+                <td>Avukat</td>
+                <td style="text-align: center;">Sınırsız</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">16.3 Savcılar</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Savcı izni gereken işlemler: mülk araması (istisnalar saklı), planlı baskın, kapsamlı el koyma, özel operasyon, ağır yaptırım süreçleri; partner departman personelinin gözaltısı <b>bölge savcısı iznine</b> bağlıdır (Legal Kit. 5).</li>
+            <li>2. Çıkar çatışması: savcı; yakını, iş ortağı veya husumetlisiyle ilgili dosyadan çekilir.</li>
+            <li>3. Savcı sahada operasyonu yalnızca operasyon aracından izler (Legal Kit. 1.5); sahaya silahlı aktör olarak inmez.</li>
+            <li>4. <strong>DOJ Saha Sınırı & Gözaltı Yasağı (v3.0):</strong> DOJ personeli (savcılar, katip, OPR) sahada devriye atamaz, olay yeri yönetemez veya tutuklama icra edemez. Sahadaki tutuklama/infaz yetkisi aktif federal soruşturması olan USMS'e aittir.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">16.7 — Geçici Yakalama Yetkisi (İstisna - v3.0)</h4>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+            Hakim bulunmadığı veya aktif olmadığı durumlarda; somut, delillendirilmiş ve açık soruşturma dosyalarında Başsavcılık (AG) imzasıyla <strong>Geçici Yakalama Kararı</strong> çıkarılabilir. Bu karar ilk aktif hakimin onayına sunulur. Onaya sunulmayan geçici karar kendiliğinden geçersizleşir. <i>Not: Geçici karar ile mülk araması ve varlık müsaderesi yapılamaz; kapsamı yalnızca şahıs yakalamasıdır.</i>
+          </p>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">16.9 — Federal Müdahalesizlik İlkesi (v3.0)</h4>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;">
+            Usulüne uygun, hakim veya Başsavcılık onaylı kararla yürütülen aktif bir federal operasyona veya soruşturmaya; sahnede rütbesi ne olursa olsun hiçbir yerel kolluk amiri (departman Captain'ları dâhil) müdahale edemez, operasyonu durduramaz veya kararı yok sayamaz. Usul uyuşmazlıkları roller esnasında değil, operasyon sonrasında masa başında çözülür.
+          </p>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">17.8 — U.S. Marshals Service (USMS) & Mahkum Nakil Konvoyu (v3.0)</h4>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px;">
+            USMS sokağın polisi değil, mahkemenin tek kolluk gücüdür. Federal yakalama kararları infazı, mahkeme güvenliği, tanık koruma (WITSEC) ve federal mahkum nakilleri USMS tekelindedir.
+          </p>
+          <table class="rules-table" style="margin-bottom: 24px;">
+            <thead>
+              <tr>
+                <th>Kademe</th>
+                <th>Suçlu Profili</th>
+                <th>Asgarî Konvoy Düzeni</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><b>Kademe 1 — Standart</b></td><td>Düşük riskli / işbirlikçi tutuklu</td><td>1 Nakil Aracı + 1 Eskort Araç</td></tr>
+              <tr><td><b>Kademe 2 — Orta Risk</b></td><td>Ağır suçlular</td><td>1 Nakil Aracı + 2 Eskort Araç (öncü ve artçı)</td></tr>
+              <tr><td><b>Kademe 3 — Yüksek Risk</b></td><td>Ağır mahkumlar / terör / çete lideri</td><td>1 Öncü Zırhlı + 1 Nakil Aracı + 2 Yan/Artçı Eskort + Hava Desteği</td></tr>
+            </tbody>
+          </table>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">16.4 Yargıçlar</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. Mahkeme düzeninden yargıç sorumludur; duruşma öncesi kurul toplantısı yapılır (Legal Kit. 3.4).</li>
+            <li>2. **Sahaya inen yargıca polis eskortu zorunludur.** Duruşma günü alkol yasaktır (sanık, avukat, salon kalemi dâhil).</li>
+            <li>3. **Yargıç yönetimden habersiz müebbet yazamaz** (Legal Kit. 3.4; EK-B). Mahkeme rolleri çoğunlukla izlenir. Mahkemeleri LSDA korur.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">16.5 Avukatlar</h4>
+          <ul class="rules-list">
+            <li>1. Avukatın rolü şüpheli haklarını savunmaktır: gözaltında erişim, ifadeye katılım, dosya inceleme, duruşma temsili.</li>
+            <li>2. Avukat, yasal haklar dışında polisle münakaşa edemez (Legal Kit. 3.3); aktif operasyona fiilen karışamaz.</li>
+            <li>3. **Avukat hariç hiçbir DOJ personeli illegal role giremez (girerse ihraç).** Avukat illegal eylem yapabilir ama tutuklanırsa lisansı iptal edilir ve ihraç edilir (Legal Kit. 3.3).</li>
+            <li>4. Avukat dava başı prim alır; ruhsatla pistol alabilir ama **polis tabancası taşıyamaz** (ban sebebi — Legal Kit. 3.3).</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- XVII. GTF, FEDERAL YAPILAR, GİZLİ SORUŞTURMA VE DEPARTMANLAR ARASI COORDİNASYON -->
+      <section id="sec-gtf" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XVII. GTF, Federal Yapılar, Gizli Soruşturma ve Departmanlar Arası Koordinasyon</h2>
+          
+          <h4 style="color: #fff; font-size: 14.5px; margin-top: 0; margin-bottom: 12px;">17.1 GTF (Gang Task Force)</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. GTF'nin görevi: çete/organize suç soruşturmaları, uzun soluklu dosyalar, istihbarat, muhbir yönetimi, hedef odaklı operasyonlar ve departmanlar arası koordinasyon.</li>
+            <li>2. **GTF sıradan devriye departmanı değildir.** Dosya, görev emri, operasyon planı veya gerekli IC sebep olmadan devreye girmez; "her olaya giden elit ekip" değildir.</li>
+            <li>3. **Gizlilik:** GTF üyeliği açıkça ifşa edilmez. Sivil veya ilgisiz personel önünde GTF mensubunun bağlı birimi sorgulanmaz ya da ifşa edilmez; "Siz GTF'ten misiniz?" sorusu ancak ortamda sivil yokken sorulabilir (Legal Kit. 5).</li>
+            <li>4. GPS'te "Gizli Görev / Undercover" yazan GTF personelinin yanına kasıtlı gidilmez (Legal Kit. 1.4).</li>
+            <li>5. Muhbir kimliği yalnızca dosya sorumlusu ve GTF komutasında bilinir; sızdırma = CK hükmü kapsamındadır.</li>
+            <li>6. GTF operasyonu sonrası rapor + debrief zorunludur; ele geçen deliller delil zinciriyle savcılığa aktarılır.</li>
+            <li>7. GTF/federal personelin normal kolluk personeline karşı sınırsız yetkisi yoktur; her işlem prosedür, dosya ve yetki çerçevesindedir.</li>
+            <li>8. GTF üyeliği: mevcut kolluk personelinden, dosya/istihbarat deneyimi + temiz sicil + GTF komuta onayı + legal yönetim onayı ile seçilir; üyelik listesi gizlidir.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">17.2 Federal Yapılar (FBI / DHS)</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. FBI, mevcut sistemde **en üst yetkili legal birimdir ve amacı departmanları kontrol/koordine etmektir**; ancak bu yalnızca **üst yönetim düzeyindedir** (Legal Kit. 4). Yeni yapıda bu hüküm şöyle uygulanır: FBI/DHS "federal üst yönetim / özel yönetim yapısıdır" — koordinasyon, denetim ve ağır dosyalarda devreye girer; **departmanların günlük işleyişini yönetmez, günlük RP'yi domine etmez, sahada sınırsız otorite değildir**.</li>
+            <li>2. Üst kademe (Müsteşar, Özel Kalem) legal yönetim üyeleridir; tüm federaller NSI'ye bağlıdır (Legal Kit. 4).</li>
+            <li>3. FBI gerekli noktalarda DOJ'un iç işlerine müdahale edebilir; rol pası gereği bir personeli çift taraflı çalıştırabilir (Legal Kit. 4). Bu istisnai yetkidir; rutinleştirilemez.</li>
+            <li>4. FBI personeli MDT'de sivil görünür; işlemler sonrası sicili DHS temizler (ağır suçta inisiyatif Müsteşar'da). FBI personeli yaptığı rolün eğitimini alır; **en ufak rol bozan hatada Müsteşar tarafından CK yer** (Legal Kit. 4).</li>
+            <li>5. Federal kimlik, sahadaki memura "işlem yaptırmama" kartı değildir; MDT'de sivil görünen federal, sahada sivil muamelesi görür ve buna itiraz edemez.</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">17.3 Law Enforcement (LE) Koordinasyon Yapısı</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. **Law Enforcement = yalnızca DOJ + LSDA koordinasyon yapısıdır.** Bütün polis departmanlarının üst hiyerarşisi **değildir**.</li>
+            <li>2. DOJ: dosya, izin, mahkeme, savcılık, hukuki koordinasyon. LSDA: kolluk koordinasyonu, denetim ve operasyonel destek + mahkeme koruması.</li>
+            <li>3. Bu kanal, departmanları keyfî yönetmek veya **force emir vermek için kullanılamaz**. LE üzerinden gelen bir talep; ya savcı izni/dosya gereğidir (bağlayıcı, hukuki), ya koordinasyon ricasıdır (departman komutası değerlendirir).</li>
+          </ul>
+
+          <h4 style="color: #fff; font-size: 14.5px; margin-bottom: 12px;">17.4 Ortak Operasyon Kuralları</h4>
+          <ul class="rules-list">
+            <li>1. Ortak operasyonda tek olay amiri olur; dosya sahibi birimin en kıdemlisi komutadadır, ev sahibi (yetki alanı) departman destek/perimetre alır — aksi kararlaştırılmadıkça.</li>
+            <li>2. Bilgi paylaşımı "bilmesi gereken" ilkesiyle yapılır; operasyon saati/hedefi geniş telsizde anons edilmez.</li>
+            <li>3. Eskort görevleri (yargıç, VIP, delil nakli): asgari 2 ekip; güzergâh önceden planlanır.</li>
+            <li>4. Rapor paylaşımı: ortak operasyon raporu tüm katılımcı departman komutalarına ve savcılığa gider.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- XVIII. HER DEPARTMAN İÇİN GÖREV TANIMI, YETKİ ALANI VE STANDARTLAR -->
+      <section id="sec-departmanlar" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XVIII. Her Departman İçin Görev Tanımı, Yetki Alanı ve Standartlar</h2>
+          
+          <h4 style="color: #fff; font-size: 14.5px; margin-top: 0; margin-bottom: 12px;">18.0 Eyalet Geneli Yetki İlkesi ve Sevk Önceliği</h4>
+          <ul class="rules-list" style="margin-bottom: 24px;">
+            <li>1. **Tüm kolluk departmanlarının (MRPD, VPD, Vespucci PD, DSD, PBSO, BCSD, SAHP, SAPR) yetki alanı EYALET genelidir.** Hiçbir kolluk birimi coğrafi sınırla kısıtlı değildir; her memur eyaletin her noktasında durdurma, müdahale ve işlem yetkisine sahiptir.</li>
+            <li>2. Aşağıda her departman için yazılan "Ana Devriye / Uzmanlık Hattı" bir yetki sınırı değil, **sevk ve uzmanlık önceliğidir**: dispatch, çağrıyı öncelikle o hattın departmanına yönlendirir; departman devriye planını bu hat üzerine kurar.</li>
+            <li>3. **Aktif olayda en yakın birim müdahale eder.** "Burası benim bölgem değil" savunması yoktur; aktif legal birim varken role refuse atmak yasaktır (Legal Kit. 1.6). Olay stabil olunca dosya, ana hat departmanına koordineli devredilir.</li>
+            <li>4. Ortak sahnede komuta departmana değil **kıdeme bağlıdır**: sahadaki en kıdemli memur olay amiridir (Bölüm VII.1).</li>
+            <li>5. Sevk öncelik sırası: (1) ana hat departmanı &rarr; (2) en yakın müsait birim &rarr; (3) mutual aid çağrısı. Soygunlarda **PD önceliği metropolitan birimdir** (Legal Kit. 5.2) ve gerekli polis sayısı kart değerini aşamaz — eyalet yetkisi, soyguna fazla birim yığma hakkı vermez.</li>
+            <li>6. SS/hood protokolü (Bölüm XIII), soygun mekanikleri (Bölüm XII) ve pursuit limitleri (Bölüm XI) hangi departman müdahale ederse etsin aynen geçerlidir; eyalet yetkisi hiçbir prosedürü esnetmez.</li>
+            <li>7. Uzmanlık hattı dışında sistematik devriye (ör. SAPR'ın sürekli şehir merkezinde gezmesi) sevk düzenini bozar ve departman içi disiplin konusudur; münferit müdahale ve mutual aid bunun dışındadır.</li>
+          </ul>
+
+          <div class="dept-grid">
+            <div class="dept-card">
+              <h4 style="color: #60a5fa; margin: 0 0 8px 0;"><i class="fa-solid fa-building-shield"></i> 18.1 Mission Row Police Department (MRPD)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Şehir merkezi (Downtown/Mission Row çevresi) asayişi; metropolitan ana müdahale gücü. Soygunlarda metropolitan birincil sevk MRPD'dir.<br>
+                <b>Yetki Alanı & Hat:</b> Eyalet geneli. Ana Devriye Hattı: Los Santos şehir merkezi ve güney-orta şehir.<br>
+                <b>Kıyafet/Araç:</b> Lacivert patrol üniforması, nizami siyah-beyaz devriye araçları (plaka okuyucu/radar açık).
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #38bdf8; margin: 0 0 8px 0;"><i class="fa-solid fa-hotel"></i> 18.2 Vinewood Police Department (VPD)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Vinewood, tepeler ve turistik bölge asayişi; yüksek profilli mekân/etkinlik güvenliği.<br>
+                <b>Yetki Alanı & Hat:</b> Eyalet geneli. Ana Devriye Hattı: Vinewood Blvd, Vinewood Hills, Mirror Park.<br>
+                <b>Kıyafet/Araç:</b> MRPD şablonu kullanılır, kol arması farklıdır.
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #22d3ee; margin: 0 0 8px 0;"><i class="fa-solid fa-umbrella-beach"></i> 18.3 Vespucci Police Department (Vespucci PD)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Sahil şeridi, kanal bölgesi ve plaj asayişi; sahil devriyesi.<br>
+                <b>Yetki Alanı & Hat:</b> Eyalet geneli. Ana Devriye Hattı: Vespucci, Del Perro, plaj hattı.<br>
+                <b>Özel:</b> Marine/plaj devriye kıyafeti (E sınıfı) yalnızca plaj görevindeyken giyilir.
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #fb923c; margin: 0 0 8px 0;"><i class="fa-solid fa-shield-halved"></i> 18.4 Davis Sheriff Department (DSD)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Davis/South Side çevresi county asayişi; SS sınır devriyeleri. Hood/SS protokolü (Bölüm XIII) en sık bu departmanı bağlar; SS'e tek girilmez, asgari 3 ekip/6 personel gerekir.
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #facc15; margin: 0 0 8px 0;"><i class="fa-solid fa-route"></i> 18.5 Paleto Bay Sheriff's Office (PBSO)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Paleto Bay kasabası ve kuzey sahil asayişi. Paleto banka soygunlarında bölge birincil sevk birimidir.<br>
+                <b>Özel:</b> Banka soygununda (L5: 11 illegal / 11 polis / 30 dk) BCSD ve SAHP takviyesi alır.
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #f87171; margin: 0 0 8px 0;"><i class="fa-solid fa-mountain"></i> 18.6 Blaine County Sheriff Department (BCSD)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Blaine County kırsalı (Sandy Shores, Grapeseed) asayişi; kırsal illegal faaliyet (madde bölgeleri) devriyesi.
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #a78bfa; margin: 0 0 8px 0;"><i class="fa-solid fa-car-on"></i> 18.7 San Andreas Highway Patrol (SAHP)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Otoyol/otoban trafik denetimi, ağır trafik kazaları, otoban pursuit yönetimi. PIT standartlarının en yoğun uygulayıcısıdır. Interceptor ve motorize devriyeler kullanır.
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #34d399; margin: 0 0 8px 0;"><i class="fa-solid fa-tree"></i> 18.8 San Andreas Park Ranger (SAPR)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Milli park, orman, dağlık alan ve göl çevresi güvenliği; avlanma/doğa ihlalleri; kayıp kişi aramaları. Arazi araçları (4x4) ve ATV'ler kullanır.
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #f87171; margin: 0 0 8px 0;"><i class="fa-solid fa-fire"></i> 18.9 Los Santos Fire Department (LSFD)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Yangın söndürme, kurtarma (araç/enkaz/deniz), tehlikeli madde (hazmat), afet müdahalesi. Yangın/kurtarma sahnesinin alan komutanıdır.
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #f87171; margin: 0 0 8px 0;"><i class="fa-solid fa-truck-medical"></i> 18.10 Emergency Medical Services (EMS)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> İlk müdahale, triyaj, hastane transferi, hastane içi tedavi, sağlık raporları. Mesai başında dokunulmazlığı bulunur (Legal-Blacklist yaptırımlı).
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #e2e8f0; margin: 0 0 8px 0;"><i class="fa-solid fa-scale-unbalanced-off"></i> 18.11 Department of Justice (DOJ)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Dosya, arama/baskın/el koyma izinleri, mahkeme yönetimi, savcılık ve hukuki koordinasyon işleri.
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #818cf8; margin: 0 0 8px 0;"><i class="fa-solid fa-mask"></i> 18.12 Gang Task Force (GTF)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Çete ve organize suç dosyaları soruşturması. Kimlikleri gizli (undercover) yürütülür.
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #60a5fa; margin: 0 0 8px 0;"><i class="fa-solid fa-bolt"></i> 18.13 Los Santos Department of Water and Power (LSDWP)</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Elektrik/su altyapısı, kamu tesisi bakım-onarım, acil kesinti müdahalesi (kolluk yetkisi ve silahı bulunmaz).
+              </p>
+            </div>
+            <div class="dept-card">
+              <h4 style="color: #f472b6; margin: 0 0 8px 0;"><i class="fa-solid fa-newspaper"></i> 18.14 Weazel News</h4>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                <b>Görev:</b> Haber, canlı yayın, kriz haberciliği, kamuoyu bilgilendirmesi. Perimetre şeridinin dışından basını engellemeden çekim yapabilirler.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- XIX. DEPARTMANLAR ARASI ANLAŞMAZLIK, YETKİ ÇAKIŞMASI VE ÇÖZÜM USULÜ -->
+      <section id="sec-anlasmazlik" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XIX. Departmanlar Arasi Anlaşmazlik, Yetki Çakişmasi ve Çözüm Usulü</h2>
+          <ul class="rules-list">
+            <li>1. **Tüm departmanlar eşittir; aralarında hiyerarşi yoktur** (Legal Kit. 5). Anlaşmazlık sahada büyütülmez; sivil önünde departman tartışması yasaktır.</li>
+            <li>2. Sahada çakışma: olay amiri kimse onun kararı geçerlidir; itiraz sahada değil, olay sonrası komuta hattında yapılır.</li>
+            <li>3. Çözüm basamağı: (1) sahada olay amiri kararı &rarr; (2) iki departmanın Sergeant/Lieutenant görüşmesi &rarr; (3) Captain'lar arası yazılı mutabakat &rarr; (4) çözülemezse LE koordinasyonu (DOJ dosya görüşü + LSDA denetim raporu) &rarr; (5) federal üst yönetim (legal yönetim) nihai karar.</li>
+            <li>4. **Bölge savcısı izni olmadan partner departman personeli gözaltına alınamaz** (Legal Kit. 5); departmanlar arası suç iddiası dosyayla savcılığa taşınır.</li>
+            <li>5. Departman arası üniforma çekmek = <b>BAN</b> (Legal Kit. 5). Kaynaklar yalnızca kendi departmanından alınır; loglanır.</li>
+            <li>6. Anlaşmazlık OOC'ye taşınmaz; sunucu kuralı ihlali iddiası varsa POV + ticket.</li>
+          </ul>
+          <div class="rules-alert" style="margin-top: 20px;">
+            <b>HIZLI KONTROL LİSTESİ:</b> Tartışma sivil önünde mi (kes)? Basamağın neresindesin? Savcı izni gereken bir gözaltı mı?
+          </div>
+        </div>
+      </section>
+
+      <!-- XX. YASAKLI DAVRANIŞLAR VE AĞIR İHLALLER (LEGAL PERSONEL) -->
+      <section id="sec-yasaklar" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XX. Yasakli Davranişlar ve Ağir İhlaller (Legal Personel)</h2>
+          <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+            Aşağıdakiler legal personel için ağır ihlaldir; departman sonucu parantezde, sunucu sonucu için <b>Ceza Yönetmeliği ve yönetim takdiri uygulanır</b>:
+          </p>
+          <ul class="rules-list">
+            <li>1. **Bad-cop / bad-doc:** rüşvet (onaylı rol pası hariç), sahte delil/rapor, örgüt ortaklığı, kişisel intikam (ihraç; bad-doc: ihraç + hapis — PDF hükmü).</li>
+            <li>2. **Üst düzey bilgi sızdırma (CK — PDF hükmü)** ve GTF/undercover ifşası.</li>
+            <li>3. **Üniforma çekme / kimlik taklidi** (ihraç; sunucu: BAN — PDF hükmü).</li>
+            <li>4. Rehine varken clean shot; ilk mermi gelmeden soygunda ateş; 8/14 dk ihlali; soyguna izinsiz ekstra birim götürmek (olayı otomatik kaybettirir + disiplin).</li>
+            <li>5. SS'e tek/yetersiz kuvvetle agresif giriş; savcı iznsiz mülk araması (istisnalar dışı).</li>
+            <li>6. Keyfî durdurma/arama, Miranda atlama, ifade baskısı, risk grubuna taser.</li>
+            <li>7. Sivilde LEOSA'sız silah, açık holster (dedektif dışı), görev dışı polislik.</li>
+            <li>8. Protestoya katılım/destek; söz verme; siyasi taraf tutma.</li>
+            <li>9. MDT istismarı (kişisel sorgu, kayıt silme), delil karartma.</li>
+            <li>10. EMS'e mesaide saygısızlık (Legal-Blacklist'e kadar — PDF hükmü); EMS için: bad-doc, hasta bilgisi sızdırma, keyfî rapor.</li>
+            <li>11. Pursuit istismarı: kasıtlı RAM, öne kırma, 4 ekip aşımı, 5 dk dolmadan PIT.</li>
+            <li>12. Megafon/araç müziği trollüğü (sunucu: ban — PDF hükmü); refuse RP (aktif legal birim varken).</li>
+            <li>13. Cadet'in yalnız devriyesi; yetkisiz E/F sınıfı kıyafet kullanımı.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- XXI. EĞİTİM, SERTİFİKASYON, DENEME SÜRECİ VE YETKİ KONTROLÜ -->
+      <section id="sec-egitim" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XXI. Eğitim, Sertifikasyon, Deneme Süreci ve Yetki Kontrolü</h2>
+          <ul class="rules-list">
+            <li>1. **Akademi (zorunlu, tüm kolluk):** Mevzuat (4 kitapçık), Miranda/arama/gözaltı, güç basamağı, telsiz-MDT, trafik durdurma, felony stop tatbikatı, fear-RP ve sahne kalitesi.</li>
+            <li>2. **Sertifikalar (ayrı eğitim + yetki + görev şartı — Legal Kit. 1.2 mantığı):** FTO, Trafik/PIT, Felony Stop Amirliği, AIR, MARINE, SWAT/Tactical, Dedektif, Undercover, Negotiator, LEOSA.</li>
+            <li>3. Sertifikası olmayan personel ilgili görevi/kıyafeti <b>kullanamaz</b>; kullanım Bölüm XX kapsamında ihlaldir.</li>
+            <li>4. Deneme süreci: Bölüm VII.4 (Cadet kısıtları). FTO değerlendirme raporuyla asalete geçilir.</li>
+            <li>5. Yetki kontrolü: Departman komutanlığı üç ayda bir sertifika/LEOSA/sicil denetimi yapar; LSDA talep hâlinde denetim raporu alabilir (denetim &ne; emir).</li>
+            <li>6. FBI personeli yaptığı rolün eğitimini almak zorundadır (Legal Kit. 4).</li>
+            <li>7. EMS/LSFD eğitimi: triyaj, olay yeri güvenliği, hazmat, kurtarma, rapor standardı; sağlık raporu yazma yetkisi ayrı sertifikaya bağlıdır.</li>
+          </ul>
+          <div class="rules-alert" style="margin-top: 20px;">
+            <b>HIZLI KONTROL LİSTESİ:</b> Bu görevin sertifikası sende var mı? Cadet yalnız mı? Denetim kayıtların güncel mi?
+          </div>
+        </div>
+      </section>
+
+      <!-- XXII. SIK SORULAN SORULAR -->
+      <section id="sec-sss" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XXII. Sık Sorulan Sorular</h2>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Felony stop kaç birimle başlar?</div>
+            <div class="faq-answer">Min 2 birim gelince başlar, en kıdemli yönetir; standart hedef 3 ekiptir (Bölüm XI.5).</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Hood'a kaç kişiyle girilir?</div>
+            <div class="faq-answer">Onaylı hood'a en az 3 ekip / 6 personel; SS'e tek girilmez.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Soygunda ne zaman ateş edebilirim?</div>
+            <div class="faq-answer">Karşıdan mermi gelince. Push: 8. dk'dan sonra. Hot drop: 14. dk'dan sonra.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Rehine varken keskin nişancı atışı?</div>
+            <div class="faq-answer">Hayır. Clean shot rehine varken yasaktır; anlaşmalı role çevrilir.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Polis PIT'i ne zaman?</div>
+            <div class="faq-answer">Kovalamacanın 5. dakikasından sonra; şehir içinde kaçınılır.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Pursuit'te kaç ekip?</div>
+            <div class="faq-answer">Max 4 (2 arkada, 2 paralel).</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Eve girip arayabilir miyim?</div>
+            <div class="faq-answer">Savcı izniyle. İstisna: silah sesi/bağrışma gibi makul şüphe ve acil durum.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Sivilde silah taşıyabilir miyim?</div>
+            <div class="faq-answer">Yalnızca LEOSA ile ve gizli. Açık holster yalnızca dedektif, o da teşhirsiz.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Cezaları toplayabilir miyim?</div>
+            <div class="faq-answer">Hayır; en yüksek suç yazılır (+hakaret başına 5 kamu).</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Küfür edene tutuklama?</div>
+            <div class="faq-answer">Hayır; küfür tutuklama sebebi değildir (hedef gösterme hariç).</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Başka departman memurunu gözaltına alabilir miyim?</div>
+            <div class="faq-answer">Bölge savcısı izni olmadan hayır.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> GTF'liye "hangi birimdensin" diyebilir miyim?</div>
+            <div class="faq-answer">Sivil varken asla; sivil yokken sorulabilir.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Müebbet yazılır mı?</div>
+            <div class="faq-answer">Yalnızca yargıç + yönetim onayı (ticket) ile.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> EMS'e ne olur saygısızlıkta?</div>
+            <div class="faq-answer">Legal-Blacklist'e kadar gider; EMS mesaide dokunulmazdır.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Zırhı ne zaman giyerim?</div>
+            <div class="faq-answer">00.00–06.00 Night-Shift veya onaylı operasyon.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Karşı taraf kural bozdu, ben de bozabilir miyim?</div>
+            <div class="faq-answer">Asla. POV al, sahneyi koru, ticket aç.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question"><i class="fa-solid fa-circle-question text-primary"></i> Yetki alanım nedir?</div>
+            <div class="faq-answer">Eyalet geneli — tüm kolluk için. "Bölgen değil" diye işlem engellenemez; ana hat yalnızca sevk önceliğidir.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- XXIII. HIZLI MÜDAHALE MATRİSİ -->
+      <section id="sec-matris" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XXIII. Hızlı Müdahale Matrisi</h2>
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th>Olay</th>
+                <th>Asgari Kuvvet</th>
+                <th>Komuta</th>
+                <th>Kritik Kural</th>
+                <th>İzin</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Rutin trafik</b></td>
+                <td>1 ekip</td>
+                <td>Memur</td>
+                <td>Makul şüphe, bodycam</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><b>Felony stop</b></td>
+                <td>2 birim (hedef 3)</td>
+                <td>En kıdemli</td>
+                <td>Tek ağızdan komut, kademeli güç</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><b>Pursuit</b></td>
+                <td>Max 4 ekip</td>
+                <td>Birincil araç</td>
+                <td>PIT 5 dk sonra, RAM yok</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><b>Market soygunu (L2)</b></td>
+                <td>6 polis</td>
+                <td>Olay amiri</td>
+                <td>İlk mermi, 8/14 dk, clean shot yok</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><b>Banka soygunu (L3-L6)</b></td>
+                <td>Kart değeri (8–16)</td>
+                <td>Olay amiri</td>
+                <td>Kart sayısı aşılmaz; L6 yönetim onaylı</td>
+                <td>Ticket (illegal taraf)</td>
+              </tr>
+              <tr>
+                <td><b>Rehine (soygun dışı)</b></td>
+                <td>3 ekip + negotiator</td>
+                <td>En kıdemli</td>
+                <td>Söz verilmez, clean shot yok</td>
+                <td>Ağır sonuçta ticket</td>
+              </tr>
+              <tr>
+                <td><b>SS çağrısı</b></td>
+                <td>3 ekip / 6 personel</td>
+                <td>Olay amiri</td>
+                <td>Tek girilmez</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><b>SS planlı baskın</b></td>
+                <td>3 ekip / 6 personel+</td>
+                <td>Dosya amiri</td>
+                <td>Dosya + amir onayı</td>
+                <td>Mülkte savcı izni</td>
+              </tr>
+              <tr>
+                <td><b>Ev araması</b></td>
+                <td>2 ekip</td>
+                <td>Kıdemli</td>
+                <td>Savcı izni (istisnalar saklı)</td>
+                <td>Savcı</td>
+              </tr>
+              <tr>
+                <td><b>Yangın/hazmat</b></td>
+                <td>LSFD + 1 ekip + EMS</td>
+                <td>LSFD alan komutanı</td>
+                <td>Kolluk çevre alır</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><b>Çoklu yaralı</b></td>
+                <td>EMS + LSFD + kolluk</td>
+                <td>Tek olay amiri</td>
+                <td>Triyaj, can > delil</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><b>İşbaşı memur kaçırma</b></td>
+                <td>GTF + 3 ekip</td>
+                <td>Dosya amiri</td>
+                <td>İllegal tarafta NET DELİL+POV şartı</td>
+                <td>Yönetim bilgisi</td>
+              </tr>
+              <tr>
+                <td><b>Müebbetlik dosya</b></td>
+                <td>—</td>
+                <td>Yargıç</td>
+                <td>Mahkeme zorunlu</td>
+                <td>Yönetim onayı</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- XXIV. YÖNETİM ONAYI / TİCKET GEREKTİREN LEGAL ROLLER -->
+      <section id="sec-onaylar" class="rule-section">
+        <div class="rule-card">
+          <h2 class="rule-title">XXIV. Yönetim Onayı / Ticket Gerektiren Legal Roller</h2>
+          <p style="font-size:13.5px; color:var(--text-muted); line-height: 1.5; margin-bottom: 20px;">
+            Genel Kitapçık EK-B ile uyumlu; legal tarafı ilgilendirenler:
+          </p>
+          <ul class="rules-list">
+            <li>1. **Müebbet yazma (yargıç)** — yönetim onayı.</li>
+            <li>2. **Ekstra division açma** — legal manager onayı.</li>
+            <li>3. **Legal mekana saldırı** (karşı taraf) — yönetim onayı; kolluk savunma planını buna göre kurar.</li>
+            <li>4. **CK / kalıcı hasar doğuracak legal roller** (ör. yakalanan bilgi sızdırıcının CK'sı, işbaşı memur kaçırmada CK/müebbet sonucu) — karşı taraf veya yönetim izni; POV zorunlu.</li>
+            <li>5. **Force CK** (FBI Müsteşar CK'sı dâhil kurumsal CK uygulamaları) — boss yetkisi / yönetim çerçevesi.</li>
+            <li>6. **Patlatma/büyük zarar** içeren operasyon unsurları — ticket.</li>
+            <li>7. **Yüksek riskli arama ve ağır yaptırım süreçleri** — savcı izni + kalıcı sonuç doğuracaksa yönetim onayı.</li>
+            <li>8. **Yönetim onaylı rüşvet/rol pası** çerçevesi — yalnızca admin rol pasıyla.</li>
+            <li>9. **L6 soygunlar** (Pacific, Kargo Gemisi) illegal tarafça yönetim onaylıdır; PD sevki kart değerlerine göre planlanır.</li>
+          </ul>
+          <div class="rules-alert" style="margin-top: 20px;">
+            <b>Kapanış Hükmü:</b> Bu kitapçıkta düzenlenmeyen her durumda Genel Kitapçık, İllegal Kitapçık ve Ceza Yönetmeliği kıyasen uygulanır (Ceza Yön. G — kıyas hükmü). "Bunun maddesi yok" savunması geçersizdir.
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">
+            Shield Legal Birimler Kural Kitapçığı — Shield 2.0 uyumlu. Yönetim onayına açıktır.
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  document.querySelectorAll('.rules-menu-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href');
+      const targetElement = document.querySelector(targetId);
+      
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth' });
+        
+        // Update active class immediately on click
+        document.querySelectorAll('.rules-menu-link').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      }
+    });
+  });
+
+  // Scroll Spy to update active sidebar item during scrolling
+  const sections = document.querySelectorAll('.rule-section');
+  const navLinks = document.querySelectorAll('.rules-menu-link');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      const sectionHeight = section.clientHeight;
+      if (pageYOffset >= (sectionTop - 120)) {
+        current = section.getAttribute('id');
+      }
+    });
+
+    if (current) {
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+          link.classList.add('active');
+        }
+      });
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

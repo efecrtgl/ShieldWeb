@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= status %> — <%= title %> | Shield</title>
+  <link rel="icon" type="image/png" href="/images/logo.png">
+  <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
+  <link rel="stylesheet" href="/css/style.css">
+  <% if (locals.themeColor) { %>
+    <style>
+      :root {
+        --primary: <%= locals.themeColor %>;
+        --primary-glow: rgba(<%= locals.themeColorRgb %>, 0.15);
+        --border-focus: rgba(<%= locals.themeColorRgb %>, 0.4);
+      }
+    </style>
+  <% } %>
+</head>
+<body style="background-color: var(--bg-primary); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; font-family: var(--font-main);">
+  
+  <div style="background: rgba(12, 13, 16, 0.6); border: 1px solid var(--border-color); border-radius: 20px; padding: 48px 32px; text-align: center; backdrop-filter: blur(20px); box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-width: 500px; width: 100%; animation: fadeIn 0.5s ease-out;">
+    
+    <div style="font-family: var(--font-display); font-size: 6rem; font-weight: 900; color: rgba(255,255,255,0.03); line-height: 1; margin-bottom: -35px; letter-spacing: -2px; user-select: none;">
+      <%= status %>
+    </div>
+
+    <div style="display: inline-flex; align-items: center; justify-content: center; width: 84px; height: 84px; border-radius: 50%; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); font-size: 34px; margin-bottom: 24px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);">
+      <% if (status === 403) { %>
+        <i class="fa-solid fa-shield-halved" style="color: #f59e0b;"></i>
+      <% } else if (status === 404) { %>
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--primary);"></i>
+      <% } else if (status === 502) { %>
+        <i class="fa-solid fa-network-wired" style="color: #ef4444;"></i>
+      <% } else if (status === 503) { %>
+        <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i>
+      <% } else { %>
+        <i class="fa-solid fa-circle-exclamation" style="color: #ef4444;"></i>
+      <% } %>
+    </div>
+
+    <h1 style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px; letter-spacing: 0.5px;">
+      <%= title %>
+    </h1>
+    
+    <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 32px; font-weight: 400; max-width: 400px; margin-left: auto; margin-right: auto;">
+      <%= message %>
+    </p>
+
+    <div style="border-top: 1px solid var(--border-color); padding-top: 24px; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+      <a href="/" class="btn btn-primary" style="padding: 12px 28px; font-size: 12px; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: var(--primary); color: #fff; text-decoration: none; transition: all 0.3s ease;">
+        <i class="fa-solid fa-house"></i> Ana Sayfaya Dön
+      </a>
+      <a href="https://discord.gg/starv" target="_blank" class="btn btn-secondary" style="padding: 12px 28px; font-size: 12px; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: var(--text-main); text-decoration: none; transition: all 0.3s ease;">
+        <i class="fa-brands fa-discord"></i> Destek Al
+      </a>
+    </div>
+
+  </div>
+
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+
+</body>
+</html>
