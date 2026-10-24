@@ -2,7 +2,7 @@
   <section id="faq-settings-content" class="admin-section-inner">
     <div class="main-layout">
       <div class="content-panel" style="grid-column: span 6;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;"><i class="fa-solid fa-plus-circle text-sky-400"></i> SSS Ekle</h3>
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; "><i class="fa-solid fa-plus-circle text-sky-400"></i> SSS Ekle</h3>
         <form action="/admin/website/faq/add" method="POST" style="display: flex; flex-direction: column; gap: 20px;">
           <div class="form-group">
             <label class="form-label">Soru</label>
@@ -20,7 +20,7 @@
         </form>
       </div>
       <div class="content-panel" style="grid-column: span 6; overflow-x: auto; padding: 24px;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;"><i class="fa-solid fa-list-ol text-sky-400"></i> SSS Listesi</h3>
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; "><i class="fa-solid fa-list-ol text-sky-400"></i> SSS Listesi</h3>
         <table class="admin-table">
           <thead>
             <tr>
@@ -37,7 +37,7 @@
                   <td><%= item.order %></td>
                   <td>
                     <form action="/admin/website/faq/delete/<%= item._id %>" method="POST">
-                      <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 10px;"><i class="fa-solid fa-trash"></i> Sil</button>
+                      <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 11px;"><i class="fa-solid fa-trash"></i> Sil</button>
                     </form>
                   </td>
                 </tr>

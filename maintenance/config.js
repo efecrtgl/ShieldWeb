@@ -1,3 +1,6 @@
+// Reads the panel .env so the port and the Discord invite match the main site.
+require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
+
 module.exports = {
   port: process.env.GATEWAY_PORT || 3000,
   version: "v2.0 - UPDATE",
@@ -8,7 +11,7 @@ module.exports = {
   // Gelecek bir zaman girilmelidir. Örnek: "2026-08-03T18:30:00+03:00" veya boş bırakılabilir.
   endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
   progressPercent: 4,
-  discordUrl: "https://discord.gg/arcanium",
+  discordUrl: process.env.DISCORD_INVITE_URL || "https://discord.gg/arcanium",
   footer: "Developed by realflexd & kai7m",
   allowedIPs: ["127.0.0.1", "::1"]
 };

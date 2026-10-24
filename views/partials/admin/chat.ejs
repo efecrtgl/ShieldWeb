@@ -33,23 +33,22 @@
     color: var(--danger);
   }
   #admin-chat-trigger:hover {
-    transform: scale(1.1);
-    box-shadow: 0 10px 28px rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.45);
+    background: var(--active) !important;
   }
 </style>
 
 <div id="admin-chat-widget" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; font-family: var(--font-main);">
-  <button id="admin-chat-trigger" style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 8px 24px rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.3); outline: none;">
+  <button id="admin-chat-trigger" style="width: 48px; height: 48px; border-radius: 50%; background: var(--raised); border: 1px solid var(--control); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color .15s; box-shadow: 0 8px 24px rgba(0,0,0,.45);" aria-label="Yetkili sohbetini aç">
     <i class="fa-solid fa-comments" style="font-size: 22px;"></i>
   </button>
 
-  <div id="admin-chat-window" style="position: absolute; bottom: 72px; right: 0; width: 380px; height: 500px; max-height: calc(100vh - 120px); background: rgba(12, 13, 16, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+  <div id="admin-chat-window" style="position: absolute; bottom: 72px; right: 0; width: 380px; height: 500px; max-height: calc(100vh - 120px); background: rgba(12, 13, 16, 0.85);   border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;  opacity: 0; pointer-events: none; transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
     <div style="padding: 16px 20px; background: rgba(1, 2, 4, 0.4); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; user-select: none;">
       <div style="display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-comments text-primary" style="font-size: 14px;"></i>
-        <span style="font-weight: 800; font-family: var(--font-display); color: #fff; font-size: 13px;">Admin Sohbet</span>
+        <span style="font-weight: 600; font-family: var(--font-display); color: #fff; font-size: 13px;">Admin Sohbet</span>
         <span id="chat-status-dot" style="width: 7px; height: 7px; background-color: var(--warning); border-radius: 50%; display: inline-block;"></span>
-        <span id="chat-status-text" style="font-size: 10px; color: var(--text-muted);">Bağlanıyor...</span>
+        <span id="chat-status-text" style="font-size: 11px; color: var(--text-muted);">Bağlanıyor...</span>
       </div>
       <button id="admin-chat-close" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 4px; transition: color 0.15s; outline: none;">
         <i class="fa-solid fa-chevron-down"></i>
@@ -60,7 +59,7 @@
 
     <div style="padding: 12px 16px; background: rgba(1, 2, 4, 0.4); border-top: 1px solid var(--border-color); display: flex; gap: 10px; align-items: center;">
       <input type="text" id="chat-message-input" placeholder="Bir mesaj yazın..." style="flex: 1; border-radius: 8px; padding: 8px 12px; font-size: 12.5px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.08); color: #fff; outline: none;" autocomplete="off">
-      <button id="chat-send-btn" style="height: 34px; width: 34px; border-radius: 8px; background: var(--primary); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 0 10px var(--primary-glow);">
+      <button id="chat-send-btn" aria-label="Mesajı gönder" style="height: 34px; width: 34px; border-radius: 8px; background: #fff; border: none; color: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; ">
         <i class="fa-solid fa-paper-plane" style="font-size: 12px;"></i>
       </button>
     </div>
@@ -141,10 +140,10 @@
       const senderHeader = isMe
         ? `<span style="font-weight: 700; color: var(--text-main);">${escapeHtml(msg.senderUsername)}</span>`
         : `<span style="font-weight: 700; color: var(--text-main);">${escapeHtml(msg.senderUsername)}</span>
-           <span style="font-size: 8px; font-weight: 800; padding: 1px 4px; border-radius: 4px; border: 1px solid ${badgeBorderColor}; color: ${rankColor}; background: ${badgeBgColor}; text-transform: uppercase;">${escapeHtml(rankName)}</span>`;
+           <span style="font-size: 11px; font-weight: 600; padding: 1px 4px; border-radius: 4px; border: 1px solid ${badgeBorderColor}; color: ${rankColor}; background: ${badgeBgColor}; ">${escapeHtml(rankName)}</span>`;
 
       const bubbleStyle = isMe
-        ? `background: rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.12); border: 1px solid rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.25); border-radius: 14px 4px 14px 14px; padding: 8px 12px; color: #fff; font-size: 13px; line-height: 1.4; box-shadow: 0 4px 12px rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.05);`
+        ? `background: rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.12); border: 1px solid rgba(<%= locals.themeColorRgb || '0, 113, 227' %>, 0.25); border-radius: 14px 4px 14px 14px; padding: 8px 12px; color: #fff; font-size: 13px; line-height: 1.4;`
         : `background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 4px 14px 14px 14px; padding: 8px 12px; color: var(--text-main); font-size: 13px; line-height: 1.4;`;
 
       let actionsHtml = "";
@@ -161,7 +160,7 @@
         `;
       }
 
-      const editedSuffix = msg.edited ? ' <span class="edited-flag" style="font-size: 9px; opacity: 0.6; font-style: italic;">(düzenlendi)</span>' : '';
+      const editedSuffix = msg.edited ? ' <span class="edited-flag" style="font-size: 11px; opacity: 0.6; font-style: italic;">(düzenlendi)</span>' : '';
 
       msgDiv.innerHTML = `
         <img src="${avatarUrl}" style="width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--border-color); object-fit: cover; flex-shrink: 0;" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
@@ -175,7 +174,7 @@
             </div>
             ${actionsHtml}
           </div>
-          <span style="font-size: 8px; color: var(--text-muted); margin-top: 1px;">
+          <span style="font-size: 11px; color: var(--text-muted); margin-top: 1px;">
             ${formatTime(msg.createdAt)}
           </span>
         </div>
@@ -333,7 +332,7 @@
           } else if (payload.type === "edit") {
             const bubbleDiv = document.getElementById(`bubble-${payload.data._id}`);
             if (bubbleDiv) {
-              const editedSuffix = ' <span class="edited-flag" style="font-size: 9px; opacity: 0.6; font-style: italic;">(düzenlendi)</span>';
+              const editedSuffix = ' <span class="edited-flag" style="font-size: 11px; opacity: 0.6; font-style: italic;">(düzenlendi)</span>';
               bubbleDiv.innerHTML = `<span id="text-${payload.data._id}">${escapeHtml(payload.data.message)}</span>${editedSuffix}`;
             }
           } else if (payload.type === "delete") {

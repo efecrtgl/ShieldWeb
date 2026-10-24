@@ -3,9 +3,9 @@
 <main class="container" style="max-width: 1400px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif; color: #fff;">
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
     
-    <section style="background: rgba(12, 13, 16, 0.4); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; backdrop-filter: blur(20px); display: flex; flex-direction: column; min-height: 480px;">
+    <section style="background: rgba(12, 13, 16, 0.4); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px;  display: flex; flex-direction: column; min-height: 480px;">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
-        <h3 style="margin: 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-gamepad text-primary" style="color: var(--primary);"></i> Aktif Oyuncu Listesi
         </h3>
         <span id="player-count-badge" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">0 Oyuncu</span>
@@ -16,9 +16,9 @@
       </div>
     </section>
 
-    <section style="background: rgba(12, 13, 16, 0.4); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; backdrop-filter: blur(20px); display: flex; flex-direction: column; min-height: 480px;">
+    <section style="background: rgba(12, 13, 16, 0.4); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px;  display: flex; flex-direction: column; min-height: 480px;">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
-        <h3 style="margin: 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Köprü İşlem Kuyruğu & Komut Gönder
         </h3>
       </div>
@@ -29,7 +29,6 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <select id="cmd-action" onchange="adjustFormFields()" style="background: rgba(12,13,16,0.6); border: 1px solid var(--border-color); color: #fff; padding: 8px; border-radius: 6px; font-size: 12px;">
               <option value="execute_command">Konsol Komutu Çalıştır</option>
-              <option value="trigger_event">Lua Event'i Fırlat</option>
             </select>
             <input type="text" id="cmd-target" placeholder="Oyuncu ID (İsteğe Bağlı)" style="background: rgba(12,13,16,0.6); border: 1px solid var(--border-color); color: #fff; padding: 8px; border-radius: 6px; font-size: 12px;">
           </div>
@@ -48,9 +47,9 @@
 
   </div>
 
-  <section style="background: rgba(12, 13, 16, 0.4); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; backdrop-filter: blur(20px);">
+  <section style="background: rgba(12, 13, 16, 0.4); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; ">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
-      <h3 style="margin: 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+      <h3 style="margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-server" style="color: var(--primary);"></i> Canlı İstek ve Yanıt Günlüğü
       </h3>
       <span id="logs-count" style="font-size: 12px; color: var(--text-muted);">0 Günlük Kaydı</span>
@@ -126,7 +125,16 @@
   async function quickAction(actionType, targetPlayerId) {
     let cmdStr = "";
     if (actionType === "kick") {
-      cmdStr = `kick ${targetPlayerId} 'Yonetici tarafindan oyundan cikarildiniz.'`;
+      // The bridge only runs whitelisted console commands; a kick is its own action.
+      const res = await fetch('/api/fivem/bridge/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'kick', targetPlayer: String(targetPlayerId), reason: 'Yönetici tarafından oyundan çıkarıldınız.' })
+      });
+      const data = await res.json().catch(() => null);
+      alert(data ? data.message : 'Sunucuya erişilemedi.');
+      updateDashboard();
+      return;
     } else if (actionType === "announcement") {
       const msg = prompt("Duyuru mesajı:");
       if (!msg) return;
@@ -160,7 +168,7 @@
         const logsData = await logsRes.json();
 
         renderPlayers(playersData.players || []);
-        renderQueue(queueData.queue || []);
+        renderQueue((queueData.queue || []).concat(queueData.recent || []).slice(0, 30));
         renderLogs(logsData || []);
       }
     } catch (err) {
@@ -189,19 +197,19 @@
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
               <span style="background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 11px;">ID: ${p.id}</span>
-              <span style="font-weight: 700; color: #fff;">${p.name}</span>
+              <span style="font-weight: 700; color: #fff;">${escapeHtml(p.name || '—')}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 11px; font-family: monospace; color: ${p.ping < 50 ? '#34d399' : '#f87171'};">⚡ ${p.ping}ms</span>
+              <span style="font-size: 11px; font-family: var(--font-mono); color: ${p.ping < 50 ? '#34d399' : '#f87171'};">⚡ ${p.ping}ms</span>
               <button onclick="quickAction('kick', ${p.id})" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; padding: 3px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;">
                 Kov (Kick)
               </button>
             </div>
           </div>
-          <div style="font-size: 11px; color: var(--text-muted); font-family: monospace; display: flex; flex-direction: column; gap: 2px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;">
-            <div>Discord: ${discId ? discId : "Yok"}</div>
-            <div>Steam: ${steamId}</div>
-            <div>License: ${license}</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); display: flex; flex-direction: column; gap: 2px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;">
+            <div>Discord: ${discId ? escapeHtml(discId) : "—"}</div>
+            <div>Steam: ${escapeHtml(steamId || "—")}</div>
+            <div>License: ${escapeHtml(license || "—")}</div>
           </div>
         </div>
       `;
@@ -221,10 +229,10 @@
       html += `
         <div style="background: rgba(255, 158, 11, 0.08); border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <div style="font-weight: 700; font-size: 12px; color: #f59e0b;">${item.action.toUpperCase()}</div>
-            <div style="font-family: monospace; font-size: 11px; color: #fff;">${item.command}</div>
+            <div style="font-weight: 600; font-size: 12px; color: #f59e0b;">${escapeHtml(item.action)}${item.status ? ' · ' + escapeHtml(item.status) : ''}</div>
+            <div style="font-family: var(--font-mono); font-size: 11px; color: #fff;">${escapeHtml(item.command || item.error || item.id || '')}</div>
           </div>
-          <span style="font-size: 10px; color: var(--text-muted); font-family: monospace;">Kuyrukta</span>
+          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">Kuyrukta</span>
         </div>
       `;
     });
@@ -248,22 +256,22 @@
 
       html += `
         <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
-          <td style="padding: 10px 12px; font-family: monospace;">${req.timestamp}</td>
+          <td style="padding: 10px 12px; font-family: var(--font-mono);">${req.timestamp}</td>
           <td style="padding: 10px 12px;">
-            <span style="padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px; background: ${isPost ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isPost ? '#60a5fa' : '#34d399'};">
+            <span style="padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; background: ${isPost ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isPost ? '#60a5fa' : '#34d399'};">
               ${req.method}
             </span>
           </td>
-          <td style="padding: 10px 12px; color: #fff; font-weight: 600;">${req.url}</td>
-          <td style="padding: 10px 12px; font-family: monospace;">${req.ip}</td>
+          <td style="padding: 10px 12px; color: #fff; font-weight: 600;">${escapeHtml(req.url)}</td>
+          <td style="padding: 10px 12px; font-family: var(--font-mono);">${escapeHtml(req.ip)}</td>
           <td style="padding: 10px 12px;">
-            <span style="padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px; background: ${isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isError ? '#f87171' : '#34d399'};">
+            <span style="padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; background: ${isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isError ? '#f87171' : '#34d399'};">
               ${req.statusCode}
             </span>
           </td>
-          <td style="padding: 10px 12px; font-family: monospace;">${req.duration}ms</td>
+          <td style="padding: 10px 12px; font-family: var(--font-mono);">${req.duration}ms</td>
           <td style="padding: 10px 12px; text-align: right;">
-            <button onclick="toggleDetails(${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer;">
+            <button onclick="toggleDetails(${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 11px; cursor: pointer;">
               Detay
             </button>
           </td>
@@ -273,11 +281,11 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div>
                 <div style="font-weight: 700; margin-bottom: 4px; font-size: 11px;">Body (Gövde)</div>
-                <pre style="margin: 0; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: #34d399; overflow-x: auto;">${escapeHtml(JSON.stringify(req.body, null, 2))}</pre>
+                <pre style="margin: 0; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; font-family: var(--font-mono); font-size: 11px; color: #34d399; overflow-x: auto;">${escapeHtml(JSON.stringify(req.body, null, 2))}</pre>
               </div>
               <div>
                 <div style="font-weight: 700; margin-bottom: 4px; font-size: 11px;">Headers (Başlıklar)</div>
-                <pre style="margin: 0; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: #60a5fa; overflow-x: auto;">${escapeHtml(JSON.stringify(req.headers, null, 2))}</pre>
+                <pre style="margin: 0; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; font-family: var(--font-mono); font-size: 11px; color: #60a5fa; overflow-x: auto;">${escapeHtml(JSON.stringify(req.headers, null, 2))}</pre>
               </div>
             </div>
           </td>

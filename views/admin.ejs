@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EmpireV — Yönetim Paneli</title>
+  <title>Yönetim Paneli — EmpireV</title>
   <link rel="icon" type="image/png" href="/images/logo.png">
   <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
   <link rel="stylesheet" href="/css/style.css">
@@ -22,1129 +22,11 @@
       };
     })();
   </script>
+  <link rel="stylesheet" href="/css/console.css">
+  <script src="/js/console.js" defer></script>
   <style>
-    :root {
-      --bg-primary: #050609;
-      --bg-dark: #020305;
-      --panel-bg: rgba(13, 15, 23, 0.75);
-      --border-color: rgba(255, 255, 255, 0.06);
-      --border-focus: rgba(224, 169, 139, 0.45);
-      --primary: <%- locals.themeColor || '#e0a98b' %>;
-      --primary-glow: rgba(<%- locals.themeColorRgb || '224, 169, 139' %>, 0.25);
-      --warning: #f59e0b;
-      --success: #10b981;
-      --danger: #ef4444;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --font-display: 'Outfit', sans-serif;
-      --font-body: 'Inter', -apple-system, sans-serif;
-      --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-      --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* Premium Pagination System */
-    .pagination-container, #users-pagination, #char-mgmt-pagination, #sys-log-pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 6px;
-      margin-top: 22px;
-      padding-top: 18px;
-      border-top: 1px solid var(--border-color);
-    }
-    .pagination-btn {
-      min-width: 36px;
-      height: 36px;
-      padding: 0 10px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 9px;
-      color: #94a3b8;
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      user-select: none;
-      outline: none;
-    }
-    .pagination-btn:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.22);
-      color: #ffffff;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-    .pagination-btn.active {
-      background: var(--primary, #e0a98b) !important;
-      border-color: var(--primary, #e0a98b) !important;
-      color: #0b0d14 !important;
-      font-weight: 800 !important;
-      box-shadow: 0 0 16px var(--primary-glow, rgba(224, 169, 139, 0.45));
-      transform: translateY(-1px) scale(1.05);
-    }
-    .pagination-btn:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-      border-color: rgba(255, 255, 255, 0.04);
-      background: rgba(255, 255, 255, 0.02);
-      color: #64748b;
-    }
-    .pagination-ellipsis {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 28px;
-      height: 36px;
-      color: #64748b;
-      font-weight: 700;
-      font-size: 14px;
-      letter-spacing: 2px;
-      user-select: none;
-    }
-
-    /* Google Forms Style Rich Text Editor */
-    .gforms-editor-container {
-      background: rgba(10, 14, 23, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 10px;
-      overflow: visible;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-      position: relative;
-    }
-
-    .gforms-editor-container:focus-within {
-      border-color: #a855f7;
-      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2), 0 0 20px rgba(168, 85, 247, 0.1);
-    }
-
-    .gforms-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 10px;
-      background: rgba(255, 255, 255, 0.03);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      position: relative;
-      border-radius: 10px 10px 0 0;
-    }
-
-    .gforms-toolbar::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: transparent;
-      transition: background 0.2s ease;
-    }
-
-    .gforms-editor-container:focus-within .gforms-toolbar::before {
-      background: linear-gradient(90deg, #a855f7, #6366f1);
-    }
-
-    .gforms-btn {
-      background: transparent;
-      border: none;
-      border-radius: 6px;
-      width: 32px;
-      height: 32px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: #94a3b8;
-      position: relative;
-      transition: all 0.15s ease;
-      padding: 0;
-      user-select: none;
-    }
-
-    .gforms-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
-    }
-
-    .gforms-btn.active {
-      background: rgba(255, 255, 255, 0.18) !important;
-      color: #ffffff !important;
-      box-shadow: 0 0 8px rgba(224, 169, 139, 0.25);
-    }
-
-    .gforms-icon-b {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-weight: 800;
-      font-size: 15px;
-      line-height: 1;
-    }
-
-    .gforms-icon-i {
-      font-family: "Georgia", "Times New Roman", serif;
-      font-style: italic;
-      font-weight: 700;
-      font-size: 16px;
-      line-height: 1;
-    }
-
-    .gforms-icon-u {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      text-decoration: underline;
-      font-weight: 700;
-      font-size: 14px;
-      line-height: 1;
-    }
-
-    .gforms-btn[data-tooltip]:hover::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: calc(100% + 6px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e293b;
-      color: #f8fafc;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 8px;
-      border-radius: 4px;
-      white-space: nowrap;
-      pointer-events: none;
-      z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .gforms-btn[data-tooltip]:hover::before {
-      content: '';
-      position: absolute;
-      bottom: calc(100% + 2px);
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 4px 4px 0 4px;
-      border-style: solid;
-      border-color: #1e293b transparent transparent transparent;
-      z-index: 1000;
-    }
-
-    .gforms-editable {
-      min-height: 120px;
-      max-height: 280px;
-      overflow-y: auto;
-      padding: 12px 16px;
-      color: #f1f5f9;
-      font-size: 13.5px;
-      line-height: 1.6;
-      outline: none;
-      word-break: break-word;
-      border-radius: 0 0 10px 10px;
-    }
-
-    .gforms-editable:empty:before {
-      content: attr(data-placeholder);
-      color: rgba(255, 255, 255, 0.3);
-      pointer-events: none;
-      display: block;
-    }
-
-    .gforms-editable ul {
-      list-style-type: disc;
-      margin-left: 24px;
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
-
-    .gforms-editable ol {
-      list-style-type: decimal;
-      margin-left: 24px;
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
-
-    .gforms-editable li {
-      margin-bottom: 3px;
-    }
-
-    .gforms-editable a {
-      color: #ffffff;
-      text-decoration: underline;
-    }
-
-    .gforms-editable b,
-    .gforms-editable strong {
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    .gforms-editable u {
-      text-decoration: underline;
-    }
-
-    .gforms-editable i,
-    .gforms-editable em {
-      font-style: italic;
-    }
-
-    .gforms-editable * {
-      background: transparent !important;
-      background-color: transparent !important;
-    }
-
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      font-size: 14px;
-      -webkit-text-size-adjust: 100%;
-      scroll-behavior: smooth;
-    }
-
-    body {
-      background-color: var(--bg-primary) !important;
-      color: var(--text-main) !important;
-      font-family: var(--font-body) !important;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: row;
-      overflow-x: hidden;
-      position: relative;
-      line-height: 1.5;
-    }
-
-    /* Stunning Modern Sidebar */
-    .sidebar {
-      width: 250px !important;
-      background: rgba(4, 6, 10, 0.95) !important;
-      backdrop-filter: blur(40px) !important;
-      -webkit-backdrop-filter: blur(40px) !important;
-      border-right: 1px solid var(--border-color) !important;
-      padding: 0 !important;
-      display: flex !important;
-      flex-direction: column !important;
-      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8) !important;
-      height: 100vh !important;
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      overflow: hidden !important;
-      z-index: 1000 !important;
-      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }
-
-    .sidebar .sidebar-menu {
-      flex: 1 1 0 !important;
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      padding: 16px 14px !important;
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 10px !important;
-    }
-
-    .sidebar .sidebar-menu::-webkit-scrollbar {
-      width: 4px !important;
-    }
-
-    .sidebar .sidebar-menu::-webkit-scrollbar-track {
-      background: transparent !important;
-    }
-
-    .sidebar .sidebar-menu::-webkit-scrollbar-thumb {
-      background: rgba(168, 85, 247, 0.3) !important;
-      border-radius: 4px !important;
-    }
-
-    .sidebar-dropdown {
-      margin-bottom: 0px !important;
-    }
-
-    .sidebar-link {
-      margin-bottom: 0px !important;
-    }
-
-    .sidebar-brand {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
-      padding: 24px 16px 20px 16px !important;
-      margin-bottom: 8px !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      gap: 12px !important;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
-    }
-
-    .sidebar-section-header {
-      font-size: 10px !important;
-      font-weight: 800 !important;
-      color: var(--text-muted) !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.15em !important;
-      padding: 12px 10px 8px 10px !important;
-      margin-top: 16px !important;
-      font-family: var(--font-display) !important;
-    }
-
-    .sidebar-link {
-      background: transparent !important;
-      border-radius: 10px !important;
-      border-left: 3px solid transparent !important;
-      font-family: var(--font-body) !important;
-      font-size: 14px !important;
-      font-weight: 500 !important;
-      letter-spacing: 0.01em !important;
-      padding: 12px 14px !important;
-      margin-bottom: 2px !important;
-      color: #94a3b8 !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 12px !important;
-      transition: var(--transition) !important;
-      text-decoration: none !important;
-      white-space: nowrap !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-    }
-
-    .sidebar-link i {
-      font-size: 14.5px !important;
-      width: 20px !important;
-      text-align: center !important;
-      flex-shrink: 0 !important;
-      transition: var(--transition) !important;
-    }
-
-    .sidebar-link:hover {
-      background: rgba(255, 255, 255, 0.03) !important;
-      color: #fff !important;
-      transform: translateX(4px) !important;
-    }
-
-    .sidebar-link.active {
-      border-left: 3px solid var(--primary) !important;
-      background: linear-gradient(90deg, rgba(168, 85, 247, 0.15) 0%, transparent 100%) !important;
-      color: #ffffff !important;
-      font-weight: 700 !important;
-      box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.05) !important;
-    }
-
-    .sidebar-link.active i {
-      color: var(--primary) !important;
-      filter: drop-shadow(0 0 8px var(--primary-glow));
-    }
-
-    .sidebar-dropdown-trigger {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      width: 100% !important;
-      background: transparent !important;
-      border: none !important;
-      color: #94a3b8 !important;
-      padding: 12px 14px !important;
-      font-family: var(--font-body) !important;
-      font-size: 14px !important;
-      font-weight: 500 !important;
-      letter-spacing: 0.01em !important;
-      border-radius: 10px !important;
-      cursor: pointer !important;
-      transition: var(--transition) !important;
-    }
-
-    .sidebar-dropdown-trigger:hover {
-      background: rgba(255, 255, 255, 0.03) !important;
-      color: #ffffff !important;
-    }
-
-    .sidebar-submenu {
-      max-height: 0 !important;
-      overflow: hidden !important;
-      opacity: 0 !important;
-      padding-left: 8px !important;
-      margin-left: 18px !important;
-      border-left: 1px dashed rgba(255, 255, 255, 0.1) !important;
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 4px !important;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-      list-style: none !important;
-    }
-
-    .sidebar-submenu.active {
-      max-height: 800px !important;
-      opacity: 1 !important;
-      margin-top: 6px !important;
-      margin-bottom: 8px !important;
-    }
-
-    .sidebar-submenu .sidebar-link {
-      padding: 8px 12px !important;
-      font-size: 13px !important;
-      gap: 10px !important;
-      margin-bottom: 2px !important;
-      border-radius: 8px !important;
-    }
-
-    .sidebar-submenu .sidebar-link i {
-      font-size: 13px !important;
-      width: 16px !important;
-    }
-
-    /* Footer Actions */
-    .sidebar-footer {
-      border-top: 1px solid rgba(255, 255, 255, 0.04) !important;
-      padding: 16px 14px !important;
-      background: rgba(0, 0, 0, 0.3) !important;
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 10px !important;
-      flex-shrink: 0 !important;
-    }
-
-    .footer-action-card,
-    .sensitive-toggle-card {
-      width: 100% !important;
-      padding: 10px 14px !important;
-      background: rgba(255, 255, 255, 0.02) !important;
-      border: 1px solid rgba(255, 255, 255, 0.05) !important;
-      border-radius: 10px !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      font-size: 12.5px !important;
-      color: #94a3b8 !important;
-      transition: var(--transition) !important;
-      text-decoration: none !important;
-      cursor: pointer !important;
-    }
-
-    .footer-action-card:hover,
-    .sensitive-toggle-card:hover {
-      background: rgba(255, 255, 255, 0.05) !important;
-      border-color: rgba(255, 255, 255, 0.1) !important;
-      color: #ffffff !important;
-      transform: translateY(-2px);
-    }
-
-    .sensitive-toggle-card .toggle-label {
-      display: flex !important;
-      align-items: center !important;
-      gap: 8px !important;
-      font-weight: 700 !important;
-    }
-
-    .sensitive-toggle-card .badge-sensitive {
-      font-size: 9px !important;
-      font-weight: 900 !important;
-      padding: 3px 8px !important;
-      border-radius: 6px !important;
-      letter-spacing: 0.1em !important;
-      text-transform: uppercase !important;
-      transition: var(--transition) !important;
-    }
-
-    .sensitive-toggle-card .badge-sensitive.active {
-      background: rgba(245, 158, 11, 0.15) !important;
-      color: #f59e0b !important;
-      border: 1px solid rgba(245, 158, 11, 0.3) !important;
-    }
-
-    .sensitive-toggle-card .badge-sensitive.inactive {
-      background: rgba(255, 255, 255, 0.03) !important;
-      color: var(--text-muted) !important;
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }
-
-    .mini-switch {
-      position: relative;
-      display: inline-block;
-      width: 34px;
-      height: 18px;
-      flex-shrink: 0;
-    }
-
-    .mini-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .mini-slider {
-      position: absolute;
-      cursor: pointer;
-      inset: 0;
-      background-color: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
-      border-radius: 20px;
-    }
-
-    .mini-slider::before {
-      position: absolute;
-      content: "";
-      height: 12px;
-      width: 12px;
-      left: 2px;
-      bottom: 2px;
-      background-color: #ffffff;
-      transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
-      border-radius: 50%;
-    }
-
-    .mini-switch input:checked+.mini-slider {
-      background-color: var(--warning);
-      border-color: var(--warning);
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-    }
-
-    .mini-switch input:checked+.mini-slider::before {
-      transform: translateX(16px);
-      background-color: #000;
-    }
-
-    .profile-card-compact {
-      width: 100% !important;
-      padding: 12px 14px !important;
-      background: rgba(255, 255, 255, 0.02) !important;
-      border: 1px solid rgba(255, 255, 255, 0.05) !important;
-      border-radius: 10px !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 12px !important;
-      transition: var(--transition) !important;
-      margin-top: 4px !important;
-    }
-
-    .profile-card-compact:hover {
-      background: rgba(255, 255, 255, 0.04) !important;
-      border-color: rgba(255, 255, 255, 0.1) !important;
-    }
-
-    /* Admin Content Layout */
-    .admin-content {
-      flex: 1 !important;
-      margin-left: 250px !important;
-      padding: 32px 40px !important;
-      width: calc(100% - 250px) !important;
-      background: transparent !important;
-      min-height: 100vh !important;
-      transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-      position: relative !important;
-    }
-
-    /* Admin Cards */
-    .stat-cards-grid,
-    .admin-stats-grid {
-      display: grid !important;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
-      gap: 24px !important;
-      margin-bottom: 32px !important;
-    }
-
-    .admin-stat-card {
-      background: var(--panel-bg) !important;
-      border: 1px solid var(--border-color) !important;
-      border-radius: 16px !important;
-      padding: 24px !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 20px !important;
-      box-shadow: var(--shadow-glass) !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
-      transition: var(--transition) !important;
-      position: relative !important;
-      overflow: hidden !important;
-    }
-
-    .admin-stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: var(--primary);
-      border-radius: 4px 0 0 4px;
-      opacity: 0;
-      transition: var(--transition);
-    }
-
-    .admin-stat-card:hover {
-      transform: translateY(-5px) !important;
-      border-color: rgba(255, 255, 255, 0.15) !important;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6) !important;
-    }
-
-    .admin-stat-card:hover::before {
-      opacity: 1;
-    }
-
-    .admin-stat-icon {
-      width: 56px !important;
-      height: 56px !important;
-      border-radius: 14px !important;
-      background: rgba(255, 255, 255, 0.03) !important;
-      border: 1px solid rgba(255, 255, 255, 0.05) !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      font-size: 24px !important;
-      color: var(--primary) !important;
-      box-shadow: 0 0 20px var(--primary-glow) !important;
-    }
-
-    .admin-stat-details h4 {
-      font-size: 13px !important;
-      font-weight: 700 !important;
-      color: var(--text-muted) !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.1em !important;
-      margin-bottom: 6px !important;
-    }
-
-    .admin-stat-details p {
-      font-family: var(--font-display) !important;
-      font-size: 28px !important;
-      font-weight: 900 !important;
-      color: #fff !important;
-      line-height: 1 !important;
-      margin: 0 !important;
-    }
-
-    /* Panels and Sections */
-    .admin-section {
-      display: none !important;
-    }
-
-    .admin-section.active {
-      display: block !important;
-      animation: fadeSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes fadeSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(15px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Locked / Access Denied Overlay */
-    .locked-overlay {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
-      text-align: center !important;
-      padding: 70px 32px !important;
-      min-height: 420px !important;
-      background: rgba(13, 16, 26, 0.75) !important;
-      border: 1px dashed rgba(239, 68, 68, 0.35) !important;
-      border-radius: 24px !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
-      margin: 40px auto !important;
-      max-width: 650px !important;
-      position: relative !important;
-      overflow: hidden !important;
-      animation: fadeSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }
-
-    .locked-overlay::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #ef4444, #f59e0b);
-    }
-
-    .locked-overlay-icon {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: rgba(239, 68, 68, 0.12);
-      border: 1.5px solid rgba(239, 68, 68, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 22px;
-      box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
-    }
-
-    .locked-overlay-icon i,
-    .locked-overlay>i {
-      font-size: 36px;
-      color: #ef4444;
-      filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.4));
-      margin-bottom: 0 !important;
-    }
-
-    .locked-overlay h4 {
-      font-family: var(--font-display) !important;
-      font-size: 22px !important;
-      font-weight: 800 !important;
-      color: #ffffff !important;
-      margin-top: 16px !important;
-      margin-bottom: 10px !important;
-      letter-spacing: -0.02em !important;
-    }
-
-    .locked-overlay p {
-      font-size: 14px !important;
-      color: var(--text-muted) !important;
-      max-width: 460px !important;
-      line-height: 1.6 !important;
-      margin: 0 !important;
-    }
-
-    .content-panel {
-      background: var(--panel-bg) !important;
-      border: 1px solid var(--border-color) !important;
-      border-radius: 16px !important;
-      padding: 32px !important;
-      margin-bottom: 32px !important;
-      box-shadow: var(--shadow-glass) !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
-      position: relative !important;
-    }
-
-    .panel-header {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      margin-bottom: 24px !important;
-      padding-bottom: 16px !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-    }
-
-    .panel-title {
-      font-family: var(--font-display) !important;
-      font-size: 20px !important;
-      font-weight: 800 !important;
-      color: #fff !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 12px !important;
-      margin: 0 !important;
-    }
-
-    .panel-title i {
-      color: var(--primary-light) !important;
-    }
-
-    /* Admin Tables */
-    .admin-table-wrapper {
-      width: 100% !important;
-      overflow-x: auto !important;
-      border-radius: 12px !important;
-      border: 1px solid rgba(255, 255, 255, 0.05) !important;
-      background: rgba(0, 0, 0, 0.2) !important;
-    }
-
-    .admin-table-wrapper table,
-    .admin-table {
-      width: 100% !important;
-      border-collapse: collapse !important;
-      text-align: left !important;
-      font-size: 13.5px !important;
-    }
-
-    .admin-table-wrapper th,
-    .admin-table th {
-      background: rgba(255, 255, 255, 0.02) !important;
-      color: var(--text-muted) !important;
-      font-family: var(--font-body) !important;
-      font-size: 11.5px !important;
-      font-weight: 700 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.1em !important;
-      padding: 16px 20px !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-      white-space: nowrap !important;
-    }
-
-    .admin-table-wrapper td,
-    .admin-table td {
-      padding: 16px 20px !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
-      color: #e2e8f0 !important;
-      vertical-align: middle !important;
-    }
-
-    .admin-table-wrapper tr:hover td,
-    .admin-table tr:hover td {
-      background: rgba(255, 255, 255, 0.02) !important;
-    }
-
-    /* Inputs and Buttons */
-    .admin-input,
-    .admin-select,
-    .form-input {
-      background: rgba(13, 16, 26, 0.7) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      border-radius: 10px !important;
-      padding: 9px 14px !important;
-      color: #ffffff !important;
-      font-size: 13px !important;
-      font-family: var(--font-body) !important;
-      line-height: 1.4 !important;
-      transition: var(--transition) !important;
-      outline: none !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-      min-height: 40px !important;
-    }
-
-    select.admin-select,
-    select.form-input,
-    select.admin-input {
-      padding-top: 8px !important;
-      padding-bottom: 8px !important;
-      padding-right: 36px !important;
-      line-height: normal !important;
-      appearance: none !important;
-      -webkit-appearance: none !important;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23e0a98b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
-      background-repeat: no-repeat !important;
-      background-position: right 14px center !important;
-      background-size: 14px !important;
-      cursor: pointer !important;
-    }
-
-    select.admin-select option,
-    select.form-input option,
-    select.admin-input option {
-      background: #0d101a !important;
-      color: #ffffff !important;
-      padding: 10px !important;
-    }
-
-    .admin-input:focus,
-    .admin-select:focus,
-    .form-input:focus {
-      border-color: var(--primary) !important;
-      box-shadow: 0 0 0 3px rgba(224, 169, 139, 0.25) !important;
-      background: rgba(18, 22, 36, 0.95) !important;
-    }
-
-    .form-label {
-      display: block !important;
-      font-size: 12px !important;
-      font-weight: 700 !important;
-      color: var(--text-muted) !important;
-      margin-bottom: 8px !important;
-      letter-spacing: 0.05em !important;
-      text-transform: uppercase !important;
-    }
-
-    .form-group {
-      margin-bottom: 20px !important;
-    }
-
-    .btn {
-      display: inline-flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      gap: 8px !important;
-      padding: 12px 20px !important;
-      border-radius: 10px !important;
-      font-size: 13.5px !important;
-      font-weight: 700 !important;
-      font-family: var(--font-body) !important;
-      cursor: pointer !important;
-      transition: var(--transition) !important;
-      border: none !important;
-      outline: none !important;
-      text-decoration: none !important;
-    }
-
-    .btn-primary {
-      background: var(--primary) !important;
-      color: #fff !important;
-      box-shadow: 0 4px 15px var(--primary-glow) !important;
-    }
-
-    .btn-primary:hover {
-      background: #fff !important;
-      color: var(--primary) !important;
-      transform: translateY(-2px) !important;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.05) !important;
-      color: #fff !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1) !important;
-      border-color: rgba(255, 255, 255, 0.2) !important;
-      transform: translateY(-2px) !important;
-    }
-
-    /* Badges */
-    .badge {
-      font-size: 11px !important;
-      font-weight: 800 !important;
-      padding: 4px 10px !important;
-      border-radius: 6px !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.05em !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-    }
-
-    .badge-success {
-      background: rgba(16, 185, 129, 0.15) !important;
-      color: var(--success) !important;
-      border: 1px solid rgba(16, 185, 129, 0.3) !important;
-    }
-
-    .badge-danger {
-      background: rgba(239, 68, 68, 0.15) !important;
-      color: var(--danger) !important;
-      border: 1px solid rgba(239, 68, 68, 0.3) !important;
-    }
-
-    .badge-warning {
-      background: rgba(245, 158, 11, 0.15) !important;
-      color: var(--warning) !important;
-      border: 1px solid rgba(245, 158, 11, 0.3) !important;
-    }
-
-    /* Mobile Topbar & Overlay */
-    .admin-mobile-topbar {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 60px;
-      background: rgba(4, 6, 10, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border-color);
-      z-index: 998;
-      padding: 0 16px;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .mobile-brand-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--font-display);
-      font-size: 14.5px;
-      font-weight: 900;
-      letter-spacing: 0.1em;
-      color: #fff;
-    }
-
-    .mobile-brand-title strong {
-      color: var(--primary);
-      font-weight: 900;
-    }
-
-    #mobile-sidebar-toggle,
-    .mobile-home-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      cursor: pointer;
-      transition: var(--transition);
-      text-decoration: none;
-    }
-
-    #mobile-sidebar-toggle:active,
-    .mobile-home-btn:active {
-      background: rgba(168, 85, 247, 0.2);
-      border-color: var(--primary);
-    }
-
-    #sidebar-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 999;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    #sidebar-backdrop.active {
-      display: block;
-      opacity: 1;
-    }
-
-    /* Media Queries for Mobile & Tablet */
-    @media (max-width: 1024px) {
-      .admin-mobile-topbar {
-        display: flex !important;
-      }
-
-      .sidebar {
-        transform: translateX(-100%) !important;
-        width: 280px !important;
-        z-index: 1000 !important;
-        box-shadow: 10px 0 40px rgba(0, 0, 0, 0.9) !important;
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-      }
-
-      .sidebar.mobile-open {
-        transform: translateX(0) !important;
-      }
-
-      .admin-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-        padding: 16px !important;
-        padding-top: 80px !important;
-      }
-
-      .stat-cards-grid,
-      .admin-stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(100%, 1fr)) !important;
-        gap: 16px !important;
-      }
-
-      .content-panel {
-        padding: 24px 16px !important;
-        border-radius: 16px !important;
-      }
-
-      .modal-content,
-      .modal-dialog,
-      .admin-modal-box {
-        padding: 20px !important;
-        max-width: 95vw !important;
-      }
-    }
+    /* The community's configurable theme colour is the console's one data hue. */
+    :root { --accent: <%- locals.themeColor || '#e0a98b' %>; --accent-rgb: <%- locals.themeColorRgb || '224, 169, 139' %>; }
   </style>
   <script>
     // Global Alert Override
@@ -1191,43 +73,38 @@
   </script>
   <!-- Leaflet 2D Map Library for FiveM -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
   <!-- Ace Code Editor for Shield Code Studio -->
-  <script src="/js/ace/ace.js"></script>
-  <script src="/js/ace/ext-language_tools.js"></script>
-  <script src="/js/ace/ext-searchbox.js"></script>
-  <script src="/js/ace/mode-lua.js"></script>
-  <script src="/js/ace/mode-javascript.js"></script>
-  <script src="/js/ace/mode-json.js"></script>
-  <script src="/js/ace/mode-ini.js"></script>
-  <script src="/js/ace/mode-html.js"></script>
-  <script src="/js/ace/mode-css.js"></script>
-  <script src="/js/ace/mode-sql.js"></script>
-  <script src="/js/ace/theme-one_dark.js"></script>
-  <script src="/js/ace/theme-dracula.js"></script>
-  <script src="/js/ace/theme-monokai.js"></script>
-  <script src="/js/ace/theme-tomorrow_night_eighties.js"></script>
+  <script src="/js/ace/ace.js" defer></script>
+  <script src="/js/ace/ext-language_tools.js" defer></script>
+  <script src="/js/ace/ext-searchbox.js" defer></script>
+  <script src="/js/ace/mode-lua.js" defer></script>
+  <script src="/js/ace/mode-javascript.js" defer></script>
+  <script src="/js/ace/mode-json.js" defer></script>
+  <script src="/js/ace/mode-ini.js" defer></script>
+  <script src="/js/ace/mode-html.js" defer></script>
+  <script src="/js/ace/mode-css.js" defer></script>
+  <script src="/js/ace/mode-sql.js" defer></script>
+  <script src="/js/ace/theme-one_dark.js" defer></script>
+  <script src="/js/ace/theme-dracula.js" defer></script>
+  <script src="/js/ace/theme-monokai.js" defer></script>
+  <script src="/js/ace/theme-tomorrow_night_eighties.js" defer></script>
 </head>
 
-<body
-  style="background-color: var(--bg-primary); display: flex; flex-direction: row; min-height: 100vh; position: relative;">
-  <!-- Liquid Gradient Blobs Animation (Cam Estetiği Arka Plan Balonları) -->
-  <div class="liquid-blob-container">
-    <div class="liquid-blob blob-1"></div>
-    <div class="liquid-blob blob-2"></div>
-    <div class="liquid-blob blob-3"></div>
-  </div>
+<body class="console">
+  <a class="sr-only" href="#admin-canvas">İçeriğe geç</a>
 
   <!-- Global Custom Center Alert Modal -->
   <div id="global-alert-modal"
-    style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999999; align-items: center; justify-content: center; padding: 20px; transition: all 0.3s ease;">
+    style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75);   z-index: 999999; align-items: center; justify-content: center; padding: 20px; transition: all 0.3s ease;">
     <div
-      style="background: rgba(20, 21, 26, 0.98); border: 1.5px solid var(--border-color); border-radius: 16px; max-width: 400px; width: 100%; padding: 24px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65); display: flex; flex-direction: column; gap: 18px; transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+      style="background: rgba(20, 21, 26, 0.98); border: 1.5px solid var(--border-color); border-radius: 16px; max-width: 400px; width: 100%; padding: 24px;  display: flex; flex-direction: column; gap: 18px; transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
       <div style="display: flex; align-items: center; gap: 12px;">
         <div
           style="width: 36px; height: 36px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); border: 1.5px solid rgba(239, 68, 68, 0.35); display: flex; align-items: center; justify-content: center; color: var(--danger); font-size: 16px;">
           <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
-        <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: #fff; font-family: var(--font-display);">Sistem
+        <h4 style="margin: 0; font-size: 15px; font-weight: 600; color: #fff; font-family: var(--font-display);">Sistem
           Uyarısı</h4>
       </div>
       <p id="global-alert-message" style="color: var(--text-muted); font-size: 12.5px; line-height: 1.6; margin: 0;">
@@ -1247,41 +124,17 @@
     </div>
   </div>
 
-  <!-- Mobile Topbar Navigation -->
-  <header class="admin-mobile-topbar">
-    <button id="mobile-sidebar-toggle" onclick="toggleMobileSidebar()" aria-label="Menüyü Aç/Kapat">
-      <i class="fa-solid fa-bars-staggered"></i>
-    </button>
-    <div class="mobile-brand-title">
-      <img src="/images/logo.png" alt="EmpireV"
-        style="height: 26px; width: 26px; border-radius: 6px; object-fit: cover; filter: drop-shadow(0 0 8px rgba(224, 169, 139, 0.45));">
-      <span>EMPIREV <strong>ADMIN</strong></span>
-    </div>
-    <a href="/" class="mobile-home-btn" title="Siteye Dön">
-      <i class="fa-solid fa-house"></i>
-    </a>
-  </header>
   <div id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
 
-  <aside class="sidebar">
-    <div class="sidebar-brand"
-      style="display: flex; flex-direction: column; align-items: center; padding: 16px 14px 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); gap: 8px;">
-      <div style="position: relative;">
-        <img src="/images/logo.png" alt="EmpireV Logo"
-          style="height: 42px; width: 42px; border-radius: 9px; object-fit: cover; filter: drop-shadow(0 0 14px rgba(224, 169, 139, 0.5)); border: 1px solid rgba(255, 255, 255, 0.1);">
-        <span
-          style="position: absolute; bottom: 0; right: 0; width: 8px; height: 8px; background-color: var(--success); border: 1.5px solid #000; border-radius: 50%; box-shadow: 0 0 6px var(--success);"></span>
-      </div>
-      <div style="text-align: center;">
-        <div
-          style="font-family: var(--font-display); font-size: 13.5px; font-weight: 800; background: linear-gradient(135deg, #ffffff 30%, #e0a98b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 0.1em; text-transform: uppercase;">
-          EMPIREV</div>
-        <div
-          style="font-size: 8.5px; font-weight: 700; color: #e0a98b; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 1px; opacity: 0.95;">
-          ADMIN PANEL</div>
-      </div>
-    </div>
-    <nav class="sidebar-menu">
+  <aside class="sidebar" id="admin-sidebar">
+    <a class="sidebar-brand" href="#overview" aria-label="EmpireV yönetim paneli, genel bakış">
+      <img src="/images/logo.png" alt="">
+      <span>
+        <span class="brand-name">EmpireV</span>
+        <span class="brand-scope">Yönetim paneli</span>
+      </span>
+    </a>
+    <nav class="sidebar-menu" aria-label="Panel bölümleri">
       <% if ((locals.modules.admin_overview !==false) || (locals.modules.admin_users !==false)) { %>
         <div class="sidebar-section-header">Genel</div>
         <% } %>
@@ -1292,7 +145,7 @@
               <i class="fa-solid fa-gauge-high"></i> Genel Bakış
               <% if (!userPermissions.viewOverview) { %>
                 <i class="fa-solid fa-lock"
-                  style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                  style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                 <% } %>
             </a>
             <% } %>
@@ -1316,7 +169,7 @@
                         <div class="sidebar-dropdown">
                           <button class="sidebar-dropdown-trigger" id="users-trigger">
                             <span><i class="fa-solid fa-users"></i> Kullanıcı Listesi</span>
-                            <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+                            <i class="fa-solid fa-chevron-down" style="font-size: 11px;"></i>
                           </button>
                           <ul class="sidebar-submenu" id="users-menu">
                             <% if (locals.modules.admin_users !==false) { %>
@@ -1326,7 +179,7 @@
                                   <i class="fa-solid fa-user-check"></i> Kullanıcılar
                                   <% if (!userPermissions.viewUsers) { %>
                                     <i class="fa-solid fa-lock"
-                                      style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                      style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                     <% } %>
                                 </a>
                               </li>
@@ -1338,7 +191,7 @@
                                       <i class="fa-solid fa-gavel"></i> Cezalandırma
                                       <% if (!userPermissions.viewPunishments) { %>
                                         <i class="fa-solid fa-lock"
-                                          style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                          style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                         <% } %>
                                     </a>
                                   </li>
@@ -1350,7 +203,7 @@
                                           <i class="fa-solid fa-user-slash"></i> Banlanan Kullanıcılar
                                           <% if (!(userPermissions.banUser || userPermissions.unbanUser)) { %>
                                             <i class="fa-solid fa-lock"
-                                              style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                              style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                             <% } %>
                                         </a>
                                       </li>
@@ -1363,7 +216,7 @@
                                               <% if (!(userPermissions.blacklistUserAdd ||
                                                 userPermissions.blacklistUserRemove)) { %>
                                                 <i class="fa-solid fa-lock"
-                                                  style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                                  style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                                 <% } %>
                                             </a>
                                           </li>
@@ -1371,11 +224,11 @@
                                             <li>
                                               <a href="#ic-name-control"
                                                 class="sidebar-link <%= !userPermissions.viewUsers ? 'sidebar-link-locked' : '' %>">
-                                                <i class="fa-solid fa-user-shield" style="color: #a855f7;"></i> İC İsim
+                                                <i class="fa-solid fa-user-shield" style="color: var(--accent);"></i> İC İsim
                                                 Kontrolü
                                                 <% if (!userPermissions.viewUsers) { %>
                                                   <i class="fa-solid fa-lock"
-                                                    style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                                    style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                                   <% } %>
                                               </a>
                                             </li>
@@ -1386,7 +239,7 @@
                                                 Karakter Listesi
                                                 <% if (!userPermissions.viewUsers) { %>
                                                   <i class="fa-solid fa-lock"
-                                                    style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                                    style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                                   <% } %>
                                               </a>
                                             </li>
@@ -1399,7 +252,7 @@
                               <button class="sidebar-dropdown-trigger" id="teams-trigger">
                                 <span style="white-space:nowrap;"><i class="fa-solid fa-people-roof"
                                     style="color: #ffffff;"></i> Ekip &amp; İşletme</span>
-                                <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+                                <i class="fa-solid fa-chevron-down" style="font-size: 11px;"></i>
                               </button>
                               <ul class="sidebar-submenu" id="teams-menu">
                                 <li>
@@ -1408,7 +261,7 @@
                                     <i class="fa-solid fa-users-gear" style="color: #ffffff;"></i> Ekip Listesi
                                     <% if (!userPermissions.viewTeams) { %>
                                       <i class="fa-solid fa-lock"
-                                        style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                        style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                       <% } %>
                                   </a>
                                 </li>
@@ -1418,7 +271,7 @@
                                     <i class="fa-solid fa-store" style="color: #38bdf8;"></i> İşletmeler
                                     <% if (!userPermissions.viewTeams) { %>
                                       <i class="fa-solid fa-lock"
-                                        style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                        style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                       <% } %>
                                   </a>
                                 </li>
@@ -1432,7 +285,7 @@
                                   <i class="fa-solid fa-file-signature"></i> Başvuru Yönetimi
                                   <% if (!userPermissions.viewApplications) { %>
                                     <i class="fa-solid fa-lock"
-                                      style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                      style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                     <% } %>
                                 </a>
                                 <% } %>
@@ -1442,7 +295,7 @@
                                   <div class="sidebar-dropdown">
                                     <button class="sidebar-dropdown-trigger" id="fivem-trigger">
                                       <span><i class="fa-solid fa-server"></i> FiveM Verileri</span>
-                                      <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+                                      <i class="fa-solid fa-chevron-down" style="font-size: 11px;"></i>
                                     </button>
                                     <ul class="sidebar-submenu" id="fivem-menu">
                                       <li>
@@ -1486,7 +339,7 @@
                                               <i class="fa-brands fa-discord"></i> Discord Botları
                                               <% if (!userPermissions.isSuperuser) { %>
                                                 <i class="fa-solid fa-lock"
-                                                  style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                                  style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                                 <% } %>
                                             </a>
                                             <% } %>
@@ -1496,7 +349,7 @@
                                               <i class="fa-solid fa-server"></i> Sunucu Ayarları
                                               <% if (!userPermissions.isSuperuser && !userPermissions.manageFivemServer) { %>
                                                 <i class="fa-solid fa-lock"
-                                                  style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                                  style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                                 <% } %>
                                             </a>
 
@@ -1514,7 +367,7 @@
                                                       <i class="fa-solid fa-newspaper"></i> Güncellemeler
                                                       <% if (!userPermissions.viewUpdates) { %>
                                                         <i class="fa-solid fa-lock"
-                                                          style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                                          style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                                         <% } %>
                                                     </a>
                                                     <% } %>
@@ -1525,7 +378,7 @@
                                                           <i class="fa-solid fa-coins"></i> Donate & Kredi
                                                           <% if (!userPermissions.viewDonate) { %>
                                                             <i class="fa-solid fa-lock"
-                                                              style="font-size: 9px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
+                                                              style="font-size: 11px; opacity: 0.6; margin-left: auto; color: var(--danger);"></i>
                                                             <% } %>
                                                         </a>
                                                         <% } %>
@@ -1541,7 +394,7 @@
                                                                   <span><i class="fa-solid fa-globe"></i> Website
                                                                     Ayarları</span>
                                                                   <i class="fa-solid fa-chevron-down"
-                                                                    style="font-size: 10px;"></i>
+                                                                    style="font-size: 11px;"></i>
                                                                 </button>
                                                                 <ul class="sidebar-submenu" id="web-settings-menu">
                                                                   <% if (locals.modules.admin_faq !==false) { %>
@@ -1606,7 +459,7 @@
           <i class="fa-solid fa-terminal" style="color:var(--primary); font-size:11px;"></i> Komut Paleti
         </span>
         <span
-          style="background: rgba(255,255,255,0.08); padding: 1.5px 5px; border-radius: 4px; font-family: monospace; font-size: 9px; color: #fff;">Ctrl+K</span>
+          style="background: rgba(255,255,255,0.08); padding: 1.5px 5px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px; color: #fff;">Ctrl+K</span>
       </button>
 
       <!-- Hassas Verileri Gizle Toggle -->
@@ -1622,37 +475,15 @@
         </label>
       </div>
 
-      <!-- Profile Card -->
       <div class="profile-card-compact">
-        <% let avatarUrl='https://cdn.discordapp.com/embed/avatars/0.png' ; if (locals.user && locals.user.id &&
-          locals.user.avatar) {
-          avatarUrl=`https://cdn.discordapp.com/avatars/${locals.user.id}/${locals.user.avatar}.png`; } %>
-          <img src="<%= avatarUrl %>" alt="Profile"
-            style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255, 255, 255, 0.1); flex-shrink:0;">
-          <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;">
-            <span
-              style="font-family: var(--font-display); font-size: 11.5px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
-              <%= locals.user ? locals.user.username : 'Yönetici' %>
-            </span>
-            <span
-              style="font-size: 8px; font-weight: 800; color: <%= userPermissions.isSuperuser ? 'var(--warning)' : 'var(--primary)' %>; text-transform: uppercase; letter-spacing: 0.04em;">
-              <%= userPermissions.isSuperuser ? 'Kurucu' : 'Yönetici' %>
-            </span>
-          </div>
-          <div style="display:flex; gap:4px; flex-shrink:0;">
-            <a href="/" title="Siteye Dön"
-              style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#94a3b8; text-decoration:none; font-size:10px;"
-              onmouseover="this.style.background='rgba(224,169,139,0.15)';this.style.borderColor='rgba(224,169,139,0.4)';this.style.color='#ffffff';"
-              onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='#94a3b8';">
-              <i class="fa-solid fa-arrow-left"></i>
-            </a>
-            <a href="/auth/logout" title="Çıkış Yap"
-              style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#94a3b8; text-decoration:none; font-size:10px;"
-              onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.borderColor='rgba(239,68,68,0.4)';this.style.color='#ef4444';"
-              onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='#94a3b8';">
-              <i class="fa-solid fa-right-from-bracket"></i>
-            </a>
-          </div>
+        <% let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png'; if (locals.user && locals.user.id && locals.user.avatar) { avatarUrl = `https://cdn.discordapp.com/avatars/${locals.user.id}/${locals.user.avatar}.png`; } %>
+        <img src="<%= avatarUrl %>" alt="">
+        <div style="flex: 1; min-width: 0;">
+          <div class="profile-name"><%= locals.user ? locals.user.username : 'Yönetici' %></div>
+          <div class="profile-role"><%= userPermissions.isSuperuser ? 'Kurucu' : (userPermissions.rankName || 'Yetkili') %></div>
+        </div>
+        <a class="icon-btn" href="/" title="Siteye dön" aria-label="Siteye dön"><i class="fa-solid fa-arrow-left"></i></a>
+        <a class="icon-btn" href="/auth/logout" title="Çıkış yap" aria-label="Çıkış yap"><i class="fa-solid fa-right-from-bracket"></i></a>
       </div>
     </div>
   </aside>
@@ -1732,14 +563,22 @@
   </script>
 
   <main class="admin-content">
-    <div id="section-preloader" class="preloader"
-      style="position: absolute; background: rgba(8, 9, 12, 0.85); z-index: 100; opacity: 0; visibility: hidden;">
-      <div class="dots-wrapper">
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
+    <header class="console-topbar">
+      <button id="mobile-sidebar-toggle" class="icon-btn" onclick="toggleMobileSidebar()" aria-label="Menüyü aç" aria-controls="admin-sidebar">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title">
+        <h1 id="console-page-title">Genel bakış</h1>
       </div>
-    </div>
+      <div class="topbar-right">
+        <button type="button" class="icon-btn" id="topbar-chat" title="Yetkili sohbeti" aria-label="Yetkili sohbetini aç" onclick="var t=document.getElementById('admin-chat-trigger'); if (t) t.click();"><i class="fa-solid fa-comments"></i></button>
+        <a class="server-status" id="topbar-server-status" href="#active-players-mgmt" title="FiveM köprüsü durumu">
+          <span class="status-dot is-unknown" aria-hidden="true"></span>
+          <span class="server-status-text">FiveM: <strong>kontrol ediliyor</strong></span>
+        </a>
+      </div>
+    </header>
+    <div class="admin-canvas" id="admin-canvas">
 
 
     <div id="overview" class="admin-section active"
@@ -2228,6 +1067,7 @@
           <%- include('partials/admin/server_settings') %>
             <% } %>
     </div>
+    </div>
   </main>
 
 
@@ -2249,20 +1089,20 @@
       <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: 8px;">
         <div>
-          <span style="display: block; font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Başvuran
+          <span style="display: block; font-size: 11px; color: var(--text-muted); ">Başvuran
             Kullanıcı</span>
           <span id="review-username" style="font-weight: 600; color: var(--text-main);">-</span>
         </div>
         <div>
-          <span style="display: block; font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Başvuru
+          <span style="display: block; font-size: 11px; color: var(--text-muted); ">Başvuru
             Tipi</span>
           <span id="review-app-title" style="font-weight: 600; color: var(--text-main);">-</span>
         </div>
         <div>
-          <span style="display: block; font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Hızlı
+          <span style="display: block; font-size: 11px; color: var(--text-muted); ">Hızlı
             İşlemler</span>
           <button type="button" id="review-voice-btn" class="btn"
-            style="background: rgba(0, 191, 255, 0.1); color: #00bfff; border: 1px solid rgba(0, 191, 255, 0.2); font-size: 10px; padding: 6px 12px; border-radius: 6px; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px;"
+            style="background: rgba(0, 191, 255, 0.1); color: #00bfff; border: 1px solid rgba(0, 191, 255, 0.2); font-size: 11px; padding: 6px 12px; border-radius: 6px; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px;"
             onclick="toggleReviewVoiceSupport()"><i class="fa-solid fa-microphone"></i> Sesli Destek</button>
         </div>
       </div>
@@ -2286,8 +1126,8 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <label class="form-label" style="margin-bottom: 0;">Değerlendirme Notu (Başvuru sahibine görünecek)</label>
             <div style="display: flex; gap: 8px;">
-              <button type="button" style="padding: 3px 8px; font-size: 10px; font-weight: 600; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; cursor: pointer;" onclick="document.getElementById('review-notes').value = '<@' + activeReviewDiscordId + '> Tebrikler, başvurunuz başarıyla onaylandı!'">Oto Onay Mesajı</button>
-              <button type="button" style="padding: 3px 8px; font-size: 10px; font-weight: 600; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 4px; cursor: pointer;" onclick="document.getElementById('review-notes').value = '<@' + activeReviewDiscordId + '> Başvurunuz yetersiz görüldüğü için maalesef reddedilmiştir.'">Oto Ret Mesajı</button>
+              <button type="button" style="padding: 3px 8px; font-size: 11px; font-weight: 600; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; cursor: pointer;" onclick="document.getElementById('review-notes').value = '<@' + activeReviewDiscordId + '> Tebrikler, başvurunuz başarıyla onaylandı!'">Oto Onay Mesajı</button>
+              <button type="button" style="padding: 3px 8px; font-size: 11px; font-weight: 600; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 4px; cursor: pointer;" onclick="document.getElementById('review-notes').value = '<@' + activeReviewDiscordId + '> Başvurunuz yetersiz görüldüğü için maalesef reddedilmiştir.'">Oto Ret Mesajı</button>
             </div>
           </div>
           <textarea name="reviewerNotes" id="review-notes"
@@ -2352,7 +1192,7 @@
           <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
             <span><i class="fa-solid fa-paragraph" style="color: var(--primary); margin-right: 4px;"></i> Detaylı
               Açıklama</span>
-            <span style="font-size: 10.5px; color: var(--text-muted); font-weight: normal;">Google Forms stili zengin
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">Google Forms stili zengin
               metin düzenleyici</span>
           </label>
 
@@ -2414,14 +1254,14 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start;">
             <!-- URL Input Option -->
             <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label" style="font-size: 10px; opacity: 0.8;">Görsel URL'si ile Ekle</label>
+              <label class="form-label" style="font-size: 11px; opacity: 0.8;">Görsel URL'si ile Ekle</label>
               <input type="text" id="app-imageUrl-input" placeholder="https://example.com/image.png" class="form-input"
                 oninput="updateImageSource(this.value, 'url')">
             </div>
 
             <!-- File Select / Drag & Drop Option -->
             <div>
-              <label class="form-label" style="font-size: 10px; opacity: 0.8;">Dosya Yükle (Sürükle Bırak)</label>
+              <label class="form-label" style="font-size: 11px; opacity: 0.8;">Dosya Yükle (Sürükle Bırak)</label>
               <div id="drop-zone"
                 style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 12px; text-align: center; background: rgba(0,0,0,0.1); cursor: pointer; transition: var(--transition); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 74px; gap: 4px;">
                 <i class="fa-solid fa-cloud-arrow-up" style="font-size: 16px; color: var(--text-muted);"></i>
@@ -2543,13 +1383,13 @@
           <div
             style="display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
             <img id="detail-avatar" src="" alt="Avatar"
-              style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); box-shadow: 0 0 15px var(--primary-glow);">
+              style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); ">
             <div>
               <h4 id="detail-username"
                 style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-main); margin: 0;">
                 -</h4>
               <p id="detail-discordId"
-                style="font-family: monospace; font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">-</p>
+                style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">-</p>
             </div>
           </div>
 
@@ -2580,7 +1420,7 @@
           <div
             style="border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; flex-direction: column; gap: 8px;">
             <span
-              style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Aksiyonlar</span>
+              style="font-size: 11px; color: var(--text-muted); font-weight: 700; ">Aksiyonlar</span>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
               <button type="button" class="btn btn-secondary" onclick="openDiscordBanModalFromUserDetail()"
                 style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: 11px; font-weight: 700; padding: 8px; border-radius: 8px;">
@@ -2616,7 +1456,7 @@
               <span id="char-detail-fullname"
                 style="font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px;">-</span>
               <span id="char-detail-citizenid-badge"
-                style="font-size: 11px; color: var(--primary); background: rgba(0,113,227,0.15); padding: 3px 8px; border-radius: 6px; font-family: monospace;">-</span>
+                style="font-size: 11px; color: var(--primary); background: rgba(0,113,227,0.15); padding: 3px 8px; border-radius: 6px; font-family: var(--font-mono);">-</span>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12.5px;">
@@ -2632,7 +1472,7 @@
 
             <div>
               <div
-                style="font-weight: 700; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; color: var(--text-muted);">
+                style="font-weight: 700; margin-bottom: 6px; font-size: 11px;  color: var(--text-muted);">
                 <i class="fa-solid fa-boxes-stacked" style="color: var(--primary);"></i> Envanter İtemleri
               </div>
               <div id="char-detail-inventory"
@@ -2658,7 +1498,7 @@
       <div
         style="display: flex; flex-direction: column; gap: 8px; background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px;">
         <span
-          style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+          style="font-size: 11px; color: var(--text-muted); font-weight: 700;   display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-user-shield" style="color: var(--primary);"></i> Yönetici Eylemleri
         </span>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px;">
@@ -2709,7 +1549,7 @@
                 <input id="_reason-modal-input" type="text" placeholder="Sebep yazın..." style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:13px;outline:none;width:100%;box-sizing:border-box;">
                 <div style="display:flex;gap:10px;justify-content:flex-end;">
                   <button id="_reason-modal-cancel" style="background:rgba(255,255,255,0.06);color:#aaa;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 18px;cursor:pointer;font-size:13px;">İptal</button>
-                  <button id="_reason-modal-confirm" style="background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:13px;font-weight:600;">Onayla</button>
+                  <button id="_reason-modal-confirm" style="background:#fff;color:#000;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:13px;font-weight:600;">Onayla</button>
                 </div>
               </div>`;
             document.body.appendChild(modal);
@@ -2915,7 +1755,7 @@
         <div class="options-builder-wrapper" style="display: ${qData && ['select', 'radio', 'checkbox'].includes(qData.type) ? 'block' : 'none'}; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 12px;">
           <label class="form-label" style="font-size: 11px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <span>Seçenekler</span>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="addOptionToQuestion('${qId}')" style="padding: 2px 8px; font-size: 10px;"><i class="fa-solid fa-plus"></i> Seçenek Ekle</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addOptionToQuestion('${qId}')" style="padding: 2px 8px; font-size: 11px;"><i class="fa-solid fa-plus"></i> Seçenek Ekle</button>
           </label>
           <div class="options-container" id="options-container-${qId}" style="display: flex; flex-direction: column; gap: 8px;">
             <!-- Dynamic options will be added here -->
@@ -3453,33 +2293,51 @@
       if (dropZoneText) dropZoneText.innerText = "Dosya seç veya sürükle";
     }
 
+    // Section navigation: the hash is the address of a section, so refresh and back/forward keep the place.
+    function sectionLabel(link) {
+      const clone = link.cloneNode(true);
+      clone.querySelectorAll("i, .badge, .pill").forEach(el => el.remove());
+      return clone.textContent.replace(/\s+/g, " ").trim();
+    }
+
+    function openSection(link, { updateHash = true } = {}) {
+      const href = link.getAttribute("href");
+      const targetSection = document.getElementById(href.substring(1));
+      if (!targetSection) return;
+      document.querySelectorAll(".sidebar-link").forEach(l => { l.classList.remove("active"); l.removeAttribute("aria-current"); });
+      document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
+      link.classList.add("active");
+      link.setAttribute("aria-current", "page");
+      targetSection.classList.add("active");
+      const title = sectionLabel(link);
+      const titleEl = document.getElementById("console-page-title");
+      if (titleEl && title) titleEl.textContent = title;
+      document.title = `${title || "Yönetim Paneli"} — EmpireV`;
+      if (updateHash && window.location.hash !== href) history.pushState(null, "", href);
+      const canvas = document.getElementById("admin-canvas");
+      if (canvas) window.scrollTo({ top: 0 });
+    }
+
     document.querySelectorAll(".sidebar-link").forEach(link => {
       link.addEventListener("click", (e) => {
         const href = link.getAttribute("href");
         if (href && href.startsWith("#")) {
           e.preventDefault();
-          try {
-            document.querySelectorAll(".sidebar-link").forEach(l => l.classList.remove("active"));
-            document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
-
-            link.classList.add("active");
-            const targetId = href.substring(1);
-            const targetSection = document.getElementById(targetId);
-            if (targetSection) {
-              targetSection.classList.add("active");
-            }
-          } catch (err) {
-            console.error("Navigation error:", err);
-          }
+          openSection(link);
         }
       });
+    });
+
+    window.addEventListener("popstate", () => {
+      const link = document.querySelector(`.sidebar-link[href="${window.location.hash || "#overview"}"]`);
+      if (link) openSection(link, { updateHash: false });
     });
 
     const activeHash = window.location.hash;
     if (activeHash) {
       const activeLink = document.querySelector(`.sidebar-link[href="${activeHash}"]`);
       if (activeLink) {
-        activeLink.click();
+        openSection(activeLink, { updateHash: false });
         if (activeHash === "#faq-settings" || activeHash === "#gallery-settings") {
           if (webMenu) webMenu.classList.add("active");
         }
@@ -3499,9 +2357,7 @@
       }
     } else {
       const firstLink = document.querySelector(".sidebar-menu a.sidebar-link[href^='#']");
-      if (firstLink) {
-        firstLink.click();
-      }
+      if (firstLink) openSection(firstLink, { updateHash: false });
     }
 
     window.showToast = function (message, type = 'info', title = '') {
@@ -3563,9 +2419,9 @@
 
   <!-- Detay Modalı HTML -->
   <div id="player-details-modal" class="modal-backdrop"
-    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 99999; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none;">
+    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);  z-index: 99999; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none;">
     <div class="modal-content"
-      style="background: rgba(20, 20, 25, 0.98); border: 1px solid rgba(255,255,255,0.08); width: 900px; max-width: 95%; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); overflow: hidden; transform: scale(0.9); transition: transform 0.3s ease; display: flex; flex-direction: column;">
+      style="background: rgba(20, 20, 25, 0.98); border: 1px solid rgba(255,255,255,0.08); width: 900px; max-width: 95%; border-radius: 16px;  overflow: hidden; transform: scale(0.9); transition: transform 0.3s ease; display: flex; flex-direction: column;">
       <!-- Header -->
       <div
         style="padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center;">
@@ -3586,21 +2442,21 @@
           <div
             style="background: rgba(255,255,255,0.02); padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04);">
             <div
-              style="color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+              style="color: var(--text-muted); font-size: 11px; font-weight: 600;  margin-bottom: 8px;">
               <i class="fa-solid fa-gamepad" style="margin-right: 4px;"></i> Sunucu Bilgileri
             </div>
             <div style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 6px;">ID: <span
-                id="modal-player-id" style="font-family: monospace;">-</span></div>
+                id="modal-player-id" style="font-family: var(--font-mono);">-</span></div>
             <div style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 6px;">Adı: <span
                 id="modal-player-name">-</span></div>
             <div style="font-size: 13px; font-weight: 600; color: #fff;">Gecikme: <span id="modal-player-ping"
-                style="font-family: monospace;">-</span></div>
+                style="font-family: var(--font-mono);">-</span></div>
           </div>
           <!-- Discord Info -->
           <div
             style="background: rgba(255,255,255,0.02); padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04);">
             <div
-              style="color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+              style="color: var(--text-muted); font-size: 11px; font-weight: 600;  margin-bottom: 8px;">
               <i class="fa-brands fa-discord" style="margin-right: 4px;"></i> Discord Bilgileri
             </div>
             <div id="modal-discord-loading" style="color: var(--text-muted); font-style: italic;"><i
@@ -3612,21 +2468,21 @@
                   onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                 <div>
                   <div id="modal-discord-username" style="font-weight: 700; color: #fff;">-</div>
-                  <div id="modal-discord-id" style="font-size: 11px; color: var(--text-muted); font-family: monospace;">
+                  <div id="modal-discord-id" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">
                     -</div>
                 </div>
               </div>
               <div style="margin-bottom: 6px;">Durum: <span id="modal-discord-whitelist"
                   style="font-weight: 600;">-</span></div>
               <div>Uyarılar: <span id="modal-discord-warnings"
-                  style="color: #ef4444; font-weight: 700; font-family: monospace;">0</span></div>
+                  style="color: #ef4444; font-weight: 700; font-family: var(--font-mono);">0</span></div>
             </div>
           </div>
         </div>
 
         <div style="background: rgba(255,255,255,0.02); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-            <div style="color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+            <div style="color: var(--text-muted); font-size: 11px; font-weight: 600;  display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-fingerprint" style="color: var(--primary);"></i> Genel Bilgiler (Identifiers)
             </div>
             <span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-shield-halved" style="color: #34d399; margin-right: 4px;"></i>Doğrulama Kimlikleri</span>
@@ -3638,10 +2494,10 @@
                 <span style="font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: #fff;">
                   <i class="fa-solid fa-shield-halved" style="color: #60a5fa;"></i> fivem
                 </span>
-                <span style="color: var(--text-muted); font-size: 10px;">Cfx.re ID (En Güvenli)</span>
+                <span style="color: var(--text-muted); font-size: 11px;">Cfx.re ID (En Güvenli)</span>
               </div>
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
-                <span id="modal-ident-fivem" style="font-family: monospace; font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
+                <span id="modal-ident-fivem" style="font-family: var(--font-mono); font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
                 <button type="button" id="modal-ident-fivem-btn" onclick="copyModalIdentifier('modal-ident-fivem', this)" title="Kopyala" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0;">
                   <i class="fa-solid fa-copy"></i>
                 </button>
@@ -3653,10 +2509,10 @@
                 <span style="font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: #fff;">
                   <i class="fa-brands fa-discord" style="color: #818cf8;"></i> discord
                 </span>
-                <span style="color: var(--text-muted); font-size: 10px;">Discord ID (Çok Güvenli)</span>
+                <span style="color: var(--text-muted); font-size: 11px;">Discord ID (Çok Güvenli)</span>
               </div>
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
-                <span id="modal-ident-discord" style="font-family: monospace; font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
+                <span id="modal-ident-discord" style="font-family: var(--font-mono); font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
                 <button type="button" id="modal-ident-discord-btn" onclick="copyModalIdentifier('modal-ident-discord', this)" title="Kopyala" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0;">
                   <i class="fa-solid fa-copy"></i>
                 </button>
@@ -3668,10 +2524,10 @@
                 <span style="font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: #fff;">
                   <i class="fa-solid fa-key" style="color: #34d399;"></i> license2
                 </span>
-                <span style="color: var(--text-muted); font-size: 10px;">Rockstar Lisansı (Steam)</span>
+                <span style="color: var(--text-muted); font-size: 11px;">Rockstar Lisansı (Steam)</span>
               </div>
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
-                <span id="modal-ident-license2" style="font-family: monospace; font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
+                <span id="modal-ident-license2" style="font-family: var(--font-mono); font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
                 <button type="button" id="modal-ident-license2-btn" onclick="copyModalIdentifier('modal-ident-license2', this)" title="Kopyala" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0;">
                   <i class="fa-solid fa-copy"></i>
                 </button>
@@ -3683,10 +2539,10 @@
                 <span style="font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: #fff;">
                   <i class="fa-solid fa-certificate" style="color: #fbbf24;"></i> license
                 </span>
-                <span style="color: var(--text-muted); font-size: 10px;">Rockstar Social Club</span>
+                <span style="color: var(--text-muted); font-size: 11px;">Rockstar Social Club</span>
               </div>
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
-                <span id="modal-ident-license" style="font-family: monospace; font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
+                <span id="modal-ident-license" style="font-family: var(--font-mono); font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
                 <button type="button" id="modal-ident-license-btn" onclick="copyModalIdentifier('modal-ident-license', this)" title="Kopyala" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0;">
                   <i class="fa-solid fa-copy"></i>
                 </button>
@@ -3698,10 +2554,10 @@
                 <span style="font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: #fff;">
                   <i class="fa-brands fa-steam" style="color: #38bdf8;"></i> steam
                 </span>
-                <span style="color: var(--text-muted); font-size: 10px;">Steam Hex ID</span>
+                <span style="color: var(--text-muted); font-size: 11px;">Steam Hex ID</span>
               </div>
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
-                <span id="modal-ident-steam" style="font-family: monospace; font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
+                <span id="modal-ident-steam" style="font-family: var(--font-mono); font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
                 <button type="button" id="modal-ident-steam-btn" onclick="copyModalIdentifier('modal-ident-steam', this)" title="Kopyala" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0;">
                   <i class="fa-solid fa-copy"></i>
                 </button>
@@ -3713,10 +2569,10 @@
                 <span style="font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: #fff;">
                   <i class="fa-brands fa-xbox" style="color: #4ade80;"></i> xbl
                 </span>
-                <span style="color: var(--text-muted); font-size: 10px;">Xbox Live (Opsiyonel)</span>
+                <span style="color: var(--text-muted); font-size: 11px;">Xbox Live (Opsiyonel)</span>
               </div>
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
-                <span id="modal-ident-xbl" style="font-family: monospace; font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
+                <span id="modal-ident-xbl" style="font-family: var(--font-mono); font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
                 <button type="button" id="modal-ident-xbl-btn" onclick="copyModalIdentifier('modal-ident-xbl', this)" title="Kopyala" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0;">
                   <i class="fa-solid fa-copy"></i>
                 </button>
@@ -3728,10 +2584,10 @@
                 <span style="font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: #fff;">
                   <i class="fa-solid fa-network-wired" style="color: #f87171;"></i> ip
                 </span>
-                <span style="color: var(--text-muted); font-size: 10px;">IP Adresi (Gizlilik Hassasiyeti)</span>
+                <span style="color: var(--text-muted); font-size: 11px;">IP Adresi (Gizlilik Hassasiyeti)</span>
               </div>
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
-                <span id="modal-ident-ip" data-real-ip="" data-hidden="true" style="font-family: monospace; font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
+                <span id="modal-ident-ip" data-real-ip="" data-hidden="true" style="font-family: var(--font-mono); font-size: 12px; color: #e2e8f0; word-break: break-all;">-</span>
                 <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
                   <button type="button" id="modal-ident-ip-toggle-btn" onclick="toggleModalIpVisibility(this)" title="Göster / Gizle" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
                     <i class="fa-solid fa-eye"></i>
@@ -3874,11 +2730,11 @@
                   style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; height: 34px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 11px; color: #9ca3af; user-select: none; transition: border-color 0.2s;">
                   <span id="tp-dropdown-label">Hazır konum seçin (opsiyonel)</span>
                   <i class="fa-solid fa-chevron-down" id="tp-dropdown-arrow"
-                    style="font-size: 9px; transition: transform 0.2s;"></i>
+                    style="font-size: 11px; transition: transform 0.2s;"></i>
                 </div>
                 <!-- List -->
                 <div id="tp-dropdown-list"
-                  style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #1a1a24; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; z-index: 9999; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+                  style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #1a1a24; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; z-index: 9999; overflow: hidden; ">
                   <div onclick="selectTpPreset('', 'Hazır konum seçin (opsiyonel)')"
                     style="padding: 8px 12px; font-size: 11px; color: #9ca3af; cursor: pointer; transition: background 0.15s;"
                     onmouseover="this.style.background='rgba(255,255,255,0.05)'"
@@ -3930,7 +2786,7 @@
                 <input type="text" id="cmd-tp-coords" placeholder="Koordinat (örn: -1034.72, -2733.09, 20.17)"
                   style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 0 12px; border-radius: 8px; font-size: 11px; color: #d1d5db; flex: 1; outline: none; height: 34px;">
                 <button onclick="submitTeleport()"
-                  style="background: #3b82f6; color: #fff; border: none; border-radius: 8px; width: 38px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; flex-shrink: 0; font-size: 14px;"
+                  style="background:#fff;color:#000; border: none; border-radius: 8px; width: 38px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; flex-shrink: 0; font-size: 14px;"
                   title="Işınla">
                   <i class="fa-solid fa-check"></i>
                 </button>
@@ -3984,7 +2840,7 @@
 
             <!-- Moderasyon & Ceza (Kick & Ban) -->
             <div
-              style="grid-column: span 2; background: linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(245, 158, 11, 0.06) 100%); padding: 16px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.25); display: flex; flex-direction: column; gap: 12px;">
+              style="grid-column: span 2; background: rgba(239, 68, 68, 0.06); padding: 16px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.25); display: flex; flex-direction: column; gap: 12px;">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                 <div style="font-weight: 700; color: #fff; font-size: 13px; display: flex; align-items: center; gap: 8px;">
                   <i class="fa-solid fa-shield-halved" style="color: #f87171;"></i> Moderasyon & Ceza İşlemleri (Kick & Ban)
@@ -4041,10 +2897,10 @@
 
   <!-- Command Palette (Ctrl + K) Glassmorphic Spotlight Modal Overlay -->
   <div id="command-palette-modal"
-    style="display: none; position: fixed; inset: 0; background: rgba(2, 3, 6, 0.85); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); z-index: 100000; align-items: center; justify-content: center; padding: 20px;"
+    style="display: none; position: fixed; inset: 0; background: rgba(2, 3, 6, 0.85);   z-index: 100000; align-items: center; justify-content: center; padding: 20px;"
     onclick="if(event.target===this) closeCommandPalette()">
     <div
-      style="background: rgba(12, 13, 16, 0.96); border: 1px solid var(--border-color); border-radius: 20px; width: 660px; max-width: 94vw; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95), 0 0 35px var(--primary-glow); overflow: hidden; display: flex; flex-direction: column;">
+      style="background: rgba(12, 13, 16, 0.96); border: 1px solid var(--border-color); border-radius: 20px; width: 660px; max-width: 94vw;  overflow: hidden; display: flex; flex-direction: column;">
 
       <!-- Search Header -->
       <div
@@ -4055,7 +2911,7 @@
           oninput="filterCommandPalette()"
           style="background: transparent; border: none; outline: none; color: #ffffff; font-size: 15px; font-family: var(--font-body); width: 100%; font-weight: 500;">
         <span
-          style="font-size: 11px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; color: var(--text-muted); font-family: monospace; font-weight: 700;">ESC</span>
+          style="font-size: 11px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; color: var(--text-muted); font-family: var(--font-mono); font-weight: 700;">ESC</span>
       </div>
 
       <!-- Results List -->
@@ -4071,7 +2927,7 @@
           <i class="fa-solid fa-keyboard" style="color: var(--primary);"></i> Gezinmek için arama yapın veya bir öğeye
           tıklayın
         </span>
-        <span style="font-family: monospace; opacity: 0.8;">EmpireV v11</span>
+        <span style="font-family: var(--font-mono); opacity: 0.8;">EmpireV v11</span>
       </div>
     </div>
   </div>
@@ -4132,9 +2988,9 @@
             <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 113, 227, 0.12); border: 1px solid rgba(0, 113, 227, 0.25); display: flex; align-items: center; justify-content: center;">
               <i class="fa-solid ${item.icon}" style="color: var(--primary); font-size: 14px;"></i>
             </div>
-            <span style="font-weight: 600; font-size: 13.5px;">${item.name}</span>
+            <span style="font-weight: 600; font-size: 13.5px;">${escapeHtml(item.name)}</span>
           </span>
-          <span style="font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--border-color); font-family: var(--font-display);">
+          <span style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--border-color); font-family: var(--font-display);">
             ${item.category}
           </span>
         </div>

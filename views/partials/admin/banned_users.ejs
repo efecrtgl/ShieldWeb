@@ -17,13 +17,13 @@
     </div>
 
     <!-- Discord Ban Form -->
-    <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; box-shadow: none;">
-      <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+    <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; ">
+      <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px;  display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-gavel" style="color: var(--danger);"></i> Discord'dan Kullanıcı Yasakla (Ban)
       </h3>
       <form action="/admin/users/discord-ban" method="POST" id="discord-ban-form" onsubmit="submitDiscordBanForm(event)" style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
         <div style="flex: 1.5; min-width: 250px;">
-          <textarea name="discordId" class="form-input sensitive-data" placeholder="Discord ID'leri (Yan yana, virgülle veya alt alta yazabilirsiniz...)" required style="height: 52px; min-height: 52px; font-size: 12px; border-radius: 8px; width: 100%; font-family: monospace; resize: vertical; padding: 10px 12px;"></textarea>
+          <textarea name="discordId" class="form-input sensitive-data" placeholder="Discord ID'leri (Yan yana, virgülle veya alt alta yazabilirsiniz...)" required style="height: 52px; min-height: 52px; font-size: 12px; border-radius: 8px; width: 100%; font-family: var(--font-mono); resize: vertical; padding: 10px 12px;"></textarea>
         </div>
         <div style="flex: 2; min-width: 250px;">
           <input type="text" name="reason" class="form-input" placeholder="Yasaklama Nedeni (Zorunlu)" required style="height: 52px; font-size: 13px; border-radius: 8px; width: 100%;">
@@ -41,8 +41,8 @@
     </div>
 
     <!-- Discord Unban Form -->
-    <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; box-shadow: none;">
-      <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+    <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; ">
+      <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px;  display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-circle-check" style="color: var(--success);"></i> Discord Yasak Kaldır (Unban)
       </h3>
       <form action="" method="POST" id="manual-unban-form" onsubmit="submitManualUnban(event)" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
@@ -120,7 +120,7 @@
                   <img class="sensitive-info" src="<%= dUser.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);">
                 </td>
                 <td class="sensitive-info" style="font-weight: 600;"><%= dUser.username %></td>
-                <td class="sensitive-info" style="font-family: monospace; font-size: 12px; color: var(--text-muted);"><%= dUser.discordId %></td>
+                <td class="sensitive-info" style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);"><%= dUser.discordId %></td>
                 <td style="color: var(--warning); font-weight: 600;">
                   <%= bitis.toLocaleDateString('tr-TR') %> <%= bitis.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
                 </td>
@@ -128,11 +128,11 @@
                 <td>
                   <div style="display: flex; gap: 8px;">
                     <% if (userPermissions.clearPunishments) { %>
-                      <button type="button" onclick="clearWlPunish('<%= dUser.discordId %>')" class="btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer; border-style: none;">
+                      <button type="button" onclick="clearWlPunish('<%= dUser.discordId %>')" class="btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; border-style: none;">
                         <i class="fa-solid fa-trash-can-arrow-up"></i> Cezayı Kaldır
                       </button>
                     <% } else { %>
-                      <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;">
+                      <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: not-allowed; opacity: 0.5;">
                         <i class="fa-solid fa-lock"></i> Cezayı Kaldır
                       </button>
                     <% } %>
@@ -265,11 +265,11 @@
               html += `
                 <tr>
                   <td><img class="sensitive-info" src="${b.avatarUrl}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);"></td>
-                  <td class="sensitive-info" style="font-weight: 600;">${b.username}</td>
-                  <td class="sensitive-info" style="font-family: monospace; font-size: 12px; color: var(--text-muted);">${b.discordId}</td>
-                  <td style="color: #ef4444; font-weight: 500; font-size: 13px;">${b.reason}</td>
+                  <td class="sensitive-info" style="font-weight: 600;">${escapeHtml(b.username)}</td>
+                  <td class="sensitive-info" style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">${b.discordId}</td>
+                  <td style="color: var(--pill-negative-ink); font-weight: 500; font-size: 13px;">${escapeHtml(b.reason)}</td>
                   <td>
-                    <button type="button" class="btn" onclick="unbanDiscordUser('${b.discordId}', '${b.username.replace(/'/g, "\\'")}')" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; border: 1px solid rgba(16, 185, 129, 0.2);">
+                    <button type="button" class="btn" onclick="unbanDiscordUser(${jsArg(b.discordId)}, ${jsArg(b.username)})" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; border: 1px solid rgba(16, 185, 129, 0.2);">
                       <i class="fa-solid fa-circle-check"></i> Yasağı Kaldır
                     </button>
                   </td>
@@ -278,12 +278,12 @@
             });
             tbody.innerHTML = html;
           } else {
-            if (countSpan) countSpan.innerText = "0";
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 16px;">${data.message || 'Ban listesi yüklenemedi.'}</td></tr>`;
+            if (countSpan) countSpan.innerText = "—";
+            tbody.innerHTML = `<tr><td colspan="5"><div class="state-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><div><strong>Discord ban listesi alınamadı.</strong> ${escapeHtml(data.message || "")}</div></div></td></tr>`;
           }
         } catch (err) {
-          if (countSpan) countSpan.innerText = "0";
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 16px;">Yükleme hatası: ${err.message}</td></tr>`;
+          if (countSpan) countSpan.innerText = "—";
+          tbody.innerHTML = `<tr><td colspan="5"><div class="state-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><div><strong>Panel sunucusuna ulaşılamadı.</strong> ${escapeHtml(err.message)}</div></div></td></tr>`;
         }
       }
 

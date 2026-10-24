@@ -4,8 +4,8 @@
   
   <!-- Hero Section -->
   <div style="text-align: center; margin-bottom: 56px; position: relative;">
-    <div class="hero-badge" style="background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.3); box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);">
-      <span class="hero-badge-dot" style="background: #38bdf8; box-shadow: 0 0 10px #38bdf8;"></span>
+    <div class="hero-badge" style="background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.3); ">
+      <span class="hero-badge-dot" style="background: #38bdf8; "></span>
       <span class="hero-badge-text" style="color: #38bdf8;">SHIELD KARAKTER MERKEZİ</span>
     </div>
     <h1 class="hero-title">
@@ -18,7 +18,7 @@
     <!-- Global Search Bar -->
     <div style="max-width: 650px; margin: 0 auto; position: relative;">
       <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--primary-light); font-size: 16px; z-index: 2;"></i>
-      <input type="text" id="character-search-input" oninput="handleCharacterSearch()" placeholder="Karakter adı, citizen ID veya meslek ara..." style="width: 100%; height: 56px; background: rgba(13, 16, 26, 0.85); backdrop-filter: blur(20px); border: 1px solid var(--panel-border); border-radius: 18px; padding: 0 54px 0 54px; color: #fff; font-size: 14.5px; font-weight: 500; outline: none; transition: var(--transition); box-shadow: var(--shadow-sm);">
+      <input type="text" id="character-search-input" oninput="handleCharacterSearch()" placeholder="Karakter adı, citizen ID veya meslek ara..." style="width: 100%; height: 56px; background: rgba(13, 16, 26, 0.85);  border: 1px solid var(--panel-border); border-radius: 18px; padding: 0 54px 0 54px; color: #fff; font-size: 14.5px; font-weight: 500; outline: none; transition: var(--transition); ">
       <button id="search-clear-btn" onclick="clearCharacterSearch()" style="display: none; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); width: 28px; height: 28px; border-radius: 50%; color: var(--text-muted); font-size: 12px; cursor: pointer; transition: var(--transition);">
         <i class="fa-solid fa-xmark"></i>
       </button>
@@ -30,11 +30,11 @@
     <div style="margin-bottom: 72px;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 16px;">
         <div style="display: flex; align-items: center; gap: 14px;">
-          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(224, 169, 139, 0.15); border: 1px solid rgba(224, 169, 139, 0.3); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px var(--primary-glow);">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(var(--accent-rgb), 0.15); border: 1px solid rgba(var(--accent-rgb), 0.3); display: flex; align-items: center; justify-content: center; ">
             <i class="fa-solid fa-id-card-clip" style="color: var(--primary-light); font-size: 18px;"></i>
           </div>
           <div>
-            <h2 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin: 0; letter-spacing: 0.02em;">Benim Karakterlerim</h2>
+            <h2 style="font-family: var(--font-display); font-size: 20px; font-weight: 600; color: #fff; margin: 0; ">Benim Karakterlerim</h2>
             <span style="font-size: 12.5px; color: var(--text-muted);"><%= user.username %> hesabınıza bağlı <%= myCharacters.length %> aktif karakter</span>
           </div>
         </div>
@@ -48,8 +48,8 @@
             
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
               <div>
-                <span style="font-size: 10px; font-weight: 800; color: var(--primary-light); text-transform: uppercase; letter-spacing: 0.1em; background: rgba(224, 169, 139, 0.1); padding: 2px 8px; border-radius: 4px; margin-bottom: 6px; display: inline-block;">SLOT #<%= char.cid || 1 %></span>
-                <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin: 0;">
+                <span style="font-size: 11px; font-weight: 600; color: var(--primary-light);   background: rgba(var(--accent-rgb), 0.1); padding: 2px 8px; border-radius: 4px; margin-bottom: 6px; display: inline-block;">SLOT #<%= char.cid || 1 %></span>
+                <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 600; color: #fff; margin: 0;">
                   <%= char.firstname || 'İsimsiz' %> <%= char.lastname || 'Karakter' %>
                 </h3>
               </div>
@@ -61,16 +61,16 @@
             <!-- Stats Pills -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
               <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px 14px;">
-                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.05em;"><i class="fa-solid fa-briefcase" style="color: #38bdf8;"></i> Meslek</div>
-                <div style="font-size: 13.5px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);  margin-bottom: 4px; "><i class="fa-solid fa-briefcase" style="color: #38bdf8;"></i> Meslek</div>
+                <div style="font-size: 13.5px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                   <%= (char.job && char.job.label) ? char.job.label : 'Sivil' %>
                 </div>
                 <div style="font-size: 11px; color: #38bdf8; margin-top: 2px;"><%= (char.job && char.job.grade) ? char.job.grade : 'Derecesiz' %></div>
               </div>
 
               <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px 14px;">
-                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.05em;"><i class="fa-solid fa-wallet" style="color: #10b981;"></i> Toplam Varlık</div>
-                <div style="font-size: 14px; font-family: var(--font-mono); font-weight: 800; color: #34d399;">
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);  margin-bottom: 4px; "><i class="fa-solid fa-wallet" style="color: #10b981;"></i> Toplam Varlık</div>
+                <div style="font-size: 14px; font-family: var(--font-mono); font-weight: 600; color: #34d399;">
                   $<%= (((char.money && char.money.cash) || 0) + ((char.money && char.money.bank) || 0)).toLocaleString('tr-TR') %>
                 </div>
                 <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
@@ -91,8 +91,8 @@
     </div>
   <% } else if (!locals.user) { %>
     <div class="glass-card" style="text-align: center; margin-bottom: 72px; max-width: 600px; margin-left: auto; margin-right: auto; padding: 48px;">
-      <i class="fa-brands fa-discord" style="font-size: 48px; color: #5865f2; margin-bottom: 20px; display: inline-block; filter: drop-shadow(0 0 15px rgba(88, 101, 242, 0.4));"></i>
-      <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 12px;">Karakterlerinizi Görmek İçin Giriş Yapın</h3>
+      <i class="fa-brands fa-discord" style="font-size: 48px; color: #5865f2; margin-bottom: 20px; display: inline-block; "></i>
+      <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 12px;">Karakterlerinizi Görmek İçin Giriş Yapın</h3>
       <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.6;">Discord hesabınızla giriş yaparak sunucudaki karakterlerinizin anlık finansal ve mesleki durumunu görüntüleyebilirsiniz.</p>
       <a href="/auth/login" class="nav-btn-discord" style="padding: 12px 28px; font-size: 13px;">
         <i class="fa-solid fa-arrow-right-to-bracket"></i> Discord ile Giriş Yap
@@ -104,11 +104,11 @@
   <div>
     <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 16px;">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);">
+        <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; ">
           <i class="fa-solid fa-users" style="color: #38bdf8; font-size: 18px;"></i>
         </div>
         <div>
-          <h2 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin: 0; letter-spacing: 0.02em;">Karakter Rehberi</h2>
+          <h2 style="font-family: var(--font-display); font-size: 20px; font-weight: 600; color: #fff; margin: 0; ">Karakter Rehberi</h2>
           <span style="font-size: 12.5px; color: var(--text-muted);">Sunucuda aktif rol yapan vatandaşlar</span>
         </div>
       </div>
@@ -123,10 +123,10 @@
         <% allCharacters.forEach(function(char) { %>
           <div class="glass-card" style="padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-              <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">
+              <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 600; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">
                 <%= char.firstname || 'Bilinmeyen' %> <%= char.lastname || '' %>
               </h3>
-              <span style="font-size: 10px; font-family: var(--font-mono); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); padding: 3px 8px; border-radius: 6px;">
+              <span style="font-size: 11px; font-family: var(--font-mono); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); padding: 3px 8px; border-radius: 6px;">
                 <%= char.citizenid %>
               </span>
             </div>
@@ -214,10 +214,10 @@
     container.innerHTML = chars.map(char => `
       <div class="glass-card" style="padding: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">
+          <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 600; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">
             ${(char.firstname || 'Bilinmeyen')} ${(char.lastname || '')}
           </h3>
-          <span style="font-size: 10px; font-family: var(--font-mono); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); padding: 3px 8px; border-radius: 6px;">
+          <span style="font-size: 11px; font-family: var(--font-mono); background: rgba(255, 255, 255, 0.05); color: var(--text-muted); padding: 3px 8px; border-radius: 6px;">
             ${char.citizenid || ''}
           </span>
         </div>

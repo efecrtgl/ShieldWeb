@@ -64,3 +64,6 @@ CLAUDE.md
 .claude/
 # shield-software/config.json holds the bridge secret; copy config.example.json and fill it in
 shield-software/config.json
+
+# 8. Design tooling output (inspector screenshots, direction sheet)
+.taste-skill/

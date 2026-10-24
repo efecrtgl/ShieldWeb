@@ -3,22 +3,22 @@
     <style>
       .business-stat-card {
         background: rgba(18, 20, 26, 0.65);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        
+        
         border: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 12px;
         padding: 18px 24px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        
       }
     </style>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
       <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-store" style="color: #f59e0b;"></i> İşletme Listesi & Yönetimi</h2>
       <% if (userPermissions.createTeams || userPermissions.editTeams || userPermissions.manageTeams || userPermissions.isSuperuser) { %>
-        <button class="btn btn-primary" onclick="openAddBusinessModal()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; font-weight: 700;">
+        <button class="btn btn-primary" onclick="openAddBusinessModal()" style="background: #f59e0b; border: none; font-weight: 700;">
           <i class="fa-solid fa-plus"></i> Yeni İşletme Ekibi Oluştur
         </button>
       <% } else { %>
@@ -31,7 +31,7 @@
     <!-- İşletme Arama Çubuğu -->
     <div style="margin-bottom: 24px; position: relative;">
       <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; pointer-events: none;"></i>
-      <input type="text" id="business-search-input" class="form-input" placeholder="İşletme adı veya ID ile arayın..." oninput="filterBusinesses()" style="padding-left: 44px; background: rgba(18, 20, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; height: 44px; width: 100%; font-size: 13px; color: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);">
+      <input type="text" id="business-search-input" class="form-input" placeholder="İşletme adı veya ID ile arayın..." oninput="filterBusinesses()" style="padding-left: 44px; background: rgba(18, 20, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; height: 44px; width: 100%; font-size: 13px; color: #ffffff; ">
     </div>
 
     <!-- İşletme İstatistik Kartları -->
@@ -40,7 +40,7 @@
       <!-- Toplam İşletme Sayısı -->
       <div class="business-stat-card">
         <div style="display: flex; flex-direction: column; gap: 4px;">
-          <span id="stat-business-teams" style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;"><%= currentBusinessTeams.length %></span>
+          <span id="stat-business-teams" style="font-size: 26px; font-weight: 600; color: #ffffff; font-family: var(--font-display); line-height: 1.1;"><%= currentBusinessTeams.length %></span>
           <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam İşletme Ekibi</span>
         </div>
         <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; color: #f59e0b; font-size: 18px;">
@@ -51,7 +51,7 @@
       <!-- Toplam İşletme Personeli -->
       <div class="business-stat-card">
         <div style="display: flex; flex-direction: column; gap: 4px;">
-          <span id="stat-business-members" style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;"><%= (typeof teamStats !== 'undefined' && teamStats.business) ? teamStats.business.totalMembers : 0 %></span>
+          <span id="stat-business-members" style="font-size: 26px; font-weight: 600; color: #ffffff; font-family: var(--font-display); line-height: 1.1;"><%= (typeof teamStats !== 'undefined' && teamStats.business) ? teamStats.business.totalMembers : 0 %></span>
           <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam İşletme Personeli</span>
         </div>
         <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 18px;">
@@ -62,10 +62,10 @@
       <!-- Toplam İşletme Sahibi (Boss) -->
       <div class="business-stat-card">
         <div style="display: flex; flex-direction: column; gap: 4px;">
-          <span id="stat-business-bosses" style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;"><%= currentBusinessTeams.filter(t => t.bossId && t.bossId.trim() && t.bossId.trim() !== "none").length %></span>
+          <span id="stat-business-bosses" style="font-size: 26px; font-weight: 600; color: #ffffff; font-family: var(--font-display); line-height: 1.1;"><%= currentBusinessTeams.filter(t => t.bossId && t.bossId.trim() && t.bossId.trim() !== "none").length %></span>
           <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam İşletme Sahibi (Boss)</span>
         </div>
-        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(224, 169, 139, 0.12); border: 1px solid rgba(224, 169, 139, 0.3); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(var(--accent-rgb), 0.12); border: 1px solid rgba(var(--accent-rgb), 0.3); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px;">
           <i class="fa-solid fa-crown" style="color: var(--primary-light);"></i>
         </div>
       </div>
@@ -73,7 +73,7 @@
 
     <!-- İşletme Ekipleri Tablosu -->
     <div class="content-panel" style="padding: 24px; min-height: 350px; overflow-x: auto;">
-      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: #f59e0b; display: flex; align-items: center; gap: 8px;">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px;  color: #f59e0b; display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-briefcase"></i> İşletme Ekipleri (Mekanik / Galeri / Gunshop / Restoran vb.)
       </h3>
       
@@ -96,12 +96,12 @@
                     <span><%= t.name %></span>
                   </div>
                 </td>
-                <td style="font-family: monospace; font-size: 12px; color: var(--text-muted); font-weight: 600;">
+                <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); font-weight: 600;">
                   <%= t.bossId %>
                 </td>
                 <td>
-                  <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(224, 169, 139, 0.08); border: 1px solid rgba(224, 169, 139, 0.25); border-radius: 8px; padding: 5px 9px; white-space: nowrap;">
-                    <span style="font-family: var(--font-display); font-size: 12px; font-weight: 800; color: #ffffff;">
+                  <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(var(--accent-rgb), 0.08); border: 1px solid rgba(var(--accent-rgb), 0.25); border-radius: 8px; padding: 5px 9px; white-space: nowrap;">
+                    <span style="font-family: var(--font-display); font-size: 12px; font-weight: 600; color: #ffffff;">
                       <%= (t.memberCount !== undefined ? t.memberCount : 0) %> / <%= (t.maxMembers !== undefined ? t.maxMembers : 50) %>
                     </span>
                     <span style="color: rgba(255, 255, 255, 0.2); font-weight: 300;">|</span>
@@ -112,7 +112,7 @@
                 </td>
                 <td>
                   <div style="display: flex; flex-direction: row; align-items: center; gap: 6px; white-space: nowrap;">
-                    <button class="btn btn-primary btn-sm" title="İşletme Çalışanlarını Görüntüle" onclick="openBusinessMembersModal('<%= t._id %>')" style="background: rgba(224, 169, 139, 0.15); border: 1px solid rgba(224, 169, 139, 0.3); color: #ffffff; width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                    <button class="btn btn-primary btn-sm" title="İşletme Çalışanlarını Görüntüle" onclick="openBusinessMembersModal('<%= t._id %>')" style="background: rgba(var(--accent-rgb), 0.15); border: 1px solid rgba(var(--accent-rgb), 0.3); color: #ffffff; width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
                       <i class="fa-solid fa-users"></i>
                     </button>
                     <% if (userPermissions.editTeams) { %>
@@ -142,8 +142,8 @@
     </div>
 
     <!-- Dedicated Add Business Modal -->
-    <div id="add-business-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 999999; align-items: center; justify-content: center; padding: 20px;">
-      <div class="content-panel" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; position: relative; background: #0c0d12; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9);">
+    <div id="add-business-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85);   z-index: 999999; align-items: center; justify-content: center; padding: 20px;">
+      <div class="content-panel" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; position: relative; background: #0c0d12; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; ">
         <button type="button" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;" onclick="closeAddBusinessModal()"><i class="fa-solid fa-xmark"></i></button>
         
         <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin: 0; color: var(--text-main);">
@@ -176,13 +176,13 @@
             <label class="form-label">İşletme Rengi (Discord Rol Rengi)</label>
             <div style="display: flex; gap: 12px; align-items: center;">
               <input type="color" id="business-color" class="form-input" value="#f59e0b" style="width: 60px; height: 40px; padding: 2px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer;" onchange="document.getElementById('business-color-preview').innerText = this.value">
-              <span id="business-color-preview" style="font-family: monospace; font-size: 13px; color: var(--text-muted);">#f59e0b</span>
+              <span id="business-color-preview" style="font-family: var(--font-mono); font-size: 13px; color: var(--text-muted);">#f59e0b</span>
             </div>
           </div>
 
           <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
             <button type="button" class="btn btn-secondary" onclick="closeAddBusinessModal()">İptal</button>
-            <button type="submit" id="btn-submit-business" class="btn btn-primary" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; display: flex; align-items: center; gap: 6px; font-weight: 700;"><i class="fa-solid fa-floppy-disk"></i> Oluştur</button>
+            <button type="submit" id="btn-submit-business" class="btn btn-primary" style="background: #f59e0b; border: none; display: flex; align-items: center; gap: 6px; font-weight: 700;"><i class="fa-solid fa-floppy-disk"></i> Oluştur</button>
           </div>
         </form>
       </div>

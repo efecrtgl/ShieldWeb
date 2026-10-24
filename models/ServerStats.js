@@ -1,9 +1,11 @@
 const mongoose = require("mongoose");
 
 const ServerStatsSchema = new mongoose.Schema({
-  totalWhitelist: { type: Number, default: 1542 },
-  activePlayers: { type: Number, default: 48 },
-  maxPlayers: { type: Number, default: 128 },
+  // Counted from DiscordUser records by the sync bot and the user routes; 0 until the first count.
+  totalWhitelist: { type: Number, default: 0 },
+  // Legacy fields: live player counts now come from the FiveM bridge (services/fivemState), never from here.
+  activePlayers: { type: Number, default: null },
+  maxPlayers: { type: Number, default: null },
 
   guildId: { type: String, default: "1537239453578567690" },
   loggerGuildId: { type: String, default: "1502209084881895504" },

@@ -3,7 +3,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
       <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-users"></i> Kullanıcı Listesi</h2>
       <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <span style="font-size: 11px; font-weight: 700; color: #ffffff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.25); padding: 6px 14px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.05em;"><i class="fa-brands fa-discord" style="font-size: 14px;"></i> Canlı Discord Verisi</span>
+        <span style="font-size: 11px; font-weight: 700; color: #ffffff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.25); padding: 6px 14px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;  "><i class="fa-brands fa-discord" style="font-size: 14px;"></i> Canlı Discord Verisi</span>
         <% if (userPermissions.syncUsers || userPermissions.isProjectLeader || userPermissions.isSuperuser) { %>
           <button class="btn btn-secondary" id="btn-sync-whitelists" onclick="syncWhitelistsFromDiscord()" style="display: flex; align-items: center; gap: 6px; background: rgba(0, 113, 227, 0.1); color: var(--primary); border: 1px solid rgba(0, 113, 227, 0.2); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: var(--transition);"><i class="fa-solid fa-arrows-rotate"></i> Whitelistleri Eşitle</button>
         <% } else { %>
@@ -18,34 +18,34 @@
     %>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px;">
       <!-- Card 1: Toplam Kullanıcı -->
-      <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+      <div style="background: rgba(22, 28, 36, 0.85);   border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; " onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
         <div>
-          <div id="stat-total-users" style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display, sans-serif); letter-spacing: -0.5px;"><%= Number(initUserStats.totalUsers || 0).toLocaleString('tr-TR') %></div>
+          <div id="stat-total-users" style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display, sans-serif); "><%= Number(initUserStats.totalUsers || 0).toLocaleString('tr-TR') %></div>
           <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Toplam Kullanıcı</div>
         </div>
-        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1.5px solid rgba(255, 255, 255, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(255, 255, 255, 0.15);">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1.5px solid rgba(255, 255, 255, 0.35); display: flex; align-items: center; justify-content: center; ">
           <i class="fa-solid fa-users" style="color: #ffffff; font-size: 19px;"></i>
         </div>
       </div>
 
       <!-- Card 2: Yetkili Sayısı -->
-      <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+      <div style="background: rgba(22, 28, 36, 0.85);   border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; " onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
         <div>
-          <div id="stat-staff-users" style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display, sans-serif); letter-spacing: -0.5px;"><%= Number(initUserStats.staffCount || 0).toLocaleString('tr-TR') %></div>
+          <div id="stat-staff-users" style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display, sans-serif); "><%= Number(initUserStats.staffCount || 0).toLocaleString('tr-TR') %></div>
           <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Yetkili Sayısı</div>
         </div>
-        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1.5px solid rgba(255, 255, 255, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(255, 255, 255, 0.15);">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1.5px solid rgba(255, 255, 255, 0.35); display: flex; align-items: center; justify-content: center; ">
           <i class="fa-solid fa-user-lock" style="color: #ffffff; font-size: 19px;"></i>
         </div>
       </div>
 
       <!-- Card 3: Whitelist Sayısı -->
-      <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+      <div style="background: rgba(22, 28, 36, 0.85);   border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; " onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
         <div>
-          <div id="stat-whitelist-users" style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display, sans-serif); letter-spacing: -0.5px;"><%= Number(initUserStats.whitelistCount || 0).toLocaleString('tr-TR') %></div>
+          <div id="stat-whitelist-users" style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display, sans-serif); "><%= Number(initUserStats.whitelistCount || 0).toLocaleString('tr-TR') %></div>
           <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Whitelist Sayısı</div>
         </div>
-        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1.5px solid rgba(255, 255, 255, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(255, 255, 255, 0.15);">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1.5px solid rgba(255, 255, 255, 0.35); display: flex; align-items: center; justify-content: center; ">
           <i class="fa-solid fa-gamepad" style="color: #ffffff; font-size: 19px;"></i>
         </div>
       </div>
@@ -53,8 +53,8 @@
 
     <!-- Quick Actions Panel -->
     <% if (userPermissions.wlGive !== false || userPermissions.wlTake !== false || userPermissions.rankName || userPermissions.isSuperuser || userPermissions.voiceSupportToggle) { %>
-      <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; margin: 0 0 24px 0; box-shadow: none;">
-        <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+      <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; margin: 0 0 24px 0; ">
+        <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px;  display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-bolt" style="color: var(--warning);"></i> Hızlı Whitelist & Rol İşlemleri
         </h3>
         <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
@@ -141,7 +141,7 @@
   <script>
     const canEditUsers = <%= userPermissions.editUsers || false %>;
     const canDeleteUsers = <%= userPermissions.deleteUsers || false %>;
-    const userPerms = <%- JSON.stringify(userPermissions) %>;
+    const userPerms = <%- JSON.stringify(userPermissions).replace(/</g, "\\u003c") %>;
     
     let currentUsersPage = 1;
     let totalUsersPages = 1;
@@ -230,7 +230,7 @@
               const rColor = dUser.rankId.color || '#3B82F6';
               const isGradient = typeof rColor === 'string' && (rColor.includes("gradient") || rColor.includes(","));
               if (isGradient) {
-                rankBadge = `<span class="rank-badge" style="background: ${rColor}; color: #fff; border: none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${dUser.rankId.name}</span>`;
+                rankBadge = `<span class="rank-badge" style="background: ${rColor}; color: #fff; border: none; ">${dUser.rankId.name}</span>`;
               } else {
                 rankBadge = `<span class="rank-badge" style="background: ${rColor}22; color: ${rColor}; border: 1px solid ${rColor}44;">${dUser.rankId.name}</span>`;
               }
@@ -242,31 +242,31 @@
               ? `<span class="status-badge online" style="font-size: 11px;">● Aktif</span>`
               : `<span class="status-badge offline" style="font-size: 11px;">○ Yok</span>`;
 
-            let actionButtons = `<button type="button" class="btn" style="background: rgba(0, 113, 227, 0.1); color: var(--primary); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;" onclick="openUserDetailModal('${dUser._id}')"><i class="fa-solid fa-circle-info"></i> Detaylar</button>`;
+            let actionButtons = `<button type="button" class="btn" style="background: rgba(0, 113, 227, 0.1); color: var(--primary); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer;" onclick="openUserDetailModal('${dUser._id}')"><i class="fa-solid fa-circle-info"></i> Detaylar</button>`;
 
             // Whitelist Ver / Al
             if (dUser.isWhitelist) {
               if (userPerms.wlTake !== false || userPerms.rankName || userPerms.isSuperuser) {
                 actionButtons += `
                   <form action="/admin/users/whitelist/remove/${dUser._id}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-user-slash"></i> Whitelist Kaldır</button>
+                    <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer;"><i class="fa-solid fa-user-slash"></i> Whitelist Kaldır</button>
                   </form>
                 `;
               } else {
                 actionButtons += `
-                  <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Whitelist Kaldır</button>
+                  <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Whitelist Kaldır</button>
                 `;
               }
             } else {
               if (userPerms.wlGive !== false || userPerms.rankName || userPerms.isSuperuser) {
                 actionButtons += `
                   <form action="/admin/users/whitelist/add/${dUser._id}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-user-check"></i> Whitelist Ver</button>
+                    <button type="submit" class="btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer;"><i class="fa-solid fa-user-check"></i> Whitelist Ver</button>
                   </form>
                 `;
               } else {
                 actionButtons += `
-                  <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Whitelist Ver</button>
+                  <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Whitelist Ver</button>
                 `;
               }
             }
@@ -275,12 +275,12 @@
             if (userPerms.voiceSupportToggle) {
               actionButtons += `
                 <form action="/admin/users/voice-support/toggle/${dUser.discordId}" method="POST" style="display: inline;">
-                  <button type="submit" class="btn" style="background: rgba(0, 191, 255, 0.1); color: #00bfff; padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-microphone"></i> Sesli Destek</button>
+                  <button type="submit" class="btn" style="background: rgba(0, 191, 255, 0.1); color: #00bfff; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer;"><i class="fa-solid fa-microphone"></i> Sesli Destek</button>
                 </form>
               `;
             } else {
               actionButtons += `
-                <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Sesli Destek</button>
+                <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Sesli Destek</button>
               `;
             }
 
@@ -288,12 +288,12 @@
             if (userPerms.removeAllRoles) {
               actionButtons += `
                 <form action="/admin/users/tum-rolleri-kaldir/${dUser.discordId}" method="POST" style="display: inline;">
-                  <button type="submit" class="btn" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-user-xmark"></i> Tüm Rolleri Kaldır</button>
+                  <button type="submit" class="btn" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer;"><i class="fa-solid fa-user-xmark"></i> Tüm Rolleri Kaldır</button>
                 </form>
               `;
             } else {
               actionButtons += `
-                <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Tüm Rolleri Kaldır</button>
+                <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Tüm Rolleri Kaldır</button>
               `;
             }
 
@@ -301,18 +301,18 @@
             if (userPerms.dbDeleteUser) {
               actionButtons += `
                 <form action="/admin/users/delete/${dUser._id}" method="POST" style="display: inline;" onsubmit="return confirm('Bu kullanıcıyı veritabanından tamamen silmek istediğinize emin misiniz?\\n\\nBu işlem kullanıcının tüm rollerini alıp Discord\\'da kayıtsıza atacaktır.')">
-                  <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.15); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-trash-can"></i> Sil</button>
+                  <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.15); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer;"><i class="fa-solid fa-trash-can"></i> Sil</button>
                 </form>
               `;
             } else {
               actionButtons += `
-                <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Sil</button>
+                <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: not-allowed; opacity: 0.5;"><i class="fa-solid fa-lock"></i> Sil</button>
               `;
             }
 
             let onlineBadge = "";
             if (dUser.activeFivemId !== null && dUser.activeFivemId !== undefined) {
-              onlineBadge = ` <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-family: monospace; font-weight: 700;">ID: ${dUser.activeFivemId}</span>`;
+              onlineBadge = ` <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-family: var(--font-mono); font-weight: 700;">ID: ${dUser.activeFivemId}</span>`;
             }
 
             row.innerHTML = `
@@ -320,7 +320,7 @@
                 <img class="sensitive-info" src="${dUser.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);">
               </td>
               <td class="sensitive-info" style="font-weight: 600;">${dUser.username}${onlineBadge}</td>
-              <td class="sensitive-info" style="font-family: monospace; font-size: 12px; color: var(--text-muted);">${dUser.discordId}</td>
+              <td class="sensitive-info" style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">${dUser.discordId}</td>
               <td>${rankBadge}</td>
               <td>${whitelistBadge}</td>
               <td>
@@ -672,8 +672,8 @@
             if (char) {
               html += `
                 <button type="button" onclick="showCharacterDetails(${slot})" style="background: rgba(0, 113, 227, 0.12); border: 1px solid rgba(0, 113, 227, 0.3); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-size: 12px; transition: all 0.2s;">
-                  <span style="background: #0071e3; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px;">SLOT ${slot}</span>
-                  <strong>${char.firstname} ${char.lastname}</strong>
+                  <span style="background: #0071e3; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">SLOT ${slot}</span>
+                  <strong>${escapeHtml(char.firstname || '')} ${escapeHtml(char.lastname || '')}</strong>
                 </button>
               `;
             } else {
@@ -707,7 +707,7 @@
       document.getElementById("char-detail-birthdate").innerText = char.birthdate || "-";
       document.getElementById("char-detail-cash").innerText = `$${(char.money?.cash || 0).toLocaleString('tr-TR')}`;
       document.getElementById("char-detail-bank").innerText = `$${(char.money?.bank || 0).toLocaleString('tr-TR')}`;
-      document.getElementById("char-detail-job").innerText = `${char.job?.label || 'Civilian'} (${char.job?.grade || 'Freelancer'})`;
+      document.getElementById("char-detail-job").innerText = char.job && (char.job.label || char.job.name) ? `${char.job.label || char.job.name}${char.job.grade ? ` (${char.job.grade})` : ""}` : "—";
 
       const invContainer = document.getElementById("char-detail-inventory");
       if (Array.isArray(char.inventory) && char.inventory.length > 0) {
@@ -726,7 +726,7 @@
                   <img src="${imgUrl}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/679/679821.png';" style="width: 24px; height: 24px; object-fit: contain; background: rgba(0,0,0,0.3); border-radius: 4px; padding: 2px; border: 1px solid rgba(255,255,255,0.08);" />
                   <span style="color: #fff; font-weight: 600;">${label}</span>
                 </div>
-                <span style="color: #60a5fa; font-family: monospace; font-weight: 700; background: rgba(59,130,246,0.12); padding: 1px 6px; border-radius: 4px;">x${item.count || item.amount || 1}</span>
+                <span style="color: #60a5fa; font-family: var(--font-mono); font-weight: 700; background: rgba(59,130,246,0.12); padding: 1px 6px; border-radius: 4px;">x${item.count || item.amount || 1}</span>
               </div>
             `;
           }

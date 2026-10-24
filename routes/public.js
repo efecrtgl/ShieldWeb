@@ -9,11 +9,12 @@ const { invalidateUserCredits } = require("../services/siteCache");
 const { getAllGuildMembers, getGuildMembersWithRole, getDiscordAvatarUrl, fetchDiscordUserInfo } = require("../services/discordApi");
 const streamerFetcher = require("../utils/streamerFetcher");
 const { searchRegex } = require("../utils/http");
+const { bridgeStatus } = require("../services/fivemState");
 const { renderMarkdown } = require("../utils/markdown");
+const { rateLimit } = require("../middleware/rateLimit");
 
 const router = express.Router();
 
-const DEFAULT_STATS = { activePlayers: 0, maxPlayers: 64, totalWhitelist: 0 };
 const CHARACTER_LIST_LIMIT = 36;
 const STREAMER_RESYNC_AFTER_MS = 90000;
 
@@ -35,9 +36,23 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Live numbers: players come from the FiveM bridge (null while the game server is offline or unknown),
+// the whitelist count from the database (null when it has never been counted).
+async function publicStats() {
+  const bridge = bridgeStatus();
+  const stored = await ServerStats.findOne({}, { totalWhitelist: 1 }).lean();
+  return {
+    serverOnline: bridge.online,
+    activePlayers: bridge.playersCount,
+    maxPlayers: bridge.maxPlayers,
+    totalWhitelist: stored && typeof stored.totalWhitelist === "number" ? stored.totalWhitelist : null,
+    lastPollAt: bridge.lastPollAt
+  };
+}
+
 router.get("/stats", checkModule("stats"), async (req, res) => {
   try {
-    const stats = (await ServerStats.findOne()) || DEFAULT_STATS;
+    const stats = await publicStats();
     res.render("stats", { stats, user: req.session.user || null });
   } catch (error) {
     console.error("Stats page error:", error);
@@ -47,13 +62,7 @@ router.get("/stats", checkModule("stats"), async (req, res) => {
 
 router.get("/api/stats", checkModule("stats"), async (req, res) => {
   try {
-    const stats = (await ServerStats.findOne()) || DEFAULT_STATS;
-    res.json({
-      success: true,
-      activePlayers: stats.activePlayers || 0,
-      maxPlayers: stats.maxPlayers || 64,
-      totalWhitelist: stats.totalWhitelist || 0
-    });
+    res.json({ success: true, ...(await publicStats()) });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
@@ -231,7 +240,7 @@ router.get("/donate", checkModule("donate"), async (req, res) => {
   }
 });
 
-router.post("/donate/buy/:id", checkModule("donate"), async (req, res) => {
+router.post("/donate/buy/:id", checkModule("donate"), rateLimit({ name: "donate", windowMs: 60 * 1000, max: 10 }), async (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({ success: false, message: "Lütfen önce giriş yapın." });
   }

@@ -15,8 +15,8 @@
     max-height: calc(100vh - 140px);
     overflow-y: auto;
     background: rgba(12, 13, 16, 0.5);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    
+    
     border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 20px;
@@ -83,7 +83,7 @@
   .rule-title {
     font-family: var(--font-display);
     font-size: 20px;
-    font-weight: 800;
+    font-weight: 600;
     color: #fff;
     margin-top: 0;
     margin-bottom: 24px;
@@ -96,7 +96,7 @@
 
   .rule-title span {
     background: var(--primary);
-    box-shadow: 0 0 10px var(--primary-glow);
+    
     color: #fff;
     font-size: 13px;
     padding: 2px 8px;
@@ -152,11 +152,11 @@
   }
 
   .robbery-level {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 4px;
-    background: rgba(224, 169, 139, 0.15);
+    background: rgba(var(--accent-rgb), 0.15);
     color: var(--primary-light);
   }
 
@@ -176,8 +176,8 @@
 
   .robbery-detail-label {
     color: var(--text-muted);
-    font-size: 10px;
-    text-transform: uppercase;
+    font-size: 11px;
+    
   }
 
   .robbery-detail-val {
@@ -822,23 +822,23 @@
             </p>
             <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; text-align: center;">
               <div style="background: rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); padding: 12px 6px; border-radius: 8px;">
-                <div style="color: #60a5fa; font-weight: 900; font-size: 16px;">4X</div>
+                <div style="color: #60a5fa; font-weight: 600; font-size: 16px;">4X</div>
                 <div style="color: #fff; font-size: 12px; font-weight: 700; margin-top: 4px;">1 GÜN WL</div>
               </div>
               <div style="background: rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); padding: 12px 6px; border-radius: 8px;">
-                <div style="color: #60a5fa; font-weight: 900; font-size: 16px;">5X</div>
+                <div style="color: #60a5fa; font-weight: 600; font-size: 16px;">5X</div>
                 <div style="color: #fff; font-size: 12px; font-weight: 700; margin-top: 4px;">2 GÜN WL</div>
               </div>
               <div style="background: rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); padding: 12px 6px; border-radius: 8px;">
-                <div style="color: #fbbf24; font-weight: 900; font-size: 16px;">6X</div>
+                <div style="color: #fbbf24; font-weight: 600; font-size: 16px;">6X</div>
                 <div style="color: #fff; font-size: 12px; font-weight: 700; margin-top: 4px;">3 GÜN WL</div>
               </div>
               <div style="background: rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); padding: 12px 6px; border-radius: 8px;">
-                <div style="color: #f87171; font-weight: 900; font-size: 16px;">7X</div>
+                <div style="color: #f87171; font-weight: 600; font-size: 16px;">7X</div>
                 <div style="color: #fff; font-size: 12px; font-weight: 700; margin-top: 4px;">4 GÜN WL</div>
               </div>
               <div style="background: rgba(220,38,38,0.25); border:1px solid #dc2626; padding: 12px 6px; border-radius: 8px;">
-                <div style="color: #ef4444; font-weight: 900; font-size: 16px;">8X</div>
+                <div style="color: #ef4444; font-weight: 600; font-size: 16px;">8X</div>
                 <div style="color: #fff; font-size: 12px; font-weight: 700; margin-top: 4px;">5 GÜN WL</div>
               </div>
             </div>
@@ -864,11 +864,11 @@
                 <tr><td>Fail-RP / Powergame / IC-OOC Mixing / NLR ihlali / Revenge Kill</td><td><span style="color:#eab308; font-weight:700;">3X UYARI</span></td></tr>
                 <tr><td>Fear-RP ihlali / Güvenli Bölge ihlali / Bug Abuse / Absürt Rol</td><td><span style="color:#ef4444; font-weight:700;">1 GÜN WL</span></td></tr>
                 <tr><td>Combat Log / Stream Sniping / Meta Gaming</td><td><span style="color:#ef4444; font-weight:700;">2 GÜN WL</span></td></tr>
-                <tr><td>Rıza dışı cinsel içerik / ERP dayatması</td><td><span style="color:#ef4444; font-weight:900;">PERMA</span></td></tr>
-                <tr><td>Reşit olmayan / minör temalı içerik</td><td><span style="color:#ef4444; font-weight:900;">PERMA (SIFIR TOLERANS)</span></td></tr>
-                <tr><td>RDM (kasıtlı) / VDM (kasıtlı) / Dupe / Hile / Ağır Exploit</td><td><span style="color:#ef4444; font-weight:900;">PERMA</span></td></tr>
-                <tr><td>OOC Nefret Söylemi / Homofobi / Transfobi / Doxxing / Reklam</td><td><span style="color:#ef4444; font-weight:900;">PERMA</span></td></tr>
-                <tr><td>DDK (Dini ve Milli Değerlere Küfür) / OOC Küfür</td><td><span style="color:#ef4444; font-weight:900;">PERMA</span></td></tr>
+                <tr><td>Rıza dışı cinsel içerik / ERP dayatması</td><td><span style="color:#ef4444; font-weight: 600;">PERMA</span></td></tr>
+                <tr><td>Reşit olmayan / minör temalı içerik</td><td><span style="color:#ef4444; font-weight: 600;">PERMA (SIFIR TOLERANS)</span></td></tr>
+                <tr><td>RDM (kasıtlı) / VDM (kasıtlı) / Dupe / Hile / Ağır Exploit</td><td><span style="color:#ef4444; font-weight: 600;">PERMA</span></td></tr>
+                <tr><td>OOC Nefret Söylemi / Homofobi / Transfobi / Doxxing / Reklam</td><td><span style="color:#ef4444; font-weight: 600;">PERMA</span></td></tr>
+                <tr><td>DDK (Dini ve Milli Değerlere Küfür) / OOC Küfür</td><td><span style="color:#ef4444; font-weight: 600;">PERMA</span></td></tr>
               </tbody>
             </table>
           </div>

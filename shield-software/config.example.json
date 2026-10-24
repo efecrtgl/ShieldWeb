@@ -2,21 +2,7 @@
   "apiUrl": "http://localhost:3000/api/fivem/bridge/poll",
   "secretKey": "CHANGE_ME_same_as_FIVEM_BRIDGE_SECRET_in_panel_env",
   "pollInterval": 1000,
-  "serverStatus": true,
   "dbLock": false,
-  "commands": {
-    "setjob": "setjob {id} {job} {grade}",
-    "setgang": "setgang {id} {gang} {grade}",
-    "giveitem": "giveitem {id} {item} {amount}",
-    "pedmenu": "pedmenu {id}",
-    "kill": "kill {id}",
-    "revive": "revive {id}",
-    "pedver": "pedver {id} {ped}",
-    "pedal": "pedal {id}",
-    "givemoney": "givemoney {id} {type} {amount}",
-    "clearinventory": "clearinventory {id}",
-    "removeitem": "removeitem {id} {item} {amount}"
-  },
   "locations": {
     "spawn": {
       "x": -1041.5132,

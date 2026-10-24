@@ -4,17 +4,17 @@
       @keyframes pulse-green {
         0% {
           transform: scale(0.9);
-          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+          
         }
 
         70% {
           transform: scale(1.1);
-          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+          
         }
 
         100% {
           transform: scale(0.9);
-          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+          
         }
       }
 
@@ -31,7 +31,7 @@
         background: var(--bg-panel, #12141a);
         border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
         border-radius: 16px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85);
+        
         width: 100%;
         max-width: 800px;
         max-height: 90vh;
@@ -64,7 +64,7 @@
         style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; pointer-events: none;"></i>
       <input type="text" id="team-search-input" class="form-input"
         placeholder="Ekip / Departman adı veya Boss ID ile arayın..." oninput="filterTeams()"
-        style="padding-left: 44px; background: rgba(18, 20, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; height: 44px; width: 100%; font-size: 13px; color: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);">
+        style="padding-left: 44px; background: rgba(18, 20, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; height: 44px; width: 100%; font-size: 13px; color: #ffffff; ">
     </div>
 
     <!-- 1. İllegal Ekip İstatistik Kartları -->
@@ -73,48 +73,48 @@
         style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
         <!-- Toplam Ekip (İllegal) -->
         <div class="team-stat-card"
-          style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+          style="background: rgba(18, 20, 26, 0.65);   border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; ">
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <span id="stat-total-teams"
-              style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+              style="font-size: 26px; font-weight: 600; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
               <%= currentIllegalTeams.length %>
             </span>
             <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam Ekip (İllegal)</span>
           </div>
           <div
-            style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+            style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center;  color: #ffffff; font-size: 18px;">
             <i class="fa-solid fa-users"></i>
           </div>
         </div>
 
         <!-- Toplam Ekip Üyesi (İllegal) -->
         <div class="team-stat-card"
-          style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+          style="background: rgba(18, 20, 26, 0.65);   border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; ">
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <span id="stat-total-members"
-              style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+              style="font-size: 26px; font-weight: 600; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
               <%= (typeof teamStats !=='undefined' && teamStats.illegal) ? teamStats.illegal.totalMembers : 0 %>
             </span>
             <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam Ekip Üyesi</span>
           </div>
           <div
-            style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+            style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center;  color: #ffffff; font-size: 18px;">
             <i class="fa-solid fa-user"></i>
           </div>
         </div>
 
         <!-- Toplam OG's -->
         <div class="team-stat-card"
-          style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+          style="background: rgba(18, 20, 26, 0.65);   border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; ">
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <span id="stat-total-ogs"
-              style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+              style="font-size: 26px; font-weight: 600; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
               <%= currentIllegalTeams.filter(t=> t.bossId && t.bossId.trim()).length %>
             </span>
             <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam OG's</span>
           </div>
           <div
-            style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+            style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center;  color: #ffffff; font-size: 18px;">
             <i class="fa-solid fa-user-lock"></i>
           </div>
         </div>
@@ -126,48 +126,48 @@
           style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
           <!-- Toplam Legal Departman -->
           <div class="team-stat-card"
-            style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+            style="background: rgba(18, 20, 26, 0.65);   border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; ">
             <div style="display: flex; flex-direction: column; gap: 4px;">
               <span id="stat-legal-teams"
-                style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+                style="font-size: 26px; font-weight: 600; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
                 <%= currentLegalTeams.length %>
               </span>
               <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam Ekip (Legal)</span>
             </div>
             <div
-              style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+              style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center;  color: #ffffff; font-size: 18px;">
               <i class="fa-solid fa-building-shield"></i>
             </div>
           </div>
 
           <!-- Toplam Legal Personel / Üye -->
           <div class="team-stat-card"
-            style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+            style="background: rgba(18, 20, 26, 0.65);   border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; ">
             <div style="display: flex; flex-direction: column; gap: 4px;">
               <span id="stat-legal-members"
-                style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+                style="font-size: 26px; font-weight: 600; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
                 <%= (typeof teamStats !=='undefined' && teamStats.legal) ? teamStats.legal.totalMembers : 0 %>
               </span>
               <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam Ekip Üyesi</span>
             </div>
             <div
-              style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+              style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center;  color: #ffffff; font-size: 18px;">
               <i class="fa-solid fa-user-shield"></i>
             </div>
           </div>
 
           <!-- Toplam High Command (HC) -->
           <div class="team-stat-card"
-            style="background: rgba(18, 20, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);">
+            style="background: rgba(18, 20, 26, 0.65);   border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; ">
             <div style="display: flex; flex-direction: column; gap: 4px;">
               <span id="stat-legal-hcs"
-                style="font-size: 26px; font-weight: 800; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
+                style="font-size: 26px; font-weight: 600; color: #ffffff; font-family: var(--font-display); line-height: 1.1;">
                 <%= currentLegalTeams.filter(t=> t.bossId && t.bossId.trim()).length %>
               </span>
               <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">Toplam High Command</span>
             </div>
             <div
-              style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(255, 255, 255, 0.05); color: #ffffff; font-size: 18px;">
+              style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center;  color: #ffffff; font-size: 18px;">
               <i class="fa-solid fa-id-card-clip"></i>
             </div>
           </div>
@@ -177,7 +177,7 @@
 
           <div class="content-panel" style="grid-column: span 6; padding: 24px; min-height: 350px; overflow-x: auto;">
             <h3
-              style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: var(--danger); display: flex; align-items: center; gap: 8px;">
+              style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px;  color: var(--danger); display: flex; align-items: center; gap: 8px;">
               <i class="fa-solid fa-skull-crossbones"></i> İllegal Ekipler (Çeteler / Aileler)
             </h3>
 
@@ -198,15 +198,15 @@
                         <td style="font-weight: 600;">
                           <%= t.name %>
                         </td>
-                        <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">
+                        <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">
                           <%= t.bossId || 'Atanmadı' %>
                         </td>
                         <td style="white-space: nowrap;">
                           <div
-                            style="display: inline-flex; align-items: center; gap: 7px; background: rgba(224, 169, 139, 0.08); border: 1px solid rgba(224, 169, 139, 0.25); border-radius: 8px; padding: 5px 9px;">
+                            style="display: inline-flex; align-items: center; gap: 7px; background: rgba(var(--accent-rgb), 0.08); border: 1px solid rgba(var(--accent-rgb), 0.25); border-radius: 8px; padding: 5px 9px;">
                             <div
                               style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: #ffffff; font-size: 12px;">
-                              <i class="fa-solid fa-users" style="font-size: 10px; opacity: 0.8; color: var(--primary-light);"></i>
+                              <i class="fa-solid fa-users" style="font-size: 11px; opacity: 0.8; color: var(--primary-light);"></i>
                               <span>
                                 <%= t.memberCount || 0 %> / <%= t.maxMembers !==undefined ? t.maxMembers : 50 %>
                               </span>
@@ -215,7 +215,7 @@
                             <div
                               style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #4ade80; font-weight: 600;">
                               <span
-                                style="width: 6px; height: 6px; border-radius: 50%; background-color: #22c55e; display: inline-block; box-shadow: 0 0 6px #22c55e;"></span>
+                                style="width: 6px; height: 6px; border-radius: 50%; background-color: #22c55e; display: inline-block; "></span>
                               <span>
                                 <%= t.onlineCount || 0 %> Aktif
                               </span>
@@ -227,7 +227,7 @@
                             style="display: flex; flex-direction: row; align-items: center; gap: 6px; white-space: nowrap;">
                             <!-- Üyeler -->
                             <button type="button" class="btn" title="Üyeleri Görüntüle"
-                              style="background: rgba(224, 169, 139, 0.15); color: #ffffff; border: 1px solid rgba(224, 169, 139, 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+                              style="background: rgba(var(--accent-rgb), 0.15); color: #ffffff; border: 1px solid rgba(var(--accent-rgb), 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
                               onclick="openTeamMembersModal('<%= t._id %>')">
                               <i class="fa-solid fa-users"></i>
                             </button>
@@ -292,7 +292,7 @@
 
           <div class="content-panel" style="grid-column: span 6; padding: 24px; min-height: 350px; overflow-x: auto;">
             <h3
-              style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+              style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px;  color: var(--primary); display: flex; align-items: center; gap: 8px;">
               <i class="fa-solid fa-building-shield"></i> Legal Departmanlar (LSPD / LSSD)
             </h3>
 
@@ -313,15 +313,15 @@
                         <td style="font-weight: 600;">
                           <%= t.name %>
                         </td>
-                        <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">
+                        <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">
                           <%= t.bossId || 'Atanmadı' %>
                         </td>
                         <td style="white-space: nowrap;">
                           <div
-                            style="display: inline-flex; align-items: center; gap: 7px; background: rgba(224, 169, 139, 0.08); border: 1px solid rgba(224, 169, 139, 0.25); border-radius: 8px; padding: 5px 9px;">
+                            style="display: inline-flex; align-items: center; gap: 7px; background: rgba(var(--accent-rgb), 0.08); border: 1px solid rgba(var(--accent-rgb), 0.25); border-radius: 8px; padding: 5px 9px;">
                             <div
                               style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: #ffffff; font-size: 12px;">
-                              <i class="fa-solid fa-users" style="font-size: 10px; opacity: 0.8; color: var(--primary-light);"></i>
+                              <i class="fa-solid fa-users" style="font-size: 11px; opacity: 0.8; color: var(--primary-light);"></i>
                               <span>
                                 <%= t.memberCount || 0 %> / <%= t.maxMembers !==undefined ? t.maxMembers : 50 %>
                               </span>
@@ -330,7 +330,7 @@
                             <div
                               style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #4ade80; font-weight: 600;">
                               <span
-                                style="width: 6px; height: 6px; border-radius: 50%; background-color: #22c55e; display: inline-block; box-shadow: 0 0 6px #22c55e;"></span>
+                                style="width: 6px; height: 6px; border-radius: 50%; background-color: #22c55e; display: inline-block; "></span>
                               <span>
                                 <%= t.onlineCount || 0 %> Aktif
                               </span>
@@ -342,7 +342,7 @@
                             style="display: flex; flex-direction: row; align-items: center; gap: 6px; white-space: nowrap;">
                             <!-- Üyeler -->
                             <button type="button" class="btn" title="Üyeleri Görüntüle"
-                              style="background: rgba(224, 169, 139, 0.15); color: #ffffff; border: 1px solid rgba(224, 169, 139, 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+                              style="background: rgba(var(--accent-rgb), 0.15); color: #ffffff; border: 1px solid rgba(var(--accent-rgb), 0.3); width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
                               onclick="openTeamMembersModal('<%= t._id %>')">
                               <i class="fa-solid fa-users"></i>
                             </button>
@@ -425,7 +425,7 @@
             <form id="add-team-form" onsubmit="submitAddTeamForm(event)"
               style="display: flex; flex-direction: column; gap: 16px;">
               <div
-                style="background: rgba(224, 169, 139, 0.08); border: 1px solid rgba(224, 169, 139, 0.2); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                style="background: rgba(var(--accent-rgb), 0.08); border: 1px solid rgba(var(--accent-rgb), 0.2); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #ffffff; display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-circle-info" style="font-size: 14px; color: var(--primary);"></i> <span><b>Ekip Limit Belirleme:</b>
                   Minimum <b>0 Kişi</b>, Maksimum <b>50 Kişi</b> yazabilirsiniz.</span>
               </div>
@@ -463,7 +463,7 @@
                   <input type="color" id="team-color" class="form-input" value="#3b82f6"
                     style="width: 60px; height: 40px; padding: 2px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer;">
                   <span id="color-hex-preview"
-                    style="font-family: monospace; font-size: 13px; color: var(--text-muted);">#3b82f6</span>
+                    style="font-family: var(--font-mono); font-size: 13px; color: var(--text-muted);">#3b82f6</span>
                 </div>
               </div>
 
@@ -520,7 +520,7 @@
                   <input type="color" id="edit-team-color" class="form-input"
                     style="width: 60px; height: 40px; padding: 2px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer;">
                   <span id="edit-color-hex-preview"
-                    style="font-family: monospace; font-size: 13px; color: var(--text-muted);">#3b82f6</span>
+                    style="font-family: var(--font-mono); font-size: 13px; color: var(--text-muted);">#3b82f6</span>
                 </div>
               </div>
 
@@ -536,9 +536,9 @@
 
         <!-- Team Members Modal -->
         <div id="team-members-modal" class="modal-overlay"
-          style="display: none; position: fixed; inset: 0; background: rgba(5, 7, 12, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+          style="display: none; position: fixed; inset: 0; background: rgba(5, 7, 12, 0.92);   z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
           <div class="content-panel"
-            style="width: 98vw; max-width: 1680px; height: 95vh; max-height: 95vh; overflow-y: hidden; padding: 24px; display: flex; flex-direction: column; gap: 16px; position: relative; background: #0c0d12; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);">
+            style="width: 98vw; max-width: 1680px; height: 95vh; max-height: 95vh; overflow-y: hidden; padding: 24px; display: flex; flex-direction: column; gap: 16px; position: relative; background: #0c0d12; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; ">
 
             <!-- Header Bar (Üst Başlık ve Hızlı Eylem Butonları) -->
             <div
@@ -546,7 +546,7 @@
               <div style="display: flex; align-items: center; gap: 10px;">
                 <i class="fa-solid fa-users" style="color: #ffffff; font-size: 20px;"></i>
                 <h3
-                  style="font-family: var(--font-display); font-size: 18px; font-weight: 800; margin: 0; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                  style="font-family: var(--font-display); font-size: 18px; font-weight: 600; margin: 0; color: #ffffff; display: flex; align-items: center; gap: 8px;">
                   <span id="members-modal-title">Ekibini Görüntülüyorsun</span>
                 </h3>
               </div>
@@ -596,14 +596,14 @@
                 <% if (userPermissions.teamAddMember || userPermissions.editTeams || userPermissions.manageTeams ||
                   userPermissions.isSuperuser) { %>
                   <button type="button" onclick="toggleAddMemberBox()"
-                    style="background: #10b981; border: none; color: #ffffff; font-size: 11px; font-weight: 800; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;"><i
+                    style="background: #10b981; border: none; color: #ffffff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;"><i
                       class="fa-solid fa-plus"></i> Üye Ekle</button>
                   <% } %>
                 <!-- Üye Çıkar -->
                 <% if (userPermissions.teamRemoveMember || userPermissions.editTeams || userPermissions.manageTeams ||
                   userPermissions.isSuperuser) { %>
                   <button type="button" onclick="toggleRemoveMemberBox()"
-                    style="background: #ef4444; border: none; color: #ffffff; font-size: 11px; font-weight: 800; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;"><i
+                    style="background: #ef4444; border: none; color: #ffffff; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;"><i
                       class="fa-solid fa-minus"></i> Üye Çıkar</button>
                   <% } %>
                     <!-- X Kapat -->
@@ -624,7 +624,7 @@
               <div style="display: flex; gap: 10px;">
                 <textarea id="add-member-discord-id" class="form-input"
                   placeholder="Discord ID'leri (Birden fazla ID'yi virgül, boşluk veya yeni satır ile ayırabilirsiniz)"
-                  style="height: 50px; font-size: 12px; flex: 1; resize: none; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: monospace;"></textarea>
+                  style="height: 50px; font-size: 12px; flex: 1; resize: none; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: var(--font-mono);"></textarea>
                 <button class="btn btn-primary" onclick="addTeamMember()"
                   style="height: 50px; padding: 0 20px; font-size: 12px; font-weight: 700; background: #10b981; border: none; cursor: pointer; border-radius: 6px;"><i
                     class="fa-solid fa-user-plus"></i> Ekle</button>
@@ -640,7 +640,7 @@
               <div style="display: flex; gap: 10px;">
                 <textarea id="remove-member-discord-ids" class="form-input"
                   placeholder="Ekipten çıkarılacak Discord ID'leri (Virgül, boşluk veya yeni satır ile ayırabilirsiniz)"
-                  style="height: 50px; font-size: 12px; flex: 1; resize: none; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: monospace;"></textarea>
+                  style="height: 50px; font-size: 12px; flex: 1; resize: none; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: var(--font-mono);"></textarea>
                 <button id="btn-bulk-remove-members" class="btn" onclick="bulkRemoveTeamMembers()"
                   style="height: 50px; padding: 0 20px; font-size: 12px; font-weight: 700; background: #ef4444; color: #ffffff; border: none; cursor: pointer; border-radius: 6px;"><i
                     class="fa-solid fa-user-minus"></i> Çıkar</button>
@@ -654,9 +654,9 @@
                 style="overflow-x: auto; overflow-y: auto; height: 100%; max-height: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 2px;">
                 <table class="table" style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
                   <thead
-                    style="background: rgba(12,13,18,0.95); position: sticky; top: 0; z-index: 5; backdrop-filter: blur(8px);">
+                    style="background: rgba(12,13,18,0.95); position: sticky; top: 0; z-index: 5; ">
                     <tr
-                      style="border-bottom: 1px solid rgba(255,255,255,0.08); text-transform: uppercase; font-size: 10px; color: var(--text-muted); letter-spacing: 0.5px;">
+                      style="border-bottom: 1px solid rgba(255,255,255,0.08);  font-size: 11px; color: var(--text-muted); ">
                       <th style="padding: 10px 12px;">ÜYE İSMİ</th>
                       <th style="padding: 10px 12px;">DISCORD ID</th>
                       <th style="padding: 10px 12px;">YETKİ</th>
@@ -689,23 +689,23 @@
 
                 <!-- Ekip Hakkında Bilgiler Kartı -->
                 <div
-                  style="background: linear-gradient(135deg, rgba(224,169,139,0.1) 0%, rgba(15,23,42,0.9) 100%); border: 1px solid rgba(224,169,139,0.25); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+                  style="background: rgba(var(--accent-rgb); border: 1px solid rgba(var(--accent-rgb),0.25); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
                   <h4
                     style="font-family: var(--font-display); font-size: 12px; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Ekip Hakkında Bilgiler
                   </h4>
                   <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #e2e8f0;">
                     <div style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-star"
-                        style="color: #ffffff; font-size: 9px;"></i> <span>Ekip limiti: <b id="info-team-limit"
+                        style="color: #ffffff; font-size: 11px;"></i> <span>Ekip limiti: <b id="info-team-limit"
                           style="color: #fff;">50 kişi</b></span></div>
                     <div style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-star"
-                        style="color: #ffffff; font-size: 9px;"></i> <span>Toplam ekip üyesi: <b
+                        style="color: #ffffff; font-size: 11px;"></i> <span>Toplam ekip üyesi: <b
                           id="info-team-total-members" style="color: #fff;">0 kişi</b></span></div>
                     <div style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-star"
-                        style="color: #ffffff; font-size: 9px;"></i> <span>Toplam oyun saati: <b
+                        style="color: #ffffff; font-size: 11px;"></i> <span>Toplam oyun saati: <b
                           id="info-team-total-hours" style="color: #fff;">0 saat</b></span></div>
                     <div style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-star"
-                        style="color: #ffffff; font-size: 9px;"></i> <span>Ortalama oyun saati: <b
+                        style="color: #ffffff; font-size: 11px;"></i> <span>Ortalama oyun saati: <b
                           id="info-team-avg-hours" style="color: #fff;">0 saat</b></span></div>
                   </div>
                 </div>
@@ -717,7 +717,7 @@
 
         <!-- Member Details Modal (Ayrı Pencerede Veritabanı Üye & Karakter Detayları) -->
         <div id="member-details-modal" class="modal-overlay"
-          style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 20000; align-items: center; justify-content: center; padding: 20px;">
+          style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);   z-index: 20000; align-items: center; justify-content: center; padding: 20px;">
           <div class="content-panel-2">
             <button type="button"
               style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;"
@@ -731,13 +731,13 @@
                   id="member-detail-modal-username">Veritabanı Tüm Üye Detayları</span>
               </h3>
               <p id="member-detail-modal-discordid"
-                style="font-size: 11px; color: var(--text-muted); font-family: monospace; margin: 0;"></p>
+                style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin: 0;"></p>
             </div>
 
             <!-- 1. Kullanıcı Hesap Veritabanı Bilgileri -->
             <div style="display: flex; flex-direction: column; gap: 12px;">
               <h4
-                style="font-family: var(--font-display); font-size: 13px; font-weight: 700; margin: 0; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+                style="font-family: var(--font-display); font-size: 13px; font-weight: 700; margin: 0; color: var(--text-muted);  display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-user-gear" style="color: var(--primary);"></i> Web & Panel Kullanıcı Kaydı
                 (DiscordUser DB)
               </h4>
@@ -750,7 +750,7 @@
             <!-- 2. Sunucu FiveM Oyun Karakter Verileri -->
             <div style="display: flex; flex-direction: column; gap: 12px;">
               <h4
-                style="font-family: var(--font-display); font-size: 13px; font-weight: 700; margin: 0; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+                style="font-family: var(--font-display); font-size: 13px; font-weight: 700; margin: 0; color: var(--text-muted);  display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-database" style="color: var(--primary);"></i> Sunucu Karakter Veritabanı (FiveM)
               </h4>
               <div id="member-characters-container" style="display: flex; flex-direction: column; gap: 12px;">
@@ -1310,7 +1310,7 @@
 
           const bossIdsList = (teamInfo.bossId || "").split(/[\s,]+/).map(s => s.trim()).filter(Boolean);
 
-          document.getElementById("members-modal-title").innerHTML = `<span style="color: #ffffff; font-weight: 800;">${teamInfo.name}</span> ${isCurrentModalBusiness ? 'İşletmesini' : 'Ekibini'} Görüntülüyorsun`;
+          document.getElementById("members-modal-title").innerHTML = `<span style="color: #ffffff; font-weight: 600;">${teamInfo.name}</span> ${isCurrentModalBusiness ? 'İşletmesini' : 'Ekibini'} Görüntülüyorsun`;
 
           const thOgHc = document.getElementById("th-og-hc");
           if (thOgHc) {
@@ -1333,20 +1333,20 @@
 
               const leaderLabel = teamInfo.type === 'legal' ? 'HC Lider' : (isCurrentModalBusiness ? 'Patron' : 'Lider');
               const roleBadge = isBoss
-                ? `<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">${leaderLabel}</span>`
-                : `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Üye</span>`;
+                ? `<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">${leaderLabel}</span>`
+                : `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Üye</span>`;
 
               const ogBadge = isBoss
-                ? `<span style="background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Evet</span>`
-                : `<span style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 10px; padding: 2px 8px; border-radius: 12px;">Hayır</span>`;
+                ? `<span style="background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Evet</span>`
+                : `<span style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 11px; padding: 2px 8px; border-radius: 12px;">Hayır</span>`;
 
               const onlineBadge = m.isOnline
-                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Oyunda</span>`
-                : `<span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 10px; padding: 2px 8px; border-radius: 12px;">Oyunda Değil</span>`;
+                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Oyunda</span>`
+                : `<span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px;">Oyunda Değil</span>`;
 
               const wlBadge = m.isWhitelist
-                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Whitelist</span>`
-                : `<span style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 10px; padding: 2px 8px; border-radius: 12px;">Yok</span>`;
+                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Whitelist</span>`
+                : `<span style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px;">Yok</span>`;
 
               const tr = document.createElement("tr");
               tr.style = "border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.15s;";
@@ -1374,10 +1374,10 @@
                 <td style="padding: 10px 12px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <img src="${m.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
-                    <span style="font-weight: 600; color: #fff;">${m.username}</span>
+                    <span style="font-weight: 600; color: #fff;">${escapeHtml(m.username)}</span>
                   </div>
                 </td>
-                <td style="padding: 10px 12px; font-family: monospace; color: var(--text-muted);">${m.discordId}</td>
+                <td style="padding: 10px 12px; font-family: var(--font-mono); color: var(--text-muted);">${m.discordId}</td>
                 <td style="padding: 10px 12px;">${roleBadge}</td>
                 <td style="padding: 10px 12px;">${ogBadge}</td>
                 <td style="padding: 10px 12px;">${onlineBadge}</td>
@@ -1838,34 +1838,34 @@
               <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
                 <img src="${u.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
                 <div style="flex: 1;">
-                  <div style="font-size: 15px; font-weight: 700; color: #fff;">${u.username}</div>
-                  <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">${u.discordId}</div>
+                  <div style="font-size: 15px; font-weight: 600; color: #fff;">${escapeHtml(u.username)}</div>
+                  <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">${u.discordId}</div>
                 </div>
                 <div>${banStatus}</div>
               </div>
               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 11px;">
                 <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Rol / Rütbe</span>
+                  <span style="color: var(--text-muted); display: block; font-size: 11px; margin-bottom: 2px;">Rol / Rütbe</span>
                   <strong style="color: var(--primary);">${rankName}</strong>
                 </div>
                 <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Ekip / Departman</span>
+                  <span style="color: var(--text-muted); display: block; font-size: 11px; margin-bottom: 2px;">Ekip / Departman</span>
                   <strong style="color: #fff;">${teamName}</strong>
                 </div>
                 <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Whitelist Durumu</span>
+                  <span style="color: var(--text-muted); display: block; font-size: 11px; margin-bottom: 2px;">Whitelist Durumu</span>
                   ${wlStatus}
                 </div>
                 <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Whitelist Tarihi</span>
+                  <span style="color: var(--text-muted); display: block; font-size: 11px; margin-bottom: 2px;">Whitelist Tarihi</span>
                   <span style="color: #e2e8f0;">${wlDate}</span>
                 </div>
                 <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Ekibe Katılma</span>
+                  <span style="color: var(--text-muted); display: block; font-size: 11px; margin-bottom: 2px;">Ekibe Katılma</span>
                   <span style="color: #e2e8f0;">${addedDate}</span>
                 </div>
                 <div style="background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                  <span style="color: var(--text-muted); display: block; font-size: 9px; margin-bottom: 2px;">Uyarı & Ceza</span>
+                  <span style="color: var(--text-muted); display: block; font-size: 11px; margin-bottom: 2px;">Uyarı & Ceza</span>
                   <span style="color: #f59e0b; font-weight: 700;">${warningsCount} Uyarı</span> | <span style="color: var(--text-muted);">${wlPenalty}</span>
                 </div>
               </div>
@@ -1877,26 +1877,26 @@
           if (data.characters && data.characters.length > 0) {
             let html = "";
             data.characters.forEach(char => {
-              const cashFormatted = (char.money && typeof char.money.cash === "number") ? char.money.cash.toLocaleString("tr-TR") : 0;
-              const bankFormatted = (char.money && typeof char.money.bank === "number") ? char.money.bank.toLocaleString("tr-TR") : 0;
-              const playHours = (char.playtime && typeof char.playtime === "number") ? (char.playtime / 60).toFixed(1) : 0;
-              const jobLabel = (char.job && char.job.label) ? char.job.label : "Civilian";
-              const jobGrade = (char.job && char.job.grade) ? char.job.grade : "Derece Yok";
-              const birthdate = char.birthdate || "Belirtilmedi";
-              const citizenid = char.citizenid || "YOK";
+              const cashFormatted = (char.money && typeof char.money.cash === "number") ? char.money.cash.toLocaleString("tr-TR") : "—";
+              const bankFormatted = (char.money && typeof char.money.bank === "number") ? char.money.bank.toLocaleString("tr-TR") : "—";
+              const playHours = (char.playtime && typeof char.playtime === "number") ? (char.playtime / 60).toFixed(1) : "0";
+              const jobLabel = char.job && (char.job.label || char.job.name) ? escapeHtml(char.job.label || char.job.name) : "—";
+              const jobGrade = char.job && char.job.grade ? escapeHtml(char.job.grade) : "—";
+              const birthdate = char.birthdate ? escapeHtml(char.birthdate) : "—";
+              const citizenid = escapeHtml(char.citizenid || "");
 
               html += `
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
                   <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                      <span style="background: var(--primary); color: #fff; font-weight: 800; font-size: 10px; padding: 2px 8px; border-radius: 4px;">SLOT ${char.cid || 1}</span>
-                      <h5 style="margin: 0; font-size: 14px; font-weight: 700; color: #fff;">${char.firstname || ''} ${char.lastname || ''}</h5>
+                      <span style="background: var(--primary); color: #fff; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 4px;">SLOT ${char.cid !== null && char.cid !== undefined ? escapeHtml(char.cid) : "—"}</span>
+                      <h5 style="margin: 0; font-size: 14px; font-weight: 700; color: #fff;">${escapeHtml(char.firstname || '')} ${escapeHtml(char.lastname || '')}</h5>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                      <span style="font-family: monospace; font-size: 11px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 4px; font-weight: 700;">
+                      <span style="font-family: var(--font-mono); font-size: 11px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 4px; font-weight: 700;">
                         CID: ${citizenid}
                       </span>
-                      <button type="button" class="btn" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 10px; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" onclick="deleteSingleCharacter('${char._id}', '${citizenid}', '${encodeURIComponent((char.firstname || '') + ' ' + (char.lastname || ''))}', '${discordId}')">
+                      <button type="button" class="btn" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" onclick="deleteSingleCharacter(${jsArg(char._id)}, ${jsArg(char.citizenid || "")}, ${jsArg(encodeURIComponent((char.firstname || '') + ' ' + (char.lastname || '')))}, ${jsArg(discordId)})">
                         <i class="fa-solid fa-trash"></i> Karakteri Sil
                       </button>
                     </div>
@@ -1904,27 +1904,27 @@
 
                   <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 11px;">
                     <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                      <span style="color: var(--text-muted); font-size: 9px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-briefcase"></i> Meslek & Derece</span>
-                      <strong style="color: var(--text-main);">${jobLabel}</strong> <span style="color: var(--primary); font-size: 10px;">(${jobGrade})</span>
+                      <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-briefcase"></i> Meslek & Derece</span>
+                      <strong style="color: var(--text-main);">${jobLabel}</strong> <span style="color: var(--primary); font-size: 11px;">(${jobGrade})</span>
                     </div>
 
                     <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                      <span style="color: var(--text-muted); font-size: 9px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-clock"></i> Oynama Süresi</span>
-                      <strong style="color: #34d399;">${playHours} Saat</strong> <span style="color: var(--text-muted); font-size: 9px;">(${char.playtime || 0} Dk)</span>
+                      <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-clock"></i> Oynama Süresi</span>
+                      <strong style="color: #34d399;">${playHours} Saat</strong> <span style="color: var(--text-muted); font-size: 11px;">(${char.playtime || 0} Dk)</span>
                     </div>
 
                     <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                      <span style="color: var(--text-muted); font-size: 9px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-money-bill-wave"></i> Cüzdan (Nakit)</span>
+                      <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-money-bill-wave"></i> Cüzdan (Nakit)</span>
                       <strong style="color: #4ade80;">$${cashFormatted}</strong>
                     </div>
 
                     <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                      <span style="color: var(--text-muted); font-size: 9px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-building-columns"></i> Banka Hesabı</span>
+                      <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-building-columns"></i> Banka Hesabı</span>
                       <strong style="color: #60a5fa;">$${bankFormatted}</strong>
                     </div>
 
                     <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); grid-column: span 2;">
-                      <span style="color: var(--text-muted); font-size: 9px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-cake-candles"></i> Doğum Tarihi</span>
+                      <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px;"><i class="fa-solid fa-cake-candles"></i> Doğum Tarihi</span>
                       <strong style="color: var(--text-main);">${birthdate}</strong>
                     </div>
                   </div>

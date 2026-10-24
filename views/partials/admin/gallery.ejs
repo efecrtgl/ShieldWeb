@@ -2,7 +2,7 @@
   <section id="gallery-settings-content" class="admin-section-inner">
     <div class="main-layout">
       <div class="content-panel" style="grid-column: span 6;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;"><i class="fa-solid fa-plus-circle text-sky-400"></i> Galeri Resmi Ekle</h3>
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; "><i class="fa-solid fa-plus-circle text-sky-400"></i> Galeri Resmi Ekle</h3>
         <form action="/admin/website/gallery/add" method="POST" style="display: flex; flex-direction: column; gap: 20px;">
           <input type="hidden" name="imageUrl" id="gallery-imageUrl">
 
@@ -31,7 +31,7 @@
         </form>
       </div>
       <div class="content-panel" style="grid-column: span 6; overflow-x: auto; padding: 24px;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase;"><i class="fa-solid fa-list-ol text-sky-400"></i> Galeri Listesi</h3>
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; "><i class="fa-solid fa-list-ol text-sky-400"></i> Galeri Listesi</h3>
         <span style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 12px;"><i class="fa-solid fa-info-circle"></i> Görselleri sürükleyip bırakarak öncelik sıralamasını değiştirebilirsiniz.</span>
         <table class="admin-table">
           <thead>
@@ -49,7 +49,7 @@
                   <td><img src="<%= item.imageUrl %>" style="width: 80px; height: 45px; border-radius: 6px; object-fit: cover;"></td>
                   <td>
                     <form action="/admin/website/gallery/delete/<%= item._id %>" method="POST">
-                      <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 10px;"><i class="fa-solid fa-trash"></i> Sil</button>
+                      <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 6px 12px; border-radius: 8px; font-size: 11px;"><i class="fa-solid fa-trash"></i> Sil</button>
                     </form>
                   </td>
                 </tr>

@@ -10,7 +10,13 @@ const { redactUrl } = require("./utils/http");
 
 const BODY_LIMIT = "50mb";
 const UNLOGGED_EXTENSIONS = new Set([".js", ".css", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".woff", ".woff2", ".ttf"]);
-const UNLOGGED_PATH_PREFIXES = ["/admin/chat/stream", "/admin/api/active-staff/sse", "/api/fivem/screen/"];
+// The bridge polls every second; its activity is summarized by the bridge routes instead of one log line per poll.
+const UNLOGGED_PATH_PREFIXES = ["/admin/chat/stream", "/admin/api/active-staff/sse", "/api/fivem/screen/", "/api/fivem/bridge/poll", "/healthz", "/readyz"];
+
+// The FiveM bridge signs the exact request bytes, so keep them for HMAC verification.
+function keepBridgeRawBody(req, res, buf) {
+  if (req.url.startsWith("/api/fivem/bridge/")) req.rawBody = buf;
+}
 
 function requestLogger(req, res, next) {
   const start = Date.now();
@@ -50,8 +56,10 @@ function createApp({ sessionStore }) {
   app.disable("x-powered-by");
 
   app.use(contentSecurityPolicy);
+  // Health probes come before sessions, site context and maintenance mode.
+  app.use(require("./routes/health"));
   app.use(express.static(path.join(__dirname, "public")));
-  app.use(express.json({ limit: BODY_LIMIT }));
+  app.use(express.json({ limit: BODY_LIMIT, verify: keepBridgeRawBody }));
   app.use(express.urlencoded({ limit: BODY_LIMIT, extended: true }));
   app.use(sessionMiddleware(sessionStore));
   app.use(csrfProtection());

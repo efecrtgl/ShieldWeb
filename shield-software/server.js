@@ -4,402 +4,250 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
+// Protocol version reported to the panel. v2 = command results are sent back with the next poll.
+const BRIDGE_VERSION = 2;
+const RESOURCE_VERSION = "2.1.0";
+const REQUEST_TIMEOUT_MS = 10000;
+const MAX_PENDING_RESULTS = 200;
+const CHARACTER_CHUNK_SIZE = 50;
+const FULL_SYNC_INTERVAL_MS = 60000;
+const SHARED_SYNC_INTERVAL_MS = 600000;
+const MAX_ITEM_AMOUNT = 1000;
+const MAX_MONEY_AMOUNT = 100000000;
+const PERMA_BAN_EXPIRY = 2147483647;
+
 const isFiveM = typeof GetResourcePath !== "undefined";
+// Unit tests load this file outside FiveM with SHIELD_BRIDGE_TEST=1: nothing is started, internals are exported.
+const isTest = !isFiveM && process.env.SHIELD_BRIDGE_TEST === "1";
 
 let config = {
-  apiUrl: "http://localhost:3000/api/fivem/bridge/poll",
+  apiUrl: "",
   secretKey: "",
   pollInterval: 1000,
-  serverStatus: true,
   dbLock: false,
-  commands: {},
   locations: {}
 };
 
 function getTimestamp() {
   const d = new Date();
-  const pad = (n) => (n < 10 ? "0" + n : n);
+  const pad = n => (n < 10 ? "0" + n : n);
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 function log(msg, colorCode = "^7") {
-  const time = getTimestamp();
-  const header = `^7[${time}] ^5[SHIELD-WEB v1.0.0]^7 `;
+  const header = `^7[${getTimestamp()}] ^5[SHIELD-WEB v${RESOURCE_VERSION}]^7 `;
   if (isFiveM) {
     console.log(`${header}${colorCode}${msg}^7`);
-  } else {
-    const termColors = {
-      "^1": "\x1b[31m",
-      "^2": "\x1b[32m",
-      "^3": "\x1b[33m",
-      "^4": "\x1b[34m",
-      "^5": "\x1b[36m",
-      "^6": "\x1b[35m",
-      "^7": "\x1b[0m"
-    };
-    let formattedMsg = `${header}${colorCode}${msg}`;
-    for (const [code, ansi] of Object.entries(termColors)) {
-      formattedMsg = formattedMsg.split(code).join(ansi);
-    }
-    console.log(`${formattedMsg}\x1b[0m`);
+    return;
   }
+  if (isTest) return;
+  const termColors = { "^1": "\x1b[31m", "^2": "\x1b[32m", "^3": "\x1b[33m", "^4": "\x1b[34m", "^5": "\x1b[36m", "^6": "\x1b[35m", "^7": "\x1b[0m" };
+  let formatted = `${header}${colorCode}${msg}`;
+  for (const [code, ansi] of Object.entries(termColors)) formatted = formatted.split(code).join(ansi);
+  console.log(`${formatted}\x1b[0m`);
 }
 
-// Config Loader
-try {
-  let configPath = "";
-  if (isFiveM) {
-    configPath = path.join(GetResourcePath(GetCurrentResourceName()), "config.json");
-  } else {
-    configPath = path.join(__dirname, "config.json");
+function loadConfig() {
+  const configPath = isFiveM
+    ? path.join(GetResourcePath(GetCurrentResourceName()), "config.json")
+    : path.join(__dirname, "config.json");
+  if (!fs.existsSync(configPath)) {
+    log(`[HATA] config.json bulunamadı (${configPath}). config.example.json dosyasını kopyalayıp doldurun.`, "^1");
+    return false;
   }
-  if (fs.existsSync(configPath)) {
-    const loadedConfig = JSON.parse(fs.readFileSync(configPath, "utf8"));
-    config = { ...config, ...loadedConfig };
+  try {
+    config = { ...config, ...JSON.parse(fs.readFileSync(configPath, "utf8")) };
+  } catch (err) {
+    log("[HATA] config.json okunamadı: " + err.message, "^1");
+    return false;
   }
-} catch (err) {
-  log("[ERROR] Config yuklenirken hata: " + err.message, "^1");
+  if (!config.apiUrl || !/^https?:\/\//.test(config.apiUrl)) {
+    log("[HATA] config.json: apiUrl geçerli bir http(s) adresi olmalıdır.", "^1");
+    return false;
+  }
+  if (!config.secretKey || config.secretKey.startsWith("CHANGE_ME")) {
+    log("[HATA] config.json: secretKey ayarlanmamış (panel .env içindeki FIVEM_BRIDGE_SECRET ile aynı olmalı).", "^1");
+    return false;
+  }
+  return true;
+}
+
+// Panel endpoint next to the configured poll URL, e.g. ".../bridge/poll" -> ".../bridge/characters".
+function bridgeUrl(endpoint) {
+  return config.apiUrl.replace(/\/poll\/?$/, `/${endpoint}`);
 }
 
 /* ==========================================================================
-   DATABASE LAYER (NATIVE OXMYSQL ASYNC / PROMISE WRAPPER)
+   DATABASE LAYER (oxmysql)
    ========================================================================== */
 
 let dbReady = false;
 let hasAdminIdentifiersTable = false;
 
-// Mock database storage for Standalone Node.js mode
-const mockPlayersDb = [
-  {
-    citizenid: "KRX13727",
-    cid: 1,
-    license: "license:4321c6211d42b82a8ecf53bd537d148d3626baad",
-    steam: "steam:110000113253354",
-    discord: "discord:212223472498114560",
-    name: "Kerem U",
-    money: JSON.stringify({ cash: 1500, bank: 25000, crypto: 0 }),
-    charinfo: JSON.stringify({ firstname: "Kerem", lastname: "U", birthdate: "1995-05-12", gender: 0, phone: "5551234" }),
-    job: JSON.stringify({ name: "police", label: "LSPD", grade: { name: "Memur", level: 1 }, onduty: true }),
-    gang: JSON.stringify({ name: "none", label: "Yok", grade: { name: "Yok", level: 0 } }),
-    metadata: JSON.stringify({ playtime: 240, hunger: 80, thirst: 85 }),
-    inventory: JSON.stringify([
-      { name: "phone", label: "Telefon", count: 1, amount: 1, slot: 1 },
-      { name: "water_bottle", label: "Su Şişesi", count: 3, amount: 3, slot: 2 }
-    ]),
-    last_updated: new Date()
+class DbLockedError extends Error {
+  constructor() {
+    super("Veritabanı kilitli (config.dbLock = true); SQL işlemi yapılmadı.");
   }
-];
-
-function mockDbQuery(sql, params = []) {
-  return new Promise((resolve) => {
-    const upperSql = sql.toUpperCase();
-    if (upperSql.includes("SELECT 1")) {
-      return resolve([{ 1: 1 }]);
-    }
-    if (upperSql.includes("SHOW TABLES")) {
-      return resolve([
-        { Tables_in_db: "players" },
-        { Tables_in_db: "fx_admin_identifiers" },
-        { Tables_in_db: "player_vehicles" },
-        { Tables_in_db: "tgiann_bank_player_accounts" },
-        { Tables_in_db: "playerskins" }
-      ]);
-    }
-    if (upperSql.includes("FROM PLAYERS")) {
-      if (params.length > 0) {
-        const filterVal = params[0];
-        const filtered = mockPlayersDb.filter(
-          (p) => p.citizenid === filterVal || p.license === filterVal
-        );
-        return resolve(filtered);
-      }
-      return resolve([...mockPlayersDb]);
-    }
-    if (upperSql.includes("FROM PLAYER_VEHICLES")) {
-      return resolve([
-        { citizenid: "KRX13727", plate: "34ABC123", vehicle: "adder", garage: "pillboxgarage", state: 1, fuel: 100, mileage: 12.5 }
-      ]);
-    }
-    if (upperSql.includes("FROM TGIANN_BANK_PLAYER_ACCOUNTS")) {
-      return resolve([
-        { citizenid: "KRX13727", iban: "TR01 0000 0000 1234 5678" }
-      ]);
-    }
-    if (upperSql.includes("FROM PLAYERSKINS")) {
-      return resolve([
-        { citizenid: "KRX13727", model: "mp_m_freemode_01" }
-      ]);
-    }
-    resolve([]);
-  });
 }
 
-/**
- * Executes a SQL query returning an array of rows.
- */
-async function dbQuery(query, params = []) {
-  if (config.dbLock) {
-    log("[DB-LOCK] Veritabanı kilitli olduğu için sorgu atlandı.", "^3");
-    return [];
-  }
-  if (!isFiveM) return mockDbQuery(query, params);
-
+function oxmysql() {
   const ox = global.exports && global.exports.oxmysql;
   if (!ox) throw new Error("oxmysql export'u bulunamadı");
+  return ox;
+}
 
-  if (typeof ox.query_async === "function") {
-    return await ox.query_async(query, params);
-  }
-
+async function dbQuery(query, params = []) {
+  if (config.dbLock) throw new DbLockedError();
+  const ox = oxmysql();
+  if (typeof ox.query_async === "function") return (await ox.query_async(query, params)) || [];
   return new Promise((resolve, reject) => {
     try {
-      ox.query(query, params, (result) => {
-        resolve(result || []);
-      });
+      ox.query(query, params, result => resolve(result || []));
     } catch (err) {
       reject(err);
     }
   });
 }
 
-/**
- * Executes a SQL query returning a single row.
- */
 async function dbSingle(query, params = []) {
-  if (config.dbLock) return null;
-  if (!isFiveM) {
-    const rows = await mockDbQuery(query, params);
-    return rows && rows.length > 0 ? rows[0] : null;
-  }
-
-  const ox = global.exports && global.exports.oxmysql;
-  if (ox && typeof ox.single_async === "function") {
-    return await ox.single_async(query, params);
-  }
-
+  if (config.dbLock) throw new DbLockedError();
+  const ox = oxmysql();
+  if (typeof ox.single_async === "function") return (await ox.single_async(query, params)) || null;
   const rows = await dbQuery(query, params);
-  return rows && rows.length > 0 ? rows[0] : null;
+  return rows.length > 0 ? rows[0] : null;
 }
 
-/**
- * Executes a SQL query returning a single scalar value.
- */
-async function dbScalar(query, params = []) {
-  if (config.dbLock) return null;
-  if (!isFiveM) {
-    const rows = await mockDbQuery(query, params);
-    if (!rows || rows.length === 0) return null;
-    return Object.values(rows[0])[0];
-  }
-
-  const ox = global.exports && global.exports.oxmysql;
-  if (ox && typeof ox.scalar_async === "function") {
-    return await ox.scalar_async(query, params);
-  }
-
-  const row = await dbSingle(query, params);
-  return row ? Object.values(row)[0] : null;
-}
-
-/**
- * Executes an INSERT/UPDATE/DELETE query returning affected rows or insertId.
- */
+// Returns the number of affected rows.
 async function dbExecute(query, params = []) {
-  if (config.dbLock) return 0;
-  if (!isFiveM) return mockDbQuery(query, params);
-
-  const ox = global.exports && global.exports.oxmysql;
-  if (ox && typeof ox.update_async === "function") {
-    return await ox.update_async(query, params);
-  }
-  return await dbQuery(query, params);
+  if (config.dbLock) throw new DbLockedError();
+  const ox = oxmysql();
+  const result = typeof ox.update_async === "function" ? await ox.update_async(query, params) : await dbQuery(query, params);
+  if (typeof result === "number") return result;
+  return result && typeof result.affectedRows === "number" ? result.affectedRows : 0;
 }
 
-/**
- * Verifies and initializes MariaDB tables and detects structure.
- */
 async function initDatabase() {
   if (config.dbLock) {
-    log("[DATABASE] 🔒 KİLİTLİ (SQL Okuma/Yazma Kapalı - Sadece RAM & Canlı Mod)", "^3");
+    log("[DATABASE] KİLİTLİ: SQL okuma/yazma kapalı; yalnızca çevrimiçi oyuncu verisi gönderilecek.", "^3");
     return;
   }
-
-  if (!isFiveM) {
-    dbReady = true;
-    hasAdminIdentifiersTable = true;
-    log("Standalone Node.js test modu: Mock veritabanı aktif.", "^2");
-    return;
-  }
-
-  let connected = false;
   for (let attempt = 1; attempt <= 25; attempt++) {
     try {
       if (GetResourceState("oxmysql") === "started") {
-        await dbScalar("SELECT 1");
-        connected = true;
+        await dbQuery("SELECT 1");
+        dbReady = true;
         break;
       }
     } catch (e) {
-      // Waiting for database pool
+      // oxmysql pool not ready yet
     }
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 1000));
   }
+  if (!dbReady) {
+    log("[UYARI] oxmysql bağlantısı kurulamadı; karakter senkronizasyonu ve çevrimdışı işlemler çalışmayacak.", "^3");
+    return;
+  }
+  log("MariaDB / oxmysql bağlantısı doğrulandı.", "^2");
+  try {
+    const rows = await dbQuery("SHOW TABLES LIKE 'fx_admin_identifiers'");
+    hasAdminIdentifiersTable = rows.length > 0;
+    if (hasAdminIdentifiersTable) log("Oyuncu identifier tablosu 'fx_admin_identifiers' devrede.", "^2");
+  } catch (err) {
+    hasAdminIdentifiersTable = false;
+  }
+  setTimeout(() => syncUpdatedCharacters(true), 500);
+}
 
-  if (connected) {
-    dbReady = true;
-    log("MariaDB / oxmysql bağlantısı başarıyla doğrulandı.", "^2");
-
-    try {
-      const checkAdminTable = await dbQuery("SHOW TABLES LIKE 'fx_admin_identifiers'");
-      if (checkAdminTable && checkAdminTable.length > 0) {
-        hasAdminIdentifiersTable = true;
-        log("Oyuncu identifier tablosu 'fx_admin_identifiers' devrede.", "^2");
-      }
-    } catch (err) {
-      hasAdminIdentifiersTable = false;
-    }
-
-    // Trigger full character sync immediately once DB is connected & ready
-    setTimeout(() => {
-      syncUpdatedCharacters(true);
-    }, 500);
-  } else {
-    log("[WARN] oxmysql bağlantısı henüz hazır değil. Arka planda bekleniyor...", "^3");
+function parseJson(value, fallback) {
+  if (value && typeof value === "object") return value;
+  if (typeof value !== "string") return fallback;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" ? parsed : fallback;
+  } catch (e) {
+    return fallback;
   }
 }
 
-setTimeout(initDatabase, 500);
-
 /* ==========================================================================
-   FRAMEWORK & PLAYER HELPER FUNCTIONS (ZERO RESMON / DIRECT IN-MEMORY)
+   FRAMEWORK & PLAYER HELPERS (QBCore)
    ========================================================================== */
 
-const playerIdentifiersCache = new Map(); // citizenid -> { discord, steam, license }
-const licenseIdentifiersCache = new Map(); // license -> { discord, steam }
+const playerIdentifiersCache = new Map(); // citizenid -> { discord, steam, license, fivem }
+const licenseIdentifiersCache = new Map(); // license -> { discord, steam, fivem }
 
 function getQBCore() {
   if (!isFiveM) return null;
   try {
-    if (GetResourceState("qb-core") === "started") {
-      return exports["qb-core"].GetCoreObject();
-    }
+    if (GetResourceState("qb-core") === "started") return exports["qb-core"].GetCoreObject();
   } catch (e) { }
   return null;
 }
 
-/**
- * Returns the live QBCore player object from RAM memory (0ms lag, 0 resmon).
- */
+// Live QBCore player by server id or citizenid.
 function getLiveQBCorePlayer(target) {
-  if (!target) return null;
+  if (target === undefined || target === null || target === "") return null;
   const QBCore = getQBCore();
   if (!QBCore || !QBCore.Functions) return null;
-
   try {
-    const strTarget = target.toString().trim();
-    if (!isNaN(Number(strTarget)) && strTarget.length <= 5) {
-      const p = QBCore.Functions.GetPlayer(parseInt(strTarget, 10));
+    const str = String(target).trim();
+    if (/^\d{1,6}$/.test(str)) {
+      const p = QBCore.Functions.GetPlayer(parseInt(str, 10));
       if (p) return p;
     }
     if (QBCore.Functions.GetPlayerByCitizenId) {
-      const p = QBCore.Functions.GetPlayerByCitizenId(strTarget);
+      const p = QBCore.Functions.GetPlayerByCitizenId(str);
       if (p) return p;
     }
   } catch (e) { }
   return null;
 }
 
-/**
- * Finds online player by either server id or citizenid.
- */
 function getOnlinePlayer(targetPlayer, citizenid) {
-  if (targetPlayer) {
-    const p = getLiveQBCorePlayer(targetPlayer);
-    if (p) return p;
-  }
-  if (citizenid) {
-    const p = getLiveQBCorePlayer(citizenid);
-    if (p) return p;
-  }
-  return null;
+  return getLiveQBCorePlayer(targetPlayer) || getLiveQBCorePlayer(citizenid) || null;
 }
 
-function isPlayerOnline(targetId) {
-  if (targetId === undefined || targetId === null || targetId === "") return false;
-  if (!isFiveM) return true;
-  const strId = targetId.toString();
-  const playersFunc = typeof getPlayers === "function" ? getPlayers : (typeof GetPlayers === "function" ? GetPlayers : null);
-  if (playersFunc) {
-    try {
-      const players = playersFunc();
-      if (players && typeof players[Symbol.iterator] === "function") {
-        for (const p of players) {
-          if (p.toString() === strId) return true;
-        }
-      }
-    } catch (e) { }
+function playerSource(player) {
+  return parseInt(player.PlayerData.source, 10);
+}
+
+function isServerIdOnline(serverId) {
+  if (!isFiveM || !/^\d{1,6}$/.test(String(serverId))) return false;
+  try {
+    return !!GetPlayerName(String(serverId));
+  } catch (e) {
+    return false;
   }
-  return false;
 }
 
 function cleanIdentifier(id, prefix) {
   if (!id) return "";
   const str = String(id).trim();
-  if (prefix && str.toLowerCase().startsWith(prefix.toLowerCase() + ":")) {
-    return str.slice(prefix.length + 1);
-  }
+  if (prefix && str.toLowerCase().startsWith(prefix.toLowerCase() + ":")) return str.slice(prefix.length + 1);
   return str.replace(/^(discord|steam|license|fivem):/i, "");
 }
 
-function getPlayerIdentifierByType(source, type) {
-  if (!isFiveM || !source) return "";
-  const prefix = `${type}:`;
-  const count = typeof GetNumPlayerIdentifiers === "function" ? GetNumPlayerIdentifiers(source) : 0;
+function readIdentifiers(source) {
+  const result = { all: [], discord: "", steam: "", license: "", fivem: "" };
+  if (!isFiveM || typeof GetNumPlayerIdentifiers !== "function") return result;
+  const count = GetNumPlayerIdentifiers(source);
   for (let i = 0; i < count; i++) {
     const id = GetPlayerIdentifier(source, i);
-    if (id && id.startsWith(prefix)) {
-      return id;
+    if (!id) continue;
+    result.all.push(id);
+    for (const type of ["discord", "steam", "license", "fivem"]) {
+      if (id.startsWith(type + ":") && !result[type]) result[type] = id;
     }
   }
-  return "";
+  return result;
 }
 
-/**
- * Updates player identifiers in memory and persists to fx_admin_identifiers
- * without touching players table (preventing unknown column crashes).
- */
+// Caches identifiers and persists them to fx_admin_identifiers (the players table has no identifier columns).
 async function updatePlayerIdentifiers(source, citizenid) {
-  let discord = "";
-  let steam = "";
-  let license = "";
-  let fivem = "";
-
-  if (isFiveM) {
-    const count = typeof GetNumPlayerIdentifiers === "function" ? GetNumPlayerIdentifiers(source) : 0;
-    for (let i = 0; i < count; i++) {
-      const id = GetPlayerIdentifier(source, i);
-      if (id) {
-        if (id.startsWith("discord:")) discord = id;
-        else if (id.startsWith("steam:")) steam = id;
-        else if (id.startsWith("license:")) license = id;
-        else if (id.startsWith("fivem:")) fivem = id;
-      }
-    }
-  } else {
-    discord = "discord:212223472498114560";
-    steam = "steam:110000113253354";
-    license = "license:4321c6211d42b82a8ecf53bd537d148d3626baad";
-    fivem = "fivem:13806981";
-  }
-
-  if (citizenid) {
-    playerIdentifiersCache.set(citizenid, { discord, steam, license, fivem });
-  }
-  if (license) {
-    licenseIdentifiersCache.set(license, { discord, steam, fivem });
-  }
-
-  if (hasAdminIdentifiersTable && license && (discord || steam || fivem)) {
+  const { discord, steam, license, fivem } = readIdentifiers(source);
+  if (citizenid) playerIdentifiersCache.set(citizenid, { discord, steam, license, fivem });
+  if (license) licenseIdentifiersCache.set(license, { discord, steam, fivem });
+  if (dbReady && hasAdminIdentifiersTable && license && (discord || steam || fivem)) {
     try {
       await dbExecute(
         `INSERT INTO fx_admin_identifiers (license, discord, steam, fivem, last_seen)
@@ -407,1589 +255,932 @@ async function updatePlayerIdentifiers(source, citizenid) {
          ON DUPLICATE KEY UPDATE discord = VALUES(discord), steam = VALUES(steam), fivem = VALUES(fivem), last_seen = UNIX_TIMESTAMP()`,
         [license, discord || null, steam || null, fivem || null]
       );
-    } catch (e) { }
+    } catch (e) {
+      log(`[UYARI] fx_admin_identifiers güncellenemedi: ${e.message}`, "^3");
+    }
   }
 }
 
-/**
- * Retrieves the live online player list with enriched character and identifier data.
- */
+function numberOrNull(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function serverPlayerIds() {
+  const fn = typeof getPlayers === "function" ? getPlayers : (typeof GetPlayers === "function" ? GetPlayers : null);
+  if (!fn) return [];
+  try {
+    const players = fn();
+    return players && typeof players[Symbol.iterator] === "function" ? [...players].map(String) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function pedState(serverId) {
+  const state = { coords: null, health: null, armor: null };
+  if (typeof GetPlayerPed !== "function") return state;
+  try {
+    const ped = GetPlayerPed(serverId);
+    if (!ped) return state;
+    if (typeof GetEntityCoords === "function") {
+      const c = GetEntityCoords(ped);
+      const [x, y, z] = Array.isArray(c) ? c : [c && c.x, c && c.y, c && c.z];
+      if ([x, y, z].every(Number.isFinite)) {
+        state.coords = { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)), z: Number(z.toFixed(2)) };
+      }
+    }
+    if (typeof GetEntityHealth === "function") state.health = numberOrNull(GetEntityHealth(ped));
+    if (typeof GetPedArmour === "function") state.armor = numberOrNull(GetPedArmour(ped));
+  } catch (e) { }
+  return state;
+}
+
+// Live online players. A value the server could not read is null, never a placeholder.
 function getPlayersList() {
   const list = [];
-  const playersFunc = typeof getPlayers === "function" ? getPlayers : (typeof GetPlayers === "function" ? GetPlayers : null);
-
-  if (playersFunc) {
+  for (const strId of serverPlayerIds()) {
     try {
-      const players = playersFunc();
-      if (players && typeof players[Symbol.iterator] === "function") {
-        for (const p of players) {
-          const strId = p.toString();
-          const numId = parseInt(strId, 10) || 1;
-          const pName = typeof GetPlayerName === "function" ? GetPlayerName(p) : "Bilinmiyor";
-          const pPing = typeof GetPlayerPing === "function" ? GetPlayerPing(p) : 0;
-          const identifiers = [];
-          let rawDiscord = "";
-          let rawSteam = "";
-          let rawLicense = "";
-          let rawFivem = "";
+      const ids = readIdentifiers(strId);
+      const ped = pedState(strId);
+      const entry = {
+        id: strId,
+        serverId: parseInt(strId, 10),
+        name: typeof GetPlayerName === "function" ? GetPlayerName(strId) || null : null,
+        ping: typeof GetPlayerPing === "function" ? numberOrNull(GetPlayerPing(strId)) : null,
+        identifiers: ids.all,
+        discord: cleanIdentifier(ids.discord, "discord") || null,
+        discordId: cleanIdentifier(ids.discord, "discord") || null,
+        steam: cleanIdentifier(ids.steam, "steam") || null,
+        license: ids.license || null,
+        fivem: cleanIdentifier(ids.fivem, "fivem") || null,
+        coords: ped.coords ? `vec3(${ped.coords.x}, ${ped.coords.y}, ${ped.coords.z})` : null,
+        coordsObj: ped.coords,
+        health: ped.health,
+        armor: ped.armor,
+        characterLoaded: false,
+        citizenid: null,
+        charName: null,
+        job: null, job_name: null, job_label: null, job_grade: null, job_grade_name: null,
+        gang: null, gang_name: null, gang_label: null,
+        cash: null, bank: null, crypto: null,
+        phone: null, hunger: null, thirst: null
+      };
 
-          if (typeof GetNumPlayerIdentifiers === "function" && typeof GetPlayerIdentifier === "function") {
-            const count = GetNumPlayerIdentifiers(p);
-            for (let i = 0; i < count; i++) {
-              const ident = GetPlayerIdentifier(p, i);
-              if (ident) {
-                identifiers.push(ident);
-                if (ident.startsWith("discord:")) rawDiscord = ident;
-                else if (ident.startsWith("steam:")) rawSteam = ident;
-                else if (ident.startsWith("license:")) rawLicense = ident;
-                else if (ident.startsWith("fivem:")) rawFivem = ident;
-              }
-            }
-          }
-
-          const cleanDiscord = cleanIdentifier(rawDiscord, "discord");
-          const cleanSteam = cleanIdentifier(rawSteam, "steam");
-          const cleanLicense = cleanIdentifier(rawLicense, "license");
-          const cleanFivem = cleanIdentifier(rawFivem, "fivem");
-
-          let citizenid = "";
-          let charName = pName;
-          let jobStr = "İşsiz";
-          let jobName = "unemployed";
-          let jobLabel = "İşsiz";
-          let jobGrade = 0;
-          let jobGradeName = "Yok";
-          let gangStr = "Yok";
-          let gangName = "none";
-          let gangLabel = "Yok";
-          let cash = 0;
-          let bank = 0;
-          let crypto = 0;
-          let phone = "";
-          let health = 200;
-          let armor = 0;
-          let hunger = 100;
-          let thirst = 100;
-
-          const livePlayer = getLiveQBCorePlayer(p);
-          if (livePlayer && livePlayer.PlayerData) {
-            const pData = livePlayer.PlayerData;
-            citizenid = pData.citizenid || "";
-            if (pData.charinfo) {
-              const fn = pData.charinfo.firstname || "";
-              const ln = pData.charinfo.lastname || "";
-              if (fn || ln) charName = `${fn} ${ln}`.trim();
-              phone = pData.charinfo.phone || "";
-            }
-            if (pData.job) {
-              jobName = pData.job.name || "unemployed";
-              jobLabel = pData.job.label || jobName;
-              jobGrade = (pData.job.grade && pData.job.grade.level !== undefined) ? pData.job.grade.level : 0;
-              jobGradeName = (pData.job.grade && pData.job.grade.name) || "Yok";
-              jobStr = `${jobLabel} (${jobGradeName})`;
-            }
-            if (pData.gang) {
-              gangName = pData.gang.name || "none";
-              gangLabel = pData.gang.label || gangName;
-              gangStr = gangLabel;
-            }
-            if (pData.money) {
-              cash = Number(pData.money.cash) || 0;
-              bank = Number(pData.money.bank) || 0;
-              crypto = Number(pData.money.crypto) || 0;
-            }
-            if (pData.metadata) {
-              health = pData.metadata.health !== undefined ? Number(pData.metadata.health) : 200;
-              armor = pData.metadata.armor !== undefined ? Number(pData.metadata.armor) : 0;
-              hunger = pData.metadata.hunger !== undefined ? Number(pData.metadata.hunger) : 100;
-              thirst = pData.metadata.thirst !== undefined ? Number(pData.metadata.thirst) : 100;
-            }
-          }
-
-          let coordsStr = "vec3(0.0, 0.0, 0.0)";
-          let coordsObj = { x: 0, y: 0, z: 0 };
-          if (typeof GetPlayerPed === "function" && typeof GetEntityCoords === "function") {
-            try {
-              const ped = GetPlayerPed(p);
-              if (ped && ped !== 0) {
-                const c = GetEntityCoords(ped);
-                if (c) {
-                  const x = Array.isArray(c) ? c[0] : (c.x || 0);
-                  const y = Array.isArray(c) ? c[1] : (c.y || 0);
-                  const z = Array.isArray(c) ? c[2] : (c.z || 0);
-                  coordsObj = { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)), z: Number(z.toFixed(2)) };
-                  coordsStr = `vec3(${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)})`;
-                }
-              }
-            } catch (e) { }
-          }
-
-          list.push({
-            id: strId,
-            serverId: numId,
-            name: pName,
-            charName: charName,
-            characterName: charName,
-            citizenid: citizenid,
-            discord: cleanDiscord || rawDiscord,
-            discordId: cleanDiscord,
-            discord_id: cleanDiscord,
-            raw_discord: rawDiscord,
-            steam: cleanSteam || rawSteam,
-            steamId: cleanSteam,
-            steam_id: cleanSteam,
-            raw_steam: rawSteam,
-            license: rawLicense,
-            license_id: cleanLicense,
-            fivem: cleanFivem || rawFivem,
-            fivem_id: cleanFivem,
-            ping: pPing,
-            job: jobStr,
-            job_name: jobName,
-            job_label: jobLabel,
-            job_grade: jobGrade,
-            job_grade_name: jobGradeName,
-            gang: gangStr,
-            gang_name: gangName,
-            gang_label: gangLabel,
-            cash: cash,
-            bank: bank,
-            crypto: crypto,
-            phone: phone,
-            coords: coordsStr,
-            coordsStr: coordsStr,
-            coordsObj: coordsObj,
-            isFrozen: false,
-            health: health,
-            armor: armor,
-            hunger: hunger,
-            thirst: thirst,
-            identifiers: identifiers
+      const live = getLiveQBCorePlayer(strId);
+      if (live && live.PlayerData) {
+        const pData = live.PlayerData;
+        const charinfo = pData.charinfo || {};
+        const job = pData.job || null;
+        const gang = pData.gang || null;
+        const money = pData.money || {};
+        const meta = pData.metadata || {};
+        const fullName = `${charinfo.firstname || ""} ${charinfo.lastname || ""}`.trim();
+        Object.assign(entry, {
+          characterLoaded: true,
+          citizenid: pData.citizenid || null,
+          charName: fullName || null,
+          characterName: fullName || null,
+          phone: charinfo.phone || null,
+          cash: numberOrNull(money.cash),
+          bank: numberOrNull(money.bank),
+          crypto: numberOrNull(money.crypto),
+          hunger: numberOrNull(meta.hunger),
+          thirst: numberOrNull(meta.thirst)
+        });
+        if (job && job.name) {
+          const gradeName = job.grade && job.grade.name ? job.grade.name : null;
+          Object.assign(entry, {
+            job_name: job.name,
+            job_label: job.label || null,
+            job_grade: job.grade ? numberOrNull(job.grade.level) : null,
+            job_grade_name: gradeName,
+            job: `${job.label || job.name}${gradeName ? ` (${gradeName})` : ""}`
           });
         }
+        if (gang && gang.name) {
+          Object.assign(entry, { gang_name: gang.name, gang_label: gang.label || null, gang: gang.label || gang.name });
+        }
       }
+      list.push(entry);
     } catch (err) {
-      log("Error fetching players list: " + err.message, "^1");
+      log(`Oyuncu bilgisi okunamadı (ID ${strId}): ${err.message}`, "^1");
     }
   }
   return list;
 }
 
+function maxPlayers() {
+  if (typeof GetConvarInt !== "function") return null;
+  const value = GetConvarInt("sv_maxclients", 0);
+  return value > 0 ? value : null;
+}
+
 /* ==========================================================================
-   NETWORK & HTTP BRIDGE
+   NETWORK
    ========================================================================== */
 
-const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 20, keepAliveMsecs: 30000 });
-const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 20, keepAliveMsecs: 30000 });
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 10, keepAliveMsecs: 30000 });
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 10, keepAliveMsecs: 30000 });
 
-function makeRequest(urlStr, method, headers, bodyData) {
+class HttpStatusError extends Error {
+  constructor(status, body) {
+    let detail = body;
+    try {
+      const json = JSON.parse(body);
+      if (json && json.message) detail = json.message;
+    } catch (e) { }
+    super(`HTTP ${status}${detail ? " - " + String(detail).slice(0, 300) : ""}`);
+    this.status = status;
+  }
+}
+
+// Signs and POSTs `body` to the panel. The exact string that is signed is the one sent.
+function signedPost(urlStr, body) {
+  const dataStr = JSON.stringify(body);
+  const timestamp = Date.now().toString();
+  const signature = crypto.createHmac("sha256", config.secretKey).update(timestamp + dataStr).digest("hex");
+  const url = new URL(urlStr);
+  const isHttps = url.protocol === "https:";
+
   return new Promise((resolve, reject) => {
-    const url = new URL(urlStr);
-    const isHttps = url.protocol === "https:";
-    const protocol = isHttps ? https : http;
-    const dataStr = bodyData ? JSON.stringify(bodyData) : "";
-
-    const options = {
+    const req = (isHttps ? https : http).request({
       hostname: url.hostname,
       port: url.port || (isHttps ? 443 : 80),
       path: url.pathname + url.search,
-      method: method,
+      method: "POST",
       agent: isHttps ? httpsAgent : httpAgent,
+      timeout: REQUEST_TIMEOUT_MS,
       headers: {
-        "User-Agent": "FiveM-Server-Bridge/1.9.0",
-        ...headers,
+        "User-Agent": `Shield-FiveM-Bridge/${RESOURCE_VERSION}`,
         "Content-Type": "application/json",
-        "Content-Length": Buffer.byteLength(dataStr)
+        "Content-Length": Buffer.byteLength(dataStr),
+        "X-Bridge-Timestamp": timestamp,
+        "X-Bridge-Signature": signature
       }
-    };
-
-    const req = protocol.request(options, (res) => {
+    }, res => {
       let responseBody = "";
-      res.on("data", (chunk) => {
-        responseBody += chunk;
-      });
+      res.setEncoding("utf8");
+      res.on("data", chunk => { responseBody += chunk; });
       res.on("end", () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          try {
-            resolve(JSON.parse(responseBody));
-          } catch (err) {
-            resolve(responseBody);
-          }
-        } else {
-          reject(new Error(`HTTP Status ${res.statusCode}: ${responseBody}`));
+        if (res.statusCode < 200 || res.statusCode >= 300) return reject(new HttpStatusError(res.statusCode, responseBody));
+        try {
+          resolve(JSON.parse(responseBody));
+        } catch (err) {
+          reject(new Error("Panel geçersiz JSON döndürdü."));
         }
       });
     });
-
-    req.on("error", (err) => {
-      reject(err);
-    });
-
-    if (dataStr) {
-      req.write(dataStr);
-    }
-    req.end();
+    req.on("timeout", () => req.destroy(new Error(`Zaman aşımı (${REQUEST_TIMEOUT_MS} ms)`)));
+    req.on("error", reject);
+    req.end(dataStr);
   });
 }
 
-function formatErrorMessage(err) {
-  if (!err) return "Bilinmeyen hata";
-  let msg = err.message || err.toString();
-  try {
-    if (msg.includes("HTTP Status ")) {
-      const match = msg.match(/HTTP Status (\d+):\s*(.*)/);
-      if (match) {
-        const statusCode = match[1];
-        const rawBody = match[2];
-        try {
-          const json = JSON.parse(rawBody);
-          if (json && json.message) {
-            return `HTTP ${statusCode} - ${json.message}`;
-          }
-        } catch (e) {
-          if (rawBody) return `HTTP ${statusCode} - ${rawBody}`;
-        }
-        return `HTTP Status ${statusCode}`;
-      }
-    }
-  } catch (e) { }
-  return msg;
+// Logs the same error at most once a minute per channel.
+const lastErrors = {};
+function logThrottled(channel, message) {
+  const now = Date.now();
+  const last = lastErrors[channel];
+  if (last && last.message === message && now - last.at < 60000) return;
+  lastErrors[channel] = { message, at: now };
+  log(`[HATA] ${channel}: ${message}`, "^1");
+  if (/403/.test(message) && /IP/i.test(message)) {
+    log("[IP UYARISI] Bu sunucunun IP adresi panelin FIVEM_BRIDGE_ALLOWED_IP listesinde değil.", "^3");
+  }
 }
-
-let lastPollErrorMsg = null;
-let lastPollErrorTime = 0;
-let lastCharSyncErrorMsg = null;
-let lastCharSyncErrorTime = 0;
-let lastSharedSyncErrorMsg = null;
-let lastSharedSyncErrorTime = 0;
 
 /* ==========================================================================
-   DIRECT CODE EXECUTION (ZERO TERMINAL / RESMON IMPACT)
+   COMMAND EXECUTION
+   Every handler returns { ok, error?, data? }; the result is reported to the panel with the next poll.
    ========================================================================== */
 
-/**
- * Server-side transaction verification helpers for economy security.
- * Prevents unverified client amounts, invalid items, or negative balance exploits.
- */
-function verifyServerSideAmount(rawAmount, maxCap = 1000) {
-  if (rawAmount === undefined || rawAmount === null) return 0;
-  const num = Math.floor(Number(rawAmount));
-  if (isNaN(num) || !Number.isFinite(num) || num <= 0) return 0;
-  return Math.min(num, maxCap);
+const success = data => ({ ok: true, ...(data ? { data } : {}) });
+const failure = error => ({ ok: false, error });
+
+function verifyAmount(rawAmount, maxCap) {
+  const num = Number(rawAmount);
+  if (!Number.isInteger(num) || num <= 0) return { error: `Geçersiz miktar (${rawAmount}).` };
+  if (num > maxCap) return { error: `Miktar üst sınırı aşıyor (en fazla ${maxCap}).` };
+  return { value: num };
 }
 
-function verifyServerSideItem(rawItem, QBCoreObj) {
-  if (typeof rawItem !== "string") return "";
-  const cleaned = rawItem.trim().toLowerCase();
-  if (!/^[a-z0-9_.-]+$/.test(cleaned)) return "";
-  const QBC = QBCoreObj || getQBCore();
-  if (QBC && QBC.Shared && QBC.Shared.Items && Object.keys(QBC.Shared.Items).length > 0) {
-    if (!QBC.Shared.Items[cleaned]) return "";
-  }
-  return cleaned;
+// Item code validated against the server's item list when one is available.
+function verifyItem(rawItem) {
+  if (typeof rawItem !== "string") return { error: "Eşya kodu eksik." };
+  const code = rawItem.trim().toLowerCase();
+  if (!/^[a-z0-9_.-]{1,64}$/.test(code)) return { error: "Eşya kodu geçersiz karakter içeriyor." };
+  const items = getSharedData().items;
+  if (items && Object.keys(items).length > 0 && !items[code]) return { error: `'${code}' sunucunun eşya listesinde yok.` };
+  return { value: code };
 }
 
-/**
- * Server-side verified Economy Executants.
- * All amounts and items are strictly calculated and validated on the server.
- */
-async function serverAddPlayerItem(targetPlayer, citizenid, rawItem, rawAmount) {
-  const itemCode = verifyServerSideItem(rawItem);
-  const verifiedAmount = verifyServerSideAmount(rawAmount, 1000);
+function requireOnline(cmd) {
+  const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
+  return player ? { player } : { error: "Oyuncu şu anda oyunda değil veya karakteri yüklenmemiş." };
+}
 
-  if (!itemCode) {
-    log("[SECURITY ERROR] serverAddPlayerItem: Eşya kütükte bulunamadı veya geçersiz karakter", "^1");
-    return false;
-  }
-  if (verifiedAmount <= 0) {
-    log(`[SECURITY WARNING] serverAddPlayerItem: Geçersiz eşya miktarı (${rawAmount}) reddedildi`, "^1");
-    return false;
-  }
+async function readPlayerColumn(citizenid, column) {
+  const row = await dbSingle(`SELECT ${column} FROM players WHERE citizenid = ?`, [citizenid]);
+  return row ? parseJson(row[column], null) : undefined;
+}
 
-  const player = getOnlinePlayer(targetPlayer, citizenid);
+function sharedGroup(kind, name) {
+  const QBCore = getQBCore();
+  const all = QBCore && QBCore.Shared ? QBCore.Shared[kind] : null;
+  if (!all || Object.keys(all).length === 0) return { unknownList: true };
+  return all[name] ? { info: all[name] } : { missing: true };
+}
+
+async function setGroup(cmd, kind) {
+  const isJob = kind === "Jobs";
+  const name = typeof (isJob ? cmd.job : cmd.gang) === "string" ? (isJob ? cmd.job : cmd.gang).trim() : "";
+  const grade = Number(cmd.grade);
+  if (!name) return failure(isJob ? "Meslek adı eksik." : "Çete adı eksik.");
+  if (!Number.isInteger(grade) || grade < 0) return failure("Kademe 0 veya daha büyük bir tam sayı olmalıdır.");
+
+  const group = sharedGroup(kind, name);
+  if (group.missing) return failure(`'${name}' sunucuda tanımlı bir ${isJob ? "meslek" : "çete"} değil.`);
+  if (group.info && group.info.grades && !group.info.grades[String(grade)]) return failure(`'${name}' için ${grade} numaralı kademe tanımlı değil.`);
+
+  const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
   if (player) {
-    const srcNum = parseInt(player.PlayerData.source, 10);
-    let given = false;
+    const fn = isJob ? player.Functions.SetJob : player.Functions.SetGang;
+    if (typeof fn !== "function") return failure("Framework bu işlemi desteklemiyor.");
+    if (fn(name, grade) === false) return failure("Framework işlemi reddetti.");
+    player.Functions.Save();
+    queueCharacterSync(player.PlayerData.citizenid);
+    return success({ online: true });
+  }
+
+  if (!cmd.citizenid) return failure("Oyuncu çevrimiçi değil ve citizenid verilmedi.");
+  if (!group.info) return failure("Sunucunun meslek/çete listesi okunamadığı için çevrimdışı atama yapılamaz.");
+  const column = isJob ? "job" : "gang";
+  const current = await readPlayerColumn(cmd.citizenid, column);
+  if (current === undefined) return failure("Karakter oyun veritabanında bulunamadı.");
+  const gradeInfo = (group.info.grades && group.info.grades[String(grade)]) || {};
+  const value = { ...(current || {}), name, label: group.info.label || name, grade: { name: gradeInfo.name || null, level: grade }, isboss: !!gradeInfo.isboss };
+  if (isJob) {
+    value.onduty = current && typeof current.onduty === "boolean" ? current.onduty : !!group.info.defaultDuty;
+    value.payment = typeof gradeInfo.payment === "number" ? gradeInfo.payment : (current && current.payment) || 0;
+  }
+  await dbExecute(`UPDATE players SET ${column} = ? WHERE citizenid = ?`, [JSON.stringify(value), cmd.citizenid]);
+  queueCharacterSync(cmd.citizenid);
+  return success({ online: false });
+}
+
+async function giveItem(cmd) {
+  const item = verifyItem(cmd.item);
+  if (item.error) return failure(item.error);
+  const amount = verifyAmount(cmd.amount, MAX_ITEM_AMOUNT);
+  if (amount.error) return failure(amount.error);
+
+  const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
+  if (player) {
+    let given;
     if (GetResourceState("ox_inventory") === "started") {
-      try {
-        const ox = exports["ox_inventory"];
-        if (ox && typeof ox.AddItem === "function") {
-          given = ox.AddItem(srcNum, itemCode, verifiedAmount);
-        }
-      } catch (e) { }
-    }
-    if (!given && player.Functions && typeof player.Functions.AddItem === "function") {
-      player.Functions.AddItem(itemCode, verifiedAmount);
+      given = exports["ox_inventory"].AddItem(playerSource(player), item.value, amount.value);
+    } else if (typeof player.Functions.AddItem === "function") {
+      given = player.Functions.AddItem(item.value, amount.value);
       player.Functions.Save();
+    } else {
+      return failure("Envanter sistemi bulunamadı.");
     }
-    log(`[KOD MOTORU] Canlı oyuncuya eşya verildi: ${player.PlayerData.citizenid} -> ${itemCode} x${verifiedAmount}`, "^2");
-  } else if (citizenid) {
-    const citId = citizenid;
-    const row = await dbSingle("SELECT inventory FROM players WHERE citizenid = ?", [citId]);
-    if (row) {
-      let inv = [];
-      try { inv = typeof row.inventory === "string" ? JSON.parse(row.inventory) : (row.inventory || []); } catch (e) { }
-      if (!Array.isArray(inv)) inv = Object.values(inv);
-
-      const existing = inv.find((i) => i && (i.name === itemCode || i.item === itemCode));
-      if (existing) {
-        existing.count = (existing.count || existing.amount || 1) + verifiedAmount;
-        if (existing.amount !== undefined) existing.amount = existing.count;
-      } else {
-        const maxSlot = inv.reduce((max, i) => (i && i.slot > max ? i.slot : max), 0);
-        inv.push({
-          name: itemCode,
-          count: verifiedAmount,
-          amount: verifiedAmount,
-          slot: maxSlot + 1
-        });
-      }
-      await dbExecute("UPDATE players SET inventory = ? WHERE citizenid = ?", [JSON.stringify(inv), citId]);
-      log(`[KOD MOTORU - OFFLINE] Çevrimdışı oyuncuya eşya eklendi: ${citId} -> ${itemCode} x${verifiedAmount}`, "^2");
-    }
+    if (!given) return failure("Envanter eşyayı kabul etmedi (yer/ağırlık yetersiz olabilir).");
+    queueCharacterSync(player.PlayerData.citizenid);
+    return success({ online: true });
   }
-  queueCharacterSync(citizenid || (player && player.PlayerData.citizenid));
-  return true;
+
+  if (!cmd.citizenid) return failure("Oyuncu çevrimiçi değil ve citizenid verilmedi.");
+  if (GetResourceState("ox_inventory") === "started") return failure("ox_inventory kullanılırken çevrimdışı oyuncuya eşya verilemez.");
+  const inv = await readPlayerColumn(cmd.citizenid, "inventory");
+  if (inv === undefined) return failure("Karakter oyun veritabanında bulunamadı.");
+  const items = Array.isArray(inv) ? inv : Object.values(inv || {});
+  const existing = items.find(i => i && (i.name === item.value || i.item === item.value));
+  if (existing) {
+    existing.amount = Number(existing.amount ?? existing.count ?? 0) + amount.value;
+    if (existing.count !== undefined) existing.count = existing.amount;
+  } else {
+    const maxSlot = items.reduce((max, i) => (i && i.slot > max ? i.slot : max), 0);
+    items.push({ name: item.value, amount: amount.value, info: {}, slot: maxSlot + 1 });
+  }
+  await dbExecute("UPDATE players SET inventory = ? WHERE citizenid = ?", [JSON.stringify(items), cmd.citizenid]);
+  queueCharacterSync(cmd.citizenid);
+  return success({ online: false });
 }
 
-async function serverRemovePlayerItem(targetPlayer, citizenid, rawItem, rawAmount, rawSlot) {
-  const rawItemStr = typeof rawItem === "string" ? rawItem.trim().toLowerCase() : "";
-  const itemCode = verifyServerSideItem(rawItemStr) || rawItemStr;
-  const itemSlot = rawSlot !== undefined && rawSlot !== null ? Number(rawSlot) : null;
-  const verifiedAmount = verifyServerSideAmount(rawAmount, 1000) || 1;
+async function removeItem(cmd) {
+  const code = typeof (cmd.item || cmd.itemName) === "string" ? (cmd.item || cmd.itemName).trim().toLowerCase() : "";
+  const slot = cmd.slot !== undefined && cmd.slot !== null && cmd.slot !== "" ? Number(cmd.slot) : null;
+  if (!code && slot === null) return failure("Eşya kodu veya slot gereklidir.");
+  if (slot !== null && (!Number.isInteger(slot) || slot < 0)) return failure("Geçersiz slot.");
+  const amount = verifyAmount(cmd.amount === undefined ? 1 : cmd.amount, MAX_ITEM_AMOUNT);
+  if (amount.error) return failure(amount.error);
 
-  if (verifiedAmount <= 0) {
-    log(`[SECURITY WARNING] serverRemovePlayerItem: Geçersiz miktar (${rawAmount}) reddedildi`, "^1");
-    return false;
-  }
-
-  const player = getOnlinePlayer(targetPlayer, citizenid);
+  const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
   if (player) {
-    const srcNum = parseInt(player.PlayerData.source, 10);
-    let removed = false;
+    let removed;
     if (GetResourceState("ox_inventory") === "started") {
-      try {
-        const ox = exports["ox_inventory"];
-        if (ox && typeof ox.RemoveItem === "function") {
-          ox.RemoveItem(srcNum, itemCode, verifiedAmount, null, itemSlot);
-          removed = true;
-        }
-      } catch (e) { }
-    }
-    if (!removed && player.Functions && typeof player.Functions.RemoveItem === "function") {
-      player.Functions.RemoveItem(itemCode, verifiedAmount, itemSlot);
+      removed = exports["ox_inventory"].RemoveItem(playerSource(player), code, amount.value, null, slot === null ? undefined : slot);
+    } else if (typeof player.Functions.RemoveItem === "function") {
+      removed = player.Functions.RemoveItem(code, amount.value, slot === null ? undefined : slot);
       player.Functions.Save();
+    } else {
+      return failure("Envanter sistemi bulunamadı.");
     }
-    log(`[KOD MOTORU] Canlı oyuncudan eşya silindi: ${itemCode || 'Slot ' + itemSlot} x${verifiedAmount}`, "^2");
-  } else if (citizenid) {
-    const citId = citizenid;
-    const row = await dbSingle("SELECT inventory FROM players WHERE citizenid = ?", [citId]);
-    if (row) {
-      let inv = [];
-      try { inv = typeof row.inventory === "string" ? JSON.parse(row.inventory) : (row.inventory || []); } catch (e) { }
-      if (!Array.isArray(inv)) inv = Object.values(inv);
-
-      if (itemSlot !== undefined && itemSlot !== null) {
-        inv = inv.filter((i) => i && i.slot !== Number(itemSlot));
-      } else if (itemCode) {
-        inv = inv.filter((i) => {
-          if (!i) return false;
-          if (i.name === itemCode || i.item === itemCode) {
-            const currentCount = i.count || i.amount || 1;
-            if (currentCount > verifiedAmount) {
-              i.count = currentCount - verifiedAmount;
-              i.amount = i.count;
-              return true;
-            }
-            return false;
-          }
-          return true;
-        });
-      }
-      await dbExecute("UPDATE players SET inventory = ? WHERE citizenid = ?", [JSON.stringify(inv), citId]);
-      log(`[KOD MOTORU - OFFLINE] Çevrimdışı oyuncudan eşya silindi: ${citId}`, "^2");
-    }
+    if (!removed) return failure("Eşya envanterde bulunamadı veya silinemedi.");
+    queueCharacterSync(player.PlayerData.citizenid);
+    return success({ online: true });
   }
-  queueCharacterSync(citizenid || (player && player.PlayerData.citizenid));
-  return true;
+
+  if (!cmd.citizenid) return failure("Oyuncu çevrimiçi değil ve citizenid verilmedi.");
+  const inv = await readPlayerColumn(cmd.citizenid, "inventory");
+  if (inv === undefined) return failure("Karakter oyun veritabanında bulunamadı.");
+  const items = Array.isArray(inv) ? inv : Object.values(inv || {});
+  const index = items.findIndex(i => i && (slot !== null ? Number(i.slot) === slot : (i.name === code || i.item === code)));
+  if (index === -1) return failure("Eşya envanterde bulunamadı.");
+  const target = items[index];
+  const count = Number(target.amount ?? target.count ?? 1);
+  if (slot === null && count > amount.value) {
+    target.amount = count - amount.value;
+    if (target.count !== undefined) target.count = target.amount;
+  } else {
+    items.splice(index, 1);
+  }
+  await dbExecute("UPDATE players SET inventory = ? WHERE citizenid = ?", [JSON.stringify(items), cmd.citizenid]);
+  queueCharacterSync(cmd.citizenid);
+  return success({ online: false });
 }
 
-async function serverClearPlayerInventory(targetPlayer, citizenid) {
-  const player = getOnlinePlayer(targetPlayer, citizenid);
+async function clearInventory(cmd) {
+  const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
   if (player) {
-    const srcNum = parseInt(player.PlayerData.source, 10);
     if (GetResourceState("ox_inventory") === "started") {
-      try {
-        const ox = exports["ox_inventory"];
-        if (ox && typeof ox.ClearInventory === "function") {
-          ox.ClearInventory(srcNum);
-        }
-      } catch (e) { }
-    }
-    if (player.Functions && typeof player.Functions.ClearInventory === "function") {
+      exports["ox_inventory"].ClearInventory(playerSource(player));
+    } else if (typeof player.Functions.ClearInventory === "function") {
       player.Functions.ClearInventory();
+    } else {
+      return failure("Envanter sistemi bulunamadı.");
     }
     player.Functions.Save();
-    log(`[KOD MOTORU] Canlı oyuncunun envanteri sıfırlandı: ${player.PlayerData.citizenid}`, "^2");
+    queueCharacterSync(player.PlayerData.citizenid);
+    return success({ online: true });
   }
-
-  const citId = citizenid || (player && player.PlayerData.citizenid);
-  if (citId) {
-    await dbExecute("UPDATE players SET inventory = '[]' WHERE citizenid = ?", [citId]);
-    log(`[KOD MOTORU] SQL envanter verisi sıfırlandı: ${citId}`, "^2");
-  }
-  queueCharacterSync(citId);
-  return true;
+  if (!cmd.citizenid) return failure("Oyuncu çevrimiçi değil ve citizenid verilmedi.");
+  const affected = await dbExecute("UPDATE players SET inventory = '[]' WHERE citizenid = ?", [cmd.citizenid]);
+  if (!affected) return failure("Karakter oyun veritabanında bulunamadı.");
+  queueCharacterSync(cmd.citizenid);
+  return success({ online: false });
 }
 
-async function serverAddPlayerMoney(targetPlayer, citizenid, rawType, rawAmount) {
-  const moneyType = rawType === "bank" ? "bank" : (rawType === "crypto" ? "crypto" : "cash");
-  const verifiedAmount = verifyServerSideAmount(rawAmount, 100000000);
+async function giveMoney(cmd) {
+  if (!["cash", "bank", "crypto"].includes(cmd.type)) return failure("Para tipi cash, bank veya crypto olmalıdır.");
+  const amount = verifyAmount(cmd.amount, MAX_MONEY_AMOUNT);
+  if (amount.error) return failure(amount.error);
 
-  if (verifiedAmount <= 0) {
-    log(`[SECURITY WARNING] serverAddPlayerMoney: Geçersiz para miktarı ($${rawAmount}) reddedildi`, "^1");
-    return false;
-  }
-
-  const player = getOnlinePlayer(targetPlayer, citizenid);
+  const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
   if (player) {
-    if (player.Functions && typeof player.Functions.AddMoney === "function") {
-      player.Functions.AddMoney(moneyType, verifiedAmount, "SHIELD-WEB Bridge Server Verified");
-      player.Functions.Save();
-      log(`[KOD MOTORU] Canlı oyuncuya para eklendi: ${player.PlayerData.citizenid} -> $${verifiedAmount} (${moneyType})`, "^2");
-    }
-  } else if (citizenid) {
-    const citId = citizenid;
-    const row = await dbSingle("SELECT money FROM players WHERE citizenid = ?", [citId]);
-    if (row) {
-      let money = {};
-      try { money = typeof row.money === "string" ? JSON.parse(row.money) : (row.money || {}); } catch (e) { }
-      money[moneyType] = (Number(money[moneyType]) || 0) + verifiedAmount;
-      await dbExecute("UPDATE players SET money = ? WHERE citizenid = ?", [JSON.stringify(money), citId]);
-      log(`[KOD MOTORU - OFFLINE] Çevrimdışı oyuncuya para eklendi: ${citId} -> $${verifiedAmount} (${moneyType})`, "^2");
-    }
+    if (typeof player.Functions.AddMoney !== "function") return failure("Framework para eklemeyi desteklemiyor.");
+    if (player.Functions.AddMoney(cmd.type, amount.value, "Shield Web Panel") === false) return failure("Framework işlemi reddetti.");
+    player.Functions.Save();
+    queueCharacterSync(player.PlayerData.citizenid);
+    return success({ online: true });
   }
-  queueCharacterSync(citizenid || (player && player.PlayerData.citizenid));
-  return true;
+  if (!cmd.citizenid) return failure("Oyuncu çevrimiçi değil ve citizenid verilmedi.");
+  const money = await readPlayerColumn(cmd.citizenid, "money");
+  if (money === undefined) return failure("Karakter oyun veritabanında bulunamadı.");
+  const next = { ...(money || {}) };
+  next[cmd.type] = (Number(next[cmd.type]) || 0) + amount.value;
+  await dbExecute("UPDATE players SET money = ? WHERE citizenid = ?", [JSON.stringify(next), cmd.citizenid]);
+  queueCharacterSync(cmd.citizenid);
+  return success({ online: false });
 }
 
-/**
- * Executes incoming web bridge commands directly through framework exports,
- * player objects, and direct SQL without invoking the terminal/console.
- */
-async function executeBridgeCommand(cmd) {
-  if (!cmd || !cmd.action) return;
-  log(`İşlem alınıyor: ${cmd.action} (ID: ${cmd.id || 'Yok'})`, "^2");
+// Applies only the fields the panel sent (it sends just what the editor changed).
+async function updateCharacter(cmd) {
+  const citizenid = cmd.citizenid;
+  if (!citizenid) return failure("citizenid gereklidir.");
+  const names = {};
+  for (const key of ["firstname", "lastname", "birthdate"]) {
+    if (typeof cmd[key] === "string") names[key] = cmd[key];
+  }
+  const money = {};
+  for (const key of ["cash", "bank"]) {
+    if (cmd[key] === undefined) continue;
+    const n = Number(cmd[key]);
+    if (!Number.isFinite(n) || n < 0) return failure(`Geçersiz ${key} değeri.`);
+    money[key] = Math.floor(n);
+  }
+  const hasJob = typeof cmd.jobName === "string" && cmd.jobName.trim();
 
-  const QBCore = getQBCore();
-
-  // 1. SETJOB
-  if (cmd.action === "setjob") {
-    const jobName = cmd.job;
-    const gradeNum = Number(cmd.grade) || 0;
-    if (!jobName) {
-      log("[ERROR] setjob: Meslek adı eksik", "^1");
-      return;
+  const player = getLiveQBCorePlayer(citizenid);
+  if (player) {
+    if (hasJob) {
+      const res = await setGroup({ job: cmd.jobName, grade: cmd.jobGrade, citizenid }, "Jobs");
+      if (!res.ok) return res;
     }
-
-    const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-    if (player) {
-      // Direct framework execution (0ms resmon)
-      if (player.Functions && player.Functions.SetJob) {
-        player.Functions.SetJob(jobName, gradeNum);
-        player.Functions.Save();
-        log(`[KOD MOTORU] Canlı oyuncu mesleği atandı: ${player.PlayerData.citizenid} -> ${jobName} (${gradeNum})`, "^2");
-      }
-    } else if (cmd.citizenid) {
-      // Offline direct SQL update
-      const citId = cmd.citizenid;
-      const row = await dbSingle("SELECT job FROM players WHERE citizenid = ?", [citId]);
-      if (row) {
-        let job = {};
-        try { job = typeof row.job === "string" ? JSON.parse(row.job) : (row.job || {}); } catch (e) { }
-        const sharedJobs = (QBCore && QBCore.Shared && QBCore.Shared.Jobs) || {};
-        const jobInfo = sharedJobs[jobName] || {};
-        const gradeInfo = (jobInfo.grades && jobInfo.grades[gradeNum.toString()]) || {};
-
-        job.name = jobName;
-        job.label = jobInfo.label || jobName;
-        job.grade = {
-          name: gradeInfo.name || `Kademe ${gradeNum}`,
-          level: gradeNum
-        };
-        job.onduty = true;
-        job.isboss = gradeInfo.isboss || false;
-        job.payment = gradeInfo.payment || 0;
-
-        await dbExecute("UPDATE players SET job = ? WHERE citizenid = ?", [JSON.stringify(job), citId]);
-        log(`[KOD MOTORU - OFFLINE] Çevrimdışı oyuncu mesleği güncellendi: ${citId} -> ${jobName} (${gradeNum})`, "^2");
-      }
+    if (Object.keys(names).length > 0) {
+      const charinfo = { ...(player.PlayerData.charinfo || {}), ...names };
+      if (typeof player.Functions.SetPlayerData === "function") player.Functions.SetPlayerData("charinfo", charinfo);
+      else player.PlayerData.charinfo = charinfo;
     }
-    queueCharacterSync(cmd.citizenid || (player && player.PlayerData.citizenid));
-  }
-
-  // 2. SETGANG
-  else if (cmd.action === "setgang") {
-    const gangName = cmd.gang;
-    const gradeNum = Number(cmd.grade) || 0;
-    if (!gangName) {
-      log("[ERROR] setgang: Çete adı eksik", "^1");
-      return;
+    for (const [type, value] of Object.entries(money)) {
+      if (player.Functions.SetMoney(type, value, "Shield Web Panel") === false) return failure(`${type} değeri ayarlanamadı.`);
     }
-
-    const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-    if (player) {
-      if (player.Functions && player.Functions.SetGang) {
-        player.Functions.SetGang(gangName, gradeNum);
-        player.Functions.Save();
-        log(`[KOD MOTORU] Canlı oyuncu çetesi atandı: ${player.PlayerData.citizenid} -> ${gangName} (${gradeNum})`, "^2");
-      }
-    } else if (cmd.citizenid) {
-      const citId = cmd.citizenid;
-      const row = await dbSingle("SELECT gang FROM players WHERE citizenid = ?", [citId]);
-      if (row) {
-        let gang = {};
-        try { gang = typeof row.gang === "string" ? JSON.parse(row.gang) : (row.gang || {}); } catch (e) { }
-        const sharedGangs = (QBCore && QBCore.Shared && QBCore.Shared.Gangs) || {};
-        const gangInfo = sharedGangs[gangName] || {};
-        const gradeInfo = (gangInfo.grades && gangInfo.grades[gradeNum.toString()]) || {};
-
-        gang.name = gangName;
-        gang.label = gangInfo.label || gangName;
-        gang.grade = {
-          name: gradeInfo.name || `Kademe ${gradeNum}`,
-          level: gradeNum
-        };
-        gang.isboss = gradeInfo.isboss || false;
-
-        await dbExecute("UPDATE players SET gang = ? WHERE citizenid = ?", [JSON.stringify(gang), citId]);
-        log(`[KOD MOTORU - OFFLINE] Çevrimdışı oyuncu çetesi güncellendi: ${citId} -> ${gangName} (${gradeNum})`, "^2");
-      }
-    }
-    queueCharacterSync(cmd.citizenid || (player && player.PlayerData.citizenid));
+    player.Functions.Save();
+    queueCharacterSync(citizenid);
+    return success({ online: true });
   }
 
-  // 3. GIVEITEM
-  else if (cmd.action === "giveitem" || cmd.action === "give_item") {
-    await serverAddPlayerItem(cmd.targetPlayer, cmd.citizenid, cmd.item, cmd.amount);
+  const row = await dbSingle("SELECT charinfo, money FROM players WHERE citizenid = ?", [citizenid]);
+  if (!row) return failure("Karakter oyun veritabanında bulunamadı.");
+  if (hasJob) {
+    const res = await setGroup({ job: cmd.jobName, grade: cmd.jobGrade, citizenid }, "Jobs");
+    if (!res.ok) return res;
   }
-
-  // 4. REMOVEITEM / DELETE_ITEM
-  else if (cmd.action === "removeitem" || cmd.action === "remove_item" || cmd.action === "delete_item") {
-    await serverRemovePlayerItem(cmd.targetPlayer, cmd.citizenid, cmd.item || cmd.itemName, cmd.amount, cmd.slot);
+  const sets = [];
+  const params = [];
+  if (Object.keys(names).length > 0) {
+    const charinfo = { ...parseJson(row.charinfo, {}), ...names };
+    sets.push("charinfo = ?", "name = ?");
+    params.push(JSON.stringify(charinfo), `${charinfo.firstname || ""} ${charinfo.lastname || ""}`.trim());
   }
-
-  // 5. CLEARINVENTORY
-  else if (cmd.action === "clearinventory" || cmd.action === "clear_inventory" || cmd.action === "delete_inventory") {
-    await serverClearPlayerInventory(cmd.targetPlayer, cmd.citizenid);
+  if (Object.keys(money).length > 0) {
+    sets.push("money = ?");
+    params.push(JSON.stringify({ ...parseJson(row.money, {}), ...money }));
   }
-
-  // 6. GIVEMONEY
-  else if (cmd.action === "givemoney") {
-    await serverAddPlayerMoney(cmd.targetPlayer, cmd.citizenid, cmd.type, cmd.amount);
-  }
-
-  // 7. REVIVE
-  else if (cmd.action === "revive") {
-    const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-    if (player && isFiveM) {
-      const src = parseInt(player.PlayerData.source, 10);
-      TriggerClientEvent("hospital:client:Revive", src);
-      TriggerClientEvent("hospital:client:HealInjuries", src, "full");
-      log(`[KOD MOTORU] Oyuncu canlandırıldı (ID: ${src})`, "^2");
-    }
-  }
-
-  // 8. KILL
-  else if (cmd.action === "kill") {
-    const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-    if (player && isFiveM) {
-      const src = parseInt(player.PlayerData.source, 10);
-      TriggerClientEvent("hospital:client:KillPlayer", src);
-      log(`[KOD MOTORU] Oyuncu öldürüldü (ID: ${src})`, "^2");
-    }
-  }
-
-  // 9. PEDMENU (CLOTHING / APPEARANCE)
-  else if (cmd.action === "pedmenu") {
-    const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-    if (player && isFiveM) {
-      const src = parseInt(player.PlayerData.source, 10);
-      TriggerClientEvent("illenium-appearance:client:openClothingMenu", src);
-      TriggerClientEvent("qb-clothing:client:openMenu", src);
-      log(`[KOD MOTORU] Oyuncu için kıyafet/ped menüsü açıldı (ID: ${src})`, "^2");
-    }
-  }
-
-  // 10. PEDVER
-  else if (cmd.action === "pedver") {
-    const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-    if (player && cmd.ped && isFiveM) {
-      const src = parseInt(player.PlayerData.source, 10);
-      TriggerClientEvent("illenium-appearance:client:changePed", src, cmd.ped);
-      log(`[KOD MOTORU] Oyuncu ped modeli değiştirildi: ID ${src} -> ${cmd.ped}`, "^2");
-    }
-  }
-
-  // 11. PEDAL
-  else if (cmd.action === "pedal") {
-    const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-    if (player && isFiveM) {
-      const src = parseInt(player.PlayerData.source, 10);
-      TriggerClientEvent("illenium-appearance:client:resetPed", src);
-      log(`[KOD MOTORU] Oyuncu ped modeli sıfırlandı (ID: ${src})`, "^2");
-    }
-  }
-
-  // 12. VRETURN (VEHICLE RETURN)
-  else if (cmd.action === "vreturn") {
-    let plate = cmd.plate;
-    if (!plate && cmd.command) {
-      const parts = cmd.command.trim().split(/\s+/);
-      if (parts.length >= 3) plate = parts[2];
-      else if (parts.length === 2) plate = parts[1];
-    }
-    if (plate) {
-      const formattedPlate = plate.toString().trim().toUpperCase();
-      if (isFiveM) {
-        const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-        if (player && player.PlayerData && player.PlayerData.source) {
-          const src = parseInt(player.PlayerData.source, 10);
-          TriggerClientEvent("arcanium-web:client:vreturn", src, formattedPlate);
-          TriggerClientEvent("ps-web:client:vreturn", src, formattedPlate);
-          log(`[KOD MOTORU] Araç çekme isteği hedef oyuncuya iletildi: Plaka ${formattedPlate} (ID: ${src})`, "^2");
-        } else {
-          // Check vehicle owner in SQL to find online player source
-          dbSingle("SELECT citizenid FROM player_vehicles WHERE UPPER(REPLACE(plate, ' ', '')) = ?", [formattedPlate.replace(/\s+/g, '')]).then((row) => {
-            if (row && row.citizenid) {
-              const ownerPlayer = getLiveQBCorePlayer(row.citizenid);
-              if (ownerPlayer && ownerPlayer.PlayerData && ownerPlayer.PlayerData.source) {
-                const src = parseInt(ownerPlayer.PlayerData.source, 10);
-                TriggerClientEvent("arcanium-web:client:vreturn", src, formattedPlate);
-                TriggerClientEvent("ps-web:client:vreturn", src, formattedPlate);
-                log(`[KOD MOTORU] Araç sahibi oyuncuya vreturn iletildi: Plaka ${formattedPlate} (ID: ${src})`, "^2");
-                return;
-              }
-            }
-            log(`[KOD MOTORU] Araç çekme isteği işlendi (Çevrimdışı/Sahipsiz): Plaka ${formattedPlate}`, "^2");
-          }).catch(() => { });
-        }
-      }
-    }
-  }
-
-  // 13. SEND_DM (ADMIN DIRECT MESSAGE)
-  else if (cmd.action === "send_dm") {
-    const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-    if (player && isFiveM) {
-      const src = parseInt(player.PlayerData.source, 10);
-      const adminName = cmd.admin || "Yönetici";
-      const message = cmd.reason || cmd.command || "";
-      TriggerClientEvent("chat:addMessage", src, {
-        template: '<div style="padding: 16px; background: rgba(15, 23, 42, 0.95); border: 2px solid #3b82f6; border-radius: 10px; font-family: sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.8); max-width: 600px; margin: 15px auto; text-align: center;"><div style="font-weight: 800; color: #3b82f6; font-size: 16px; margin-bottom: 8px;">SHIELD-WEB Yetkili Mesajı ({0})</div><div style="color: #fff; font-size: 14px; line-height: 1.5;">{1}</div></div>',
-        args: [adminName, message]
-      });
-      TriggerClientEvent("QBCore:Notify", src, `Yetkili Mesajı (${adminName}): ${message}`, "primary", 10000);
-      log(`[KOD MOTORU] Oyuncuya yetkili mesajı iletildi (ID: ${src})`, "^2");
-    }
-  }
-
-  // 14. UPDATE_CHARACTER
-  else if (cmd.action === "update_character") {
-    const citId = cmd.citizenid || cmd.identifier || "";
-    if (citId) {
-      const player = getLiveQBCorePlayer(citId);
-      if (player) {
-        if (cmd.firstname !== undefined && player.PlayerData.charinfo) player.PlayerData.charinfo.firstname = cmd.firstname;
-        if (cmd.lastname !== undefined && player.PlayerData.charinfo) player.PlayerData.charinfo.lastname = cmd.lastname;
-        if (cmd.birthdate !== undefined && player.PlayerData.charinfo) player.PlayerData.charinfo.birthdate = cmd.birthdate;
-        if (cmd.cash !== undefined && player.Functions.SetMoney) player.Functions.SetMoney("cash", Number(cmd.cash));
-        if (cmd.bank !== undefined && player.Functions.SetMoney) player.Functions.SetMoney("bank", Number(cmd.bank));
-        if (cmd.jobName !== undefined && player.Functions.SetJob) {
-          player.Functions.SetJob(cmd.jobName, Number(cmd.jobGrade) || 0);
-        }
-        player.Functions.Save();
-        log(`[KOD MOTORU] Canlı oyuncu RAM verisi güncellendi: ${citId}`, "^2");
-      }
-
-      const row = await dbSingle("SELECT charinfo, money, job FROM players WHERE citizenid = ?", [citId]);
-      if (row) {
-        let charinfo = {};
-        try { charinfo = typeof row.charinfo === "string" ? JSON.parse(row.charinfo) : (row.charinfo || {}); } catch (e) { }
-        let money = {};
-        try { money = typeof row.money === "string" ? JSON.parse(row.money) : (row.money || {}); } catch (e) { }
-        let job = {};
-        try { job = typeof row.job === "string" ? JSON.parse(row.job) : (row.job || {}); } catch (e) { }
-
-        if (cmd.firstname !== undefined) charinfo.firstname = cmd.firstname;
-        if (cmd.lastname !== undefined) charinfo.lastname = cmd.lastname;
-        if (cmd.birthdate !== undefined) charinfo.birthdate = cmd.birthdate;
-        if (cmd.cash !== undefined) money.cash = Number(cmd.cash);
-        if (cmd.bank !== undefined) money.bank = Number(cmd.bank);
-        if (cmd.jobName !== undefined) job.name = cmd.jobName;
-        if (cmd.jobGrade !== undefined) {
-          const lvl = Number(cmd.jobGrade) || 0;
-          job.grade = { level: lvl, name: cmd.jobGrade.toString() };
-        }
-
-        const fullName = `${charinfo.firstname || ''} ${charinfo.lastname || ''}`.trim() || "Karakter";
-        await dbExecute(
-          "UPDATE players SET charinfo = ?, money = ?, job = ?, name = ? WHERE citizenid = ?",
-          [JSON.stringify(charinfo), JSON.stringify(money), JSON.stringify(job), fullName, citId]
-        );
-        log(`[KOD MOTORU] Veritabanı karakteri güncellendi: ${citId} (${fullName})`, "^2");
-      }
-      queueCharacterSync(citId);
-    }
-  }
-
-  // 15. DELETE_CHARACTER
-  else if (cmd.action === "delete_character") {
-    const citizenid = cmd.citizenid;
-    if (citizenid) {
-      const livePlayer = getLiveQBCorePlayer(citizenid);
-      if (livePlayer && livePlayer.PlayerData && livePlayer.PlayerData.source && isFiveM) {
-        DropPlayer(parseInt(livePlayer.PlayerData.source, 10), "Karakteriniz yetkili tarafından silindi. Lütfen tekrar bağlanın.");
-      }
-      await dbExecute("DELETE FROM players WHERE citizenid = ?", [citizenid]);
-      await dbExecute("DELETE FROM player_vehicles WHERE citizenid = ?", [citizenid]).catch(() => { });
-      await dbExecute("DELETE FROM player_houses WHERE citizenid = ?", [citizenid]).catch(() => { });
-      await dbExecute("DELETE FROM player_mails WHERE citizenid = ?", [citizenid]).catch(() => { });
-      await dbExecute("DELETE FROM player_outfits WHERE citizenid = ?", [citizenid]).catch(() => { });
-      await dbExecute("DELETE FROM playerskins WHERE citizenid = ?", [citizenid]).catch(() => { });
-      await dbExecute("DELETE FROM tgiann_bank_player_accounts WHERE citizenid = ?", [citizenid]).catch(() => { });
-      log(`[KOD MOTORU] Karakter ve ilişkili tablolar silindi: ${citizenid}`, "^2");
-    }
-  }
-
-  // 16. SYNC CHARACTERS
-  else if (
-    cmd.action === "get_characters" ||
-    cmd.action === "fetch_characters" ||
-    cmd.action === "sync_characters" ||
-    cmd.action === "sync_all"
-  ) {
-    log("[INFO] Web panelinden tam karakter senkronizasyon isteği alındı.", "^2");
-    queueCharacterSync(true);
-  }
-
-  // 17. SAFE DIRECT API RESOURCE & BROADCAST EXECUTION (NO ExecuteCommand AST RISK)
-  else if (cmd.action === "execute_command" && cmd.command && isFiveM) {
-    const rawCmd = String(cmd.command).trim();
-    const parts = rawCmd.split(/\s+/);
-    const cmdName = parts[0].toLowerCase();
-    const resName = parts[1] || "";
-
-    if (cmdName === "start" || cmdName === "ensure") {
-      if (resName && typeof StartResource === "function") {
-        StartResource(resName);
-        log(`[API MOTORU] Sunucu kaynağı başlatıldı: ${resName}`, "^2");
-      }
-    } else if (cmdName === "stop") {
-      if (resName && typeof StopResource === "function") {
-        StopResource(resName);
-        log(`[API MOTORU] Sunucu kaynağı durduruldu: ${resName}`, "^2");
-      }
-    } else if (cmdName === "restart") {
-      if (resName && typeof StopResource === "function" && typeof StartResource === "function") {
-        StopResource(resName);
-        setTimeout(() => StartResource(resName), 500);
-        log(`[API MOTORU] Sunucu kaynağı yeniden başlatıldı: ${resName}`, "^2");
-      }
-    } else if (cmdName === "say" || cmdName === "announce") {
-      const announcement = parts.slice(1).join(" ");
-      if (announcement) {
-        TriggerClientEvent("chat:addMessage", -1, {
-          color: [255, 165, 0],
-          multiline: true,
-          args: ["[YÖNETİCİ DUYURUSU]", announcement]
-        });
-        log(`[API MOTORU] Sunucu duyurusu yayınlandı: ${announcement}`, "^2");
-      }
-    } else {
-      log(`[SECURITY WARNING] İzin verilmeyen veya güvensiz komut engellendi: ${rawCmd}`, "^1");
-    }
-  }
-
-  // 18. KICK (PLAYER DISCONNECT)
-  else if (cmd.action === "kick") {
-    const src = parseInt(cmd.targetPlayer, 10);
-    const reason = cmd.reason || "Sunucudan yetkili tarafından atıldınız.";
-    const admin = cmd.admin || "Yönetici";
-    if (isFiveM && !isNaN(src)) {
-      let pName = "Bilinmeyen";
-      try {
-        if (typeof GetPlayerName === "function") pName = GetPlayerName(src) || pName;
-      } catch (e) {}
-      DropPlayer(src, `[SHIELD] Sunucudan Atıldınız (Kick)\nSebep: ${reason}\nYetkili: ${admin}`);
-      log(`[KOD MOTORU] Oyuncu sunucudan atıldı (Kick): ID ${src} (${pName}) | Sebep: ${reason} | Yetkili: ${admin}`, "^2");
-    } else {
-      log(`[MOCK/TEST] Oyuncu kicklendi: ID ${cmd.targetPlayer} | Sebep: ${reason}`, "^2");
-    }
-  }
-
-  // 19. BAN (PLAYER BAN & SQL INSERT & DISCONNECT)
-  else if (cmd.action === "ban") {
-    const src = parseInt(cmd.targetPlayer, 10);
-    const reason = cmd.reason || "Sunucudan yasaklandınız.";
-    const admin = cmd.admin || "Yönetici";
-    const durationLabel = cmd.duration || (cmd.isPerma ? "Kalıcı (Perma)" : "Süreli");
-    const expireTime = Number(cmd.expire) || (cmd.isPerma ? 2147483647 : (Math.floor(Date.now() / 1000) + (Number(cmd.durationSeconds) || 86400)));
-
-    if (isFiveM && !isNaN(src)) {
-      let pName = cmd.playerName || "Bilinmeyen";
-      let license = cmd.license || "";
-      let discord = cmd.discordId ? ("discord:" + cmd.discordId) : "";
-      let ip = "";
-
-      try {
-        if (typeof GetPlayerName === "function") pName = GetPlayerName(src) || pName;
-        if (typeof GetPlayerEndpoint === "function") ip = GetPlayerEndpoint(src) || "";
-        if (typeof GetNumPlayerIdentifiers === "function" && typeof GetPlayerIdentifier === "function") {
-          const count = GetNumPlayerIdentifiers(src);
-          for (let i = 0; i < count; i++) {
-            const ident = GetPlayerIdentifier(src, i);
-            if (!ident) continue;
-            if (ident.startsWith("license:") && !license) license = ident;
-            else if (ident.startsWith("discord:") && !discord) discord = ident;
-            else if (ident.startsWith("ip:") && !ip) ip = ident.replace("ip:", "");
-          }
-        }
-      } catch (e) {}
-
-      // QBCore Framework Ban Function Call if available
-      try {
-        if (QBCore && QBCore.Functions) {
-          if (typeof QBCore.Functions.CreateBan === "function") {
-            QBCore.Functions.CreateBan(src, reason, cmd.isPerma ? 2147483647 : (cmd.durationSeconds || 86400), admin);
-          } else if (typeof QBCore.Functions.Ban === "function") {
-            QBCore.Functions.Ban(src, reason, cmd.isPerma ? 2147483647 : (cmd.durationSeconds || 86400), admin);
-          }
-        }
-      } catch (e) {
-        log(`[KOD MOTORU] QBCore ban fonksiyon uyarısı: ${e.message}`, "^3");
-      }
-
-      // Direct SQL bans table insert for server database compatibility
-      try {
-        await dbExecute(
-          "INSERT INTO bans (name, license, discord, ip, reason, expire, bannedby) VALUES (?, ?, ?, ?, ?, ?, ?)",
-          [pName, license, discord, ip, reason, expireTime, admin]
-        ).catch(() => {});
-      } catch (e) {}
-
-      // Immediately kick/disconnect player with formatted reason and duration
-      DropPlayer(src, `[SHIELD] Sunucudan Yasaklandınız (Ban)\nSüre: ${durationLabel}\nSebep: ${reason}\nYetkili: ${admin}`);
-      log(`[KOD MOTORU] Oyuncu yasaklandı (Ban): ID ${src} (${pName}) | Süre: ${durationLabel} | Sebep: ${reason} | Yetkili: ${admin}`, "^2");
-    } else {
-      log(`[MOCK/TEST] Oyuncu yasaklandı (Ban): ID ${cmd.targetPlayer} | Süre: ${durationLabel} | Sebep: ${reason}`, "^2");
-    }
-  }
-  else if (cmd.action === "start_screen_watch") {
-    const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-    if (player && isFiveM) {
-      const src = parseInt(player.PlayerData.source, 10);
-      TriggerClientEvent("shield:client:startScreenWatch", src, {
-        token: cmd.token,
-        uploadUrl: cmd.uploadUrl,
-        interval: cmd.interval || 850,
-        quality: cmd.quality || 0.45
-      });
-      log(`[EKRAN İZLEME] Canlı ekran izleme başlatıldı: ID ${src}`, "^2");
-    } else if (cmd.targetPlayer && isFiveM) {
-      const srcNum = parseInt(cmd.targetPlayer, 10);
-      if (!isNaN(srcNum)) {
-        TriggerClientEvent("shield:client:startScreenWatch", srcNum, {
-          token: cmd.token,
-          uploadUrl: cmd.uploadUrl,
-          interval: cmd.interval || 850,
-          quality: cmd.quality || 0.45
-        });
-        log(`[EKRAN İZLEME] Canlı ekran izleme başlatıldı: ID ${srcNum}`, "^2");
-      }
-    }
-  }
-  else if (cmd.action === "stop_screen_watch") {
-    const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
-    if (player && isFiveM) {
-      const src = parseInt(player.PlayerData.source, 10);
-      TriggerClientEvent("shield:client:stopScreenWatch", src);
-      log(`[EKRAN İZLEME] Canlı ekran izleme sonlandırıldı: ID ${src}`, "^2");
-    } else if (cmd.targetPlayer && isFiveM) {
-      const srcNum = parseInt(cmd.targetPlayer, 10);
-      if (!isNaN(srcNum)) {
-        TriggerClientEvent("shield:client:stopScreenWatch", srcNum);
-        log(`[EKRAN İZLEME] Canlı ekran izleme sonlandırıldı: ID ${srcNum}`, "^2");
-      }
-    }
-  }
+  if (sets.length > 0) await dbExecute(`UPDATE players SET ${sets.join(", ")} WHERE citizenid = ?`, [...params, citizenid]);
+  queueCharacterSync(citizenid);
+  return success({ online: false });
 }
 
-/* ==========================================================================
-   POLL LOOP (SEND STATUS & RECEIVE ACTIONS)
-   ========================================================================== */
+const CHARACTER_TABLES = ["player_vehicles", "player_houses", "player_mails", "player_outfits", "playerskins", "tgiann_bank_player_accounts"];
 
-async function pollServer() {
-  try {
-    const playersList = getPlayersList();
-
-    const requestBody = {
-      status: "active",
-      playersCount: playersList.length,
-      players: playersList,
-      timestamp: Date.now()
-    };
-
-    const timestampHeader = Date.now().toString();
-    const payloadToSign = timestampHeader + JSON.stringify(requestBody);
-    const signature = crypto
-      .createHmac("sha256", config.secretKey)
-      .update(payloadToSign)
-      .digest("hex");
-
-    const headers = {
-      "X-Bridge-Timestamp": timestampHeader,
-      "X-Bridge-Signature": signature
-    };
-
-    const response = await makeRequest(config.apiUrl, "POST", headers, requestBody);
-    if (response && response.success) {
-      lastPollErrorMsg = null;
-      if (response.commands && response.commands.length > 0) {
-        for (const cmd of response.commands) {
-          await executeBridgeCommand(cmd);
-        }
-        // Immediately query again for rapid reaction
-        setTimeout(pollServer, 100);
-      }
-    }
-  } catch (err) {
-    if (err && err.message && err.message.includes("429")) {
-      log("[WARN] Rate limit algılandı (HTTP 429). Bekleniyor...", "^3");
-    } else {
-      const errFormatted = formatErrorMessage(err);
-      const now = Date.now();
-      if (errFormatted !== lastPollErrorMsg || now - lastPollErrorTime > 60000) {
-        lastPollErrorMsg = errFormatted;
-        lastPollErrorTime = now;
-        log(`[ERROR] Poll sunucu hatası - KFAPI11-b (${errFormatted})`, "^1");
-        if (errFormatted.includes("Yetkisiz IP") || errFormatted.includes("403")) {
-          log("[IP UYARISI] FiveM sunucunuzun IP adresi web panelinizdeki izinli IP listesinde tanımlı değil veya yetkisiz!", "^3");
-        }
-      }
-    }
-  }
-}
-
-/* ==========================================================================
-   CHARACTER DATA EXTRACTION & SYNC ENGINE
-   ========================================================================== */
-
-async function sendCharactersInChunks(list) {
-  const chunkSize = 50;
-  for (let i = 0; i < list.length; i += chunkSize) {
-    const chunk = list.slice(i, i + chunkSize);
-    await sendCharactersChunk(chunk);
-  }
-}
-
-async function sendCharactersChunk(chunk) {
-  try {
-    const requestBody = {
-      characters: chunk,
-      timestamp: Date.now()
-    };
-
-    const timestampHeader = Date.now().toString();
-    const payloadToSign = timestampHeader + JSON.stringify(requestBody);
-    const signature = crypto
-      .createHmac("sha256", config.secretKey)
-      .update(payloadToSign)
-      .digest("hex");
-
-    const headers = {
-      "X-Bridge-Timestamp": timestampHeader,
-      "X-Bridge-Signature": signature
-    };
-
-    const charUrl = config.apiUrl.replace("/poll", "/characters");
-    await makeRequest(charUrl, "POST", headers, requestBody);
-    lastCharSyncErrorMsg = null;
-  } catch (err) {
-    const errFormatted = formatErrorMessage(err);
-    const now = Date.now();
-    if (errFormatted !== lastCharSyncErrorMsg || now - lastCharSyncErrorTime > 60000) {
-      lastCharSyncErrorMsg = errFormatted;
-      lastCharSyncErrorTime = now;
-      log(`[ERROR] Karakter senkronizasyon hatası - KFAPI11-c (${errFormatted})`, "^1");
-    }
-  }
-}
-
-function enrichInventoryItems(rawInventory, allSharedItems) {
-  let list = rawInventory;
-  if (typeof list === "string") {
+async function deleteCharacter(cmd) {
+  const citizenid = typeof cmd.citizenid === "string" ? cmd.citizenid.trim() : "";
+  if (!citizenid) return failure("citizenid gereklidir.");
+  const live = getLiveQBCorePlayer(citizenid);
+  if (live) DropPlayer(String(playerSource(live)), "Karakteriniz yetkili tarafından silindi. Lütfen tekrar bağlanın.");
+  const deleted = await dbExecute("DELETE FROM players WHERE citizenid = ?", [citizenid]);
+  const cleanup = {};
+  for (const table of CHARACTER_TABLES) {
     try {
-      list = JSON.parse(list);
+      cleanup[table] = await dbExecute(`DELETE FROM ${table} WHERE citizenid = ?`, [citizenid]);
     } catch (e) {
-      list = [];
+      // Optional tables that this server may not have.
+      cleanup[table] = null;
     }
   }
-
-  if (!Array.isArray(list)) {
-    if (list && typeof list === "object") {
-      list = Object.values(list);
-    } else {
-      list = [];
-    }
-  }
-
-  const enriched = list.map((item) => {
-    if (!item || typeof item !== "object") return item;
-    const itemName = item.name || item.item || "";
-    const sharedInfo = allSharedItems && allSharedItems[itemName] ? allSharedItems[itemName] : {};
-
-    let imageName = item.image || item.icon || sharedInfo.image || sharedInfo.icon;
-    if (!imageName && itemName) {
-      imageName = `${itemName}.png`;
-    } else if (!imageName) {
-      imageName = "default.png";
-    }
-
-    const itemLabel = item.label || sharedInfo.label || itemName;
-    const countVal = item.count !== undefined ? item.count : (item.amount !== undefined ? item.amount : (item.quantity || 1));
-
-    return {
-      ...item,
-      name: itemName,
-      label: itemLabel,
-      count: countVal,
-      amount: countVal,
-      image: imageName,
-      icon: imageName
-    };
-  });
-
-  return JSON.stringify(enriched);
+  log(`[KOD MOTORU] Karakter silindi: ${citizenid} (players: ${deleted})`, "^2");
+  return success({ playersRowsDeleted: deleted, alreadyAbsent: deleted === 0, cleanup });
 }
 
-const playerOnlineSessions = {};
-
-function updateOnlineSessions(onlineList) {
-  const currentIdentifiers = new Set();
-  const now = Date.now();
-
-  if (Array.isArray(onlineList)) {
-    for (const p of onlineList) {
-      const idKey = p.identifiers && p.identifiers.length > 0 ? p.identifiers.join("|") : p.id;
-      currentIdentifiers.add(idKey);
-      if (!playerOnlineSessions[idKey]) {
-        playerOnlineSessions[idKey] = now;
-      }
-    }
+function teleport(cmd) {
+  const target = requireOnline(cmd);
+  if (target.error) return failure(target.error);
+  let coords = null;
+  if (cmd.location) {
+    const loc = config.locations && config.locations[cmd.location];
+    if (!loc) return failure(`'${cmd.location}' konumu config.json içinde tanımlı değil.`);
+    coords = [Number(loc.x), Number(loc.y), Number(loc.z)];
+  } else {
+    coords = [Number(cmd.x), Number(cmd.y), Number(cmd.z)];
   }
-
-  for (const key of Object.keys(playerOnlineSessions)) {
-    if (!currentIdentifiers.has(key)) {
-      delete playerOnlineSessions[key];
-    }
-  }
+  if (!coords.every(Number.isFinite)) return failure("Geçersiz koordinat.");
+  TriggerClientEvent("arcanium-web:client:teleport", playerSource(target.player), ...coords);
+  return success();
 }
 
-function getOnlineSessionMinutes(pIdentifiers) {
-  if (!pIdentifiers || pIdentifiers.length === 0) return 0;
-  const idKey = pIdentifiers.join("|");
-  const startTime = playerOnlineSessions[idKey];
-  if (!startTime) return 0;
-  return Math.floor((Date.now() - startTime) / 60000);
+function vehicleReturn(cmd) {
+  const plate = String(cmd.plate || "").trim().toUpperCase();
+  if (!plate) return failure("Plaka gereklidir.");
+  const target = requireOnline(cmd);
+  if (target.error) return failure(target.error);
+  // The client moves the vehicle only if it exists in the world near the player; it cannot report back.
+  TriggerClientEvent("arcanium-web:client:vreturn", playerSource(target.player), plate);
+  return success({ note: "İstek oyuncuya iletildi; araç dünyada yoksa taşınmaz." });
 }
 
-function formatDateOrTime(val) {
-  if (!val) return "Bilinmiyor";
-  try {
-    let d = null;
-    if (val instanceof Date) {
-      d = val;
-    } else if (typeof val === "number") {
-      d = new Date(val < 10000000000 ? val * 1000 : val);
-    } else if (typeof val === "string") {
-      if (!isNaN(Number(val)) && Number(val) > 100000000) {
-        const num = Number(val);
-        d = new Date(num < 10000000000 ? num * 1000 : num);
-      } else {
-        d = new Date(val);
-      }
-    }
-    if (d && !isNaN(d.getTime())) {
-      const pad = (n) => (n < 10 ? "0" + n : n);
-      return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-  } catch (e) { }
-  return String(val);
-}
-
-function calculatePlayTime(row, metadata, sessionMinutes = 0) {
-  let minutes = 0;
-  if (row && row.playtime !== undefined && row.playtime !== null && Number(row.playtime) > 0) {
-    minutes = Number(row.playtime);
-  } else if (row && row.play_time !== undefined && row.play_time !== null && Number(row.play_time) > 0) {
-    minutes = Number(row.play_time);
-  } else if (metadata && metadata.playtime !== undefined && metadata.playtime !== null && Number(metadata.playtime) > 0) {
-    minutes = Number(metadata.playtime);
-  } else if (metadata && metadata.playTime !== undefined && metadata.playTime !== null && Number(metadata.playTime) > 0) {
-    minutes = Number(metadata.playTime);
-  } else if (metadata && metadata.playtime !== undefined && metadata.playtime !== null) {
-    minutes = Number(metadata.playtime) || 0;
-  } else if (row && row.playtime !== undefined && row.playtime !== null) {
-    minutes = Number(row.playtime) || 0;
-  }
-
-  if (minutes > 500000) {
-    minutes = Math.floor(minutes / 60);
-  }
-  return minutes + sessionMinutes;
-}
-
-let pendingSyncCitIds = new Set();
-let syncQueueTimeout = null;
-
-function queueCharacterSync(targetCitId) {
-  if (typeof targetCitId === "string" && targetCitId.trim() && targetCitId !== "true") {
-    pendingSyncCitIds.add(targetCitId.trim());
-  } else if (targetCitId === true || targetCitId === "true") {
-    pendingSyncCitIds.add("__ALL__");
-  }
-
-  if (syncQueueTimeout) return;
-
-  syncQueueTimeout = setTimeout(async () => {
-    syncQueueTimeout = null;
-    const ids = Array.from(pendingSyncCitIds);
-    pendingSyncCitIds.clear();
-
-    if (ids.includes("__ALL__")) {
-      await syncUpdatedCharacters(true);
-    } else {
-      for (const id of ids) {
-        await syncUpdatedCharacters(id);
-      }
-    }
-  }, 300);
-}
-
-/**
- * Builds a 360-degree comprehensive character payload ensuring complete
- * compatibility with all web panel views (Discord avatar, vehicles, IBAN, jobs, money, stats).
- */
-function buildEnrichedCharacterObject({
-  citId,
-  cid,
-  license,
-  name,
-  charinfo,
-  money,
-  job,
-  gang,
-  metadata,
-  enrichedInvJson,
-  rawDiscord,
-  rawSteam,
-  rawFivem,
-  vehicles,
-  iban,
-  skinModel,
-  isOnline,
-  onlinePlayerObj,
-  sessionMinutes,
-  rawLastLogin
-}) {
-  const cleanDiscord = cleanIdentifier(rawDiscord, "discord");
-  const cleanSteam = cleanIdentifier(rawSteam, "steam");
-  const cleanLicense = cleanIdentifier(license, "license");
-  const cleanFivem = cleanIdentifier(rawFivem, "fivem");
-
-  const firstname = charinfo.firstname || "";
-  const lastname = charinfo.lastname || "";
-  const fullName = `${firstname} ${lastname}`.trim() || name || "Karakter";
-
-  const cash = Number(money.cash) || 0;
-  const bank = Number(money.bank) || 0;
-  const cryptoVal = Number(money.crypto) || 0;
-
-  const jobName = job.name || "unemployed";
-  const jobLabel = job.label || jobName;
-  const jobGrade = (job.grade && job.grade.level !== undefined) ? job.grade.level : 0;
-  const jobGradeName = (job.grade && job.grade.name) || "Yok";
-
-  const gangName = gang.name || "none";
-  const gangLabel = gang.label || gangName;
-  const gangGrade = (gang.grade && gang.grade.level !== undefined) ? gang.grade.level : 0;
-  const gangGradeName = (gang.grade && gang.grade.name) || "Yok";
-
-  const totalPlaytime = calculatePlayTime({ playtime: metadata.playtime }, metadata, sessionMinutes || 0);
-  const lastLoginText = isOnline ? "Şu Anda Oyunda" : formatDateOrTime(rawLastLogin);
-
-  const pVehicles = Array.isArray(vehicles) ? vehicles : [];
-
-  return {
-    // Core Identifiers
-    citizenid: citId,
-    cid: Number(cid) || 1,
-    license: license || "",
-    license_id: cleanLicense,
-    raw_license: license || "",
-
-    // Discord (Clean snowflake numeric ID for Discord API / avatars, plus raw prefix)
-    discord: cleanDiscord || rawDiscord || "",
-    discord_id: cleanDiscord || "",
-    discordId: cleanDiscord || "",
-    raw_discord: rawDiscord || "",
-
-    // Steam & FiveM
-    steam: cleanSteam || rawSteam || "",
-    steam_id: cleanSteam || "",
-    steamId: cleanSteam || "",
-    raw_steam: rawSteam || "",
-    fivem: cleanFivem || rawFivem || "",
-    fivem_id: cleanFivem || "",
-
-    // Names
-    name: fullName,
-    charName: fullName,
-    character_name: fullName,
-    fullname: fullName,
-    player_name: name || fullName,
-    firstname: firstname,
-    lastname: lastname,
-
-    // Personal Info
-    phone: charinfo.phone || charinfo.phoneNumber || "",
-    gender: (charinfo.gender === 0 || charinfo.gender === "0" || charinfo.gender === "m") ? "Erkek" : "Kadın",
-    gender_raw: charinfo.gender,
-    birthdate: charinfo.birthdate || "",
-    nationality: charinfo.nationality || "",
-    skin_model: skinModel || "mp_m_freemode_01",
-
-    // Banking & Financials
-    cash: cash,
-    bank: bank,
-    crypto: cryptoVal,
-    total_money: cash + bank,
-    iban: iban || charinfo.account || "",
-    account: charinfo.account || iban || "",
-
-    // Job & Organization
-    job_name: jobName,
-    job_label: jobLabel,
-    job_grade: jobGrade,
-    job_grade_name: jobGradeName,
-    job_payment: job.payment || (job.grade && job.grade.payment) || 0,
-    onduty: Boolean(job.onduty),
-    isboss: Boolean(job.isboss || (job.grade && job.grade.isboss)),
-
-    gang_name: gangName,
-    gang_label: gangLabel,
-    gang_grade: gangGrade,
-    gang_grade_name: gangGradeName,
-    gang_isboss: Boolean(gang.isboss || (gang.grade && gang.grade.isboss)),
-
-    // Owned Vehicles
-    vehicles: pVehicles,
-    vehicles_count: pVehicles.length,
-
-    // Health, Vitals & License Stats
-    health: metadata.health !== undefined ? Number(metadata.health) : 200,
-    armor: metadata.armor !== undefined ? Number(metadata.armor) : 0,
-    hunger: metadata.hunger !== undefined ? Number(metadata.hunger) : 100,
-    thirst: metadata.thirst !== undefined ? Number(metadata.thirst) : 100,
-    stress: metadata.stress !== undefined ? Number(metadata.stress) : 0,
-    isdead: Boolean(metadata.isdead || metadata.inlaststand),
-    licences: metadata.licences || {},
-    licenses: metadata.licences || {},
-    driver_license: Boolean(metadata.licences && metadata.licences.driver),
-    weapon_license: Boolean(metadata.licences && metadata.licences.weapon),
-    business_license: Boolean(metadata.licences && metadata.licences.business),
-    bloodtype: metadata.bloodtype || "Bilinmiyor",
-    fingerprint: metadata.fingerprint || "",
-
-    // Online State
-    is_online: isOnline,
-    isOnline: isOnline,
-    status: isOnline ? "online" : "offline",
-    serverId: isOnline && onlinePlayerObj ? onlinePlayerObj.id : null,
-    source: isOnline && onlinePlayerObj ? onlinePlayerObj.id : null,
-    ping: isOnline && onlinePlayerObj ? (onlinePlayerObj.ping || 0) : 0,
-
-    // JSON Fields (Backward compatibility with legacy dashboard parsers)
-    money: typeof money === "string" ? money : JSON.stringify(money),
-    money_data: money,
-    charinfo: typeof charinfo === "string" ? charinfo : JSON.stringify(charinfo),
-    charinfo_data: charinfo,
-    job: typeof job === "string" ? job : JSON.stringify(job),
-    job_data: job,
-    gang: typeof gang === "string" ? gang : JSON.stringify(gang),
-    gang_data: gang,
-    metadata: typeof metadata === "string" ? metadata : JSON.stringify({
-      ...metadata,
-      playtime: totalPlaytime,
-      last_login: lastLoginText,
-      last_seen: lastLoginText,
-      last_updated: lastLoginText
-    }),
-    metadata_data: metadata,
-    inventory: enrichedInvJson,
-
-    // Timestamps
-    playtime: totalPlaytime,
-    last_login: lastLoginText,
-    last_seen: lastLoginText,
-    last_updated: lastLoginText
+function clientEvent(eventNames, argsFn) {
+  return cmd => {
+    const target = requireOnline(cmd);
+    if (target.error) return failure(target.error);
+    const src = playerSource(target.player);
+    const args = argsFn ? argsFn(cmd) : [];
+    if (args === null) return failure("Eksik parametre.");
+    for (const name of eventNames) TriggerClientEvent(name, src, ...args);
+    return success();
   };
 }
 
-async function syncUpdatedCharacters(targetCitId) {
-  if (config.dbLock) {
-    log("[DB-LOCK] Veritabanı kilitli olduğu için karakter çekme atlandı.", "^3");
-    return;
+function sendDm(cmd) {
+  const target = requireOnline(cmd);
+  if (target.error) return failure(target.error);
+  const message = String(cmd.reason || "").slice(0, 500);
+  if (!message) return failure("Mesaj boş.");
+  const adminName = String(cmd.admin || "Yönetici").slice(0, 64);
+  const src = playerSource(target.player);
+  // chat:addMessage args are inserted as text by the chat resource.
+  TriggerClientEvent("chat:addMessage", src, { color: [59, 130, 246], multiline: true, args: [`Yetkili Mesajı (${adminName})`, message] });
+  TriggerClientEvent("QBCore:Notify", src, `Yetkili Mesajı (${adminName}): ${message}`, "primary", 10000);
+  return success();
+}
+
+function kick(cmd) {
+  const src = String(cmd.targetPlayer || "");
+  if (!isServerIdOnline(src)) return failure("Oyuncu sunucuda değil.");
+  const reason = String(cmd.reason || "Sunucudan yetkili tarafından atıldınız.").slice(0, 300);
+  DropPlayer(src, `[SHIELD] Sunucudan Atıldınız (Kick)\nSebep: ${reason}\nYetkili: ${cmd.admin || "Yönetici"}`);
+  return success();
+}
+
+async function ban(cmd) {
+  const src = String(cmd.targetPlayer || "");
+  if (!isServerIdOnline(src)) return failure("Oyuncu sunucuda değil.");
+  const reason = String(cmd.reason || "Sunucudan yasaklandınız.").slice(0, 300);
+  const admin = String(cmd.admin || "Yönetici").slice(0, 64);
+  const isPerma = !!cmd.isPerma;
+  const durationSeconds = Number(cmd.durationSeconds);
+  if (!isPerma && !(durationSeconds > 0)) return failure("Geçersiz ban süresi.");
+  const expire = isPerma ? PERMA_BAN_EXPIRY : Math.floor(Date.now() / 1000) + durationSeconds;
+  const ids = readIdentifiers(src);
+  const name = GetPlayerName(src) || cmd.playerName || null;
+  const ip = (ids.all.find(i => i.startsWith("ip:")) || "").replace("ip:", "") || (typeof GetPlayerEndpoint === "function" ? GetPlayerEndpoint(src) : "") || null;
+
+  let recorded = false;
+  try {
+    await dbExecute(
+      "INSERT INTO bans (name, license, discord, ip, reason, expire, bannedby) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [name, ids.license || cmd.license || null, ids.discord || (cmd.discordId ? `discord:${cmd.discordId}` : null), ip, reason, expire, admin]
+    );
+    recorded = true;
+  } catch (e) {
+    log(`[UYARI] bans tablosuna yazılamadı: ${e.message}`, "^3");
   }
+  DropPlayer(src, `[SHIELD] Sunucudan Yasaklandınız (Ban)\nSüre: ${cmd.duration || (isPerma ? "Kalıcı" : "Süreli")}\nSebep: ${reason}\nYetkili: ${admin}`);
+  if (!recorded) return failure("Oyuncu atıldı ancak ban kaydı 'bans' tablosuna yazılamadı; tekrar bağlanabilir.");
+  return success();
+}
 
-  const filterCitId = typeof targetCitId === "string" && targetCitId.trim() && targetCitId !== "true" ? targetCitId.trim() : null;
-  const sharedItems = getSharedData().items;
-  const onlinePlayers = getPlayersList();
-  updateOnlineSessions(onlinePlayers);
+// Console-style commands the panel may run. Everything else is refused.
+function executeConsoleCommand(cmd) {
+  const parts = String(cmd.command || "").trim().split(/\s+/);
+  const name = (parts[0] || "").toLowerCase();
+  const arg = parts[1] || "";
+  const resourcePattern = /^[a-zA-Z0-9_\-[\]]+$/;
 
-  // 1. Fetch Owned Vehicles
-  let vehiclesByCit = {};
-  try {
-    const vQuery = filterCitId
-      ? "SELECT citizenid, plate, vehicle, garage, state, fuel, mileage FROM player_vehicles WHERE citizenid = ?"
-      : "SELECT citizenid, plate, vehicle, garage, state, fuel, mileage FROM player_vehicles";
-    const vParams = filterCitId ? [filterCitId] : [];
-    const vRows = await dbQuery(vQuery, vParams);
-    if (vRows && Array.isArray(vRows)) {
-      for (const v of vRows) {
-        if (!vehiclesByCit[v.citizenid]) vehiclesByCit[v.citizenid] = [];
-        vehiclesByCit[v.citizenid].push({
-          plate: v.plate || "",
-          vehicle: v.vehicle || "",
-          garage: v.garage || "Garaj",
-          state: v.state !== undefined ? v.state : 1,
-          fuel: v.fuel !== undefined ? v.fuel : 100,
-          mileage: Number(v.mileage) || 0
-        });
-      }
+  if (["start", "ensure", "stop", "restart"].includes(name)) {
+    if (!resourcePattern.test(arg)) return failure("Geçerli bir resource adı gereklidir.");
+    if (arg === GetCurrentResourceName()) return failure("Köprü kendi resource'unu yönetemez.");
+    if (GetResourceState(arg) === "missing") return failure(`'${arg}' adlı bir resource bulunamadı.`);
+    if (name === "stop") return StopResource(arg) ? success() : failure(`'${arg}' durdurulamadı.`);
+    if (name === "restart") {
+      StopResource(arg);
+      return StartResource(arg) ? success() : failure(`'${arg}' yeniden başlatılamadı.`);
     }
-  } catch (e) { }
-
-  // 2. Fetch Bank IBANs
-  let ibanByCit = {};
-  try {
-    const bQuery = filterCitId
-      ? "SELECT citizenid, iban FROM tgiann_bank_player_accounts WHERE citizenid = ?"
-      : "SELECT citizenid, iban FROM tgiann_bank_player_accounts";
-    const bParams = filterCitId ? [filterCitId] : [];
-    const bRows = await dbQuery(bQuery, bParams);
-    if (bRows && Array.isArray(bRows)) {
-      for (const b of bRows) {
-        ibanByCit[b.citizenid] = b.iban;
-      }
-    }
-  } catch (e) { }
-
-  // 3. Fetch Skin Models
-  let skinByCit = {};
-  try {
-    const sQuery = filterCitId
-      ? "SELECT citizenid, model FROM playerskins WHERE active = 1 AND citizenid = ?"
-      : "SELECT citizenid, model FROM playerskins WHERE active = 1";
-    const sParams = filterCitId ? [filterCitId] : [];
-    const sRows = await dbQuery(sQuery, sParams);
-    if (sRows && Array.isArray(sRows)) {
-      for (const s of sRows) {
-        skinByCit[s.citizenid] = s.model;
-      }
-    }
-  } catch (e) { }
-
-  // OPTIMIZATION 1: If player is online, sync 100% directly from RAM memory (0ms SQL lag, 0 resmon)
-  if (filterCitId && isFiveM) {
-    const livePlayer = getLiveQBCorePlayer(filterCitId);
-    if (livePlayer && livePlayer.PlayerData) {
-      const pData = livePlayer.PlayerData;
-      const src = pData.source;
-
-      let rawInv = "[]";
-      if (GetResourceState("ox_inventory") === "started") {
-        try {
-          const liveOx = exports["ox_inventory"].GetInventory(src) || exports["ox_inventory"].GetPlayerItems(src);
-          if (liveOx) {
-            const itemsArr = Array.isArray(liveOx) ? liveOx : (liveOx.items ? Object.values(liveOx.items) : Object.values(liveOx));
-            if (itemsArr && itemsArr.length > 0) rawInv = JSON.stringify(itemsArr);
-          }
-        } catch (e) { }
-      } else if (pData.items) {
-        rawInv = JSON.stringify(Object.values(pData.items));
-      }
-
-      const enrichedInvJson = enrichInventoryItems(rawInv, sharedItems);
-      const sessionMinutes = getOnlineSessionMinutes([pData.license, pData.discord, pData.steam, pData.citizenid]);
-
-      const cachedIds = playerIdentifiersCache.get(filterCitId) || {};
-      const discord = cachedIds.discord || getPlayerIdentifierByType(src, "discord") || "";
-      const steam = cachedIds.steam || getPlayerIdentifierByType(src, "steam") || "";
-      const fivem = cachedIds.fivem || getPlayerIdentifierByType(src, "fivem") || "";
-
-      const characterObj = buildEnrichedCharacterObject({
-        citId: pData.citizenid,
-        cid: pData.cid || 1,
-        license: pData.license || "",
-        name: pData.name || "Karakter",
-        charinfo: pData.charinfo || {},
-        money: pData.money || {},
-        job: pData.job || {},
-        gang: pData.gang || {},
-        metadata: pData.metadata || {},
-        enrichedInvJson: enrichedInvJson,
-        rawDiscord: discord,
-        rawSteam: steam,
-        rawFivem: fivem,
-        vehicles: vehiclesByCit[filterCitId] || [],
-        iban: ibanByCit[filterCitId] || (pData.charinfo && pData.charinfo.account) || "",
-        skinModel: skinByCit[filterCitId] || "mp_m_freemode_01",
-        isOnline: true,
-        onlinePlayerObj: { id: src.toString(), ping: GetPlayerPing(src) || 0 },
-        sessionMinutes: sessionMinutes,
-        rawLastLogin: "Şu Anda Oyunda"
-      });
-
-      log(`[SHIELD-SOFTWARE] RAM'den (0ms SQL) detaylı canlı karakter senkronize ediliyor: ${filterCitId}`, "^2");
-      await sendCharactersInChunks([characterObj]);
-      return;
-    }
+    if (GetResourceState(arg) === "started") return success({ note: "Zaten çalışıyor." });
+    return StartResource(arg) ? success() : failure(`'${arg}' başlatılamadı.`);
   }
-
-  // OPTIMIZATION 2: SQL Query matching exact MariaDB zrptemel schema (No invalid steam/discord columns)
-  let queryStr = "";
-  let queryParams = [];
-
-  if (hasAdminIdentifiersTable) {
-    if (filterCitId) {
-      queryStr = `
-        SELECT p.citizenid, p.cid, p.license, p.name, p.money, p.charinfo, p.job, p.gang, p.metadata, p.inventory, p.last_updated,
-               f.discord, f.steam, f.fivem
-        FROM players p
-        LEFT JOIN fx_admin_identifiers f ON f.license = p.license
-        WHERE p.citizenid = ? OR p.license = ?
-      `;
-      queryParams = [filterCitId, filterCitId];
-    } else {
-      queryStr = `
-        SELECT p.citizenid, p.cid, p.license, p.name, p.money, p.charinfo, p.job, p.gang, p.metadata, p.inventory, p.last_updated,
-               f.discord, f.steam, f.fivem
-        FROM players p
-        LEFT JOIN fx_admin_identifiers f ON f.license = p.license
-      `;
-    }
-  } else {
-    if (filterCitId) {
-      queryStr = "SELECT citizenid, cid, license, name, money, charinfo, job, gang, metadata, inventory, last_updated FROM players WHERE citizenid = ? OR license = ?";
-      queryParams = [filterCitId, filterCitId];
-    } else {
-      queryStr = "SELECT citizenid, cid, license, name, money, charinfo, job, gang, metadata, inventory, last_updated FROM players";
-    }
+  if (name === "say" || name === "announce") {
+    const text = parts.slice(1).join(" ").slice(0, 500);
+    if (!text) return failure("Duyuru metni boş.");
+    TriggerClientEvent("chat:addMessage", -1, { color: [255, 165, 0], multiline: true, args: ["[YÖNETİCİ DUYURUSU]", text] });
+    return success();
   }
+  return failure(`İzin verilmeyen komut: '${name}'. İzin verilenler: start, ensure, stop, restart, say, announce.`);
+}
 
+// Screen watching works for any connected player, even before a character is loaded.
+function connectedSource(cmd) {
+  const player = getOnlinePlayer(cmd.targetPlayer, cmd.citizenid);
+  if (player) return playerSource(player);
+  return isServerIdOnline(cmd.targetPlayer) ? parseInt(cmd.targetPlayer, 10) : null;
+}
+
+function startScreenWatch(cmd) {
+  const src = connectedSource(cmd);
+  if (src === null) return failure("Oyuncu sunucuda değil.");
+  if (GetResourceState("screenshot-basic") !== "started") return failure("screenshot-basic resource'u çalışmıyor.");
+  if (!cmd.uploadUrl) return failure("Yükleme adresi eksik.");
+  TriggerClientEvent("shield:client:startScreenWatch", src, {
+    uploadUrl: cmd.uploadUrl,
+    interval: cmd.interval,
+    quality: cmd.quality
+  });
+  return success();
+}
+
+function stopScreenWatch(cmd) {
+  const src = connectedSource(cmd);
+  if (src === null) return success({ note: "Oyuncu artık oyunda değil." });
+  TriggerClientEvent("shield:client:stopScreenWatch", src);
+  return success();
+}
+
+async function syncCharactersCommand(cmd) {
+  if (cmd.citizenid) {
+    const ok = await syncUpdatedCharacters(String(cmd.citizenid));
+    return ok ? success() : failure("Karakter verisi okunamadı veya panele gönderilemedi.");
+  }
+  queueCharacterSync(true);
+  return success({ queued: true });
+}
+
+const COMMAND_HANDLERS = {
+  setjob: cmd => setGroup(cmd, "Jobs"),
+  setgang: cmd => setGroup(cmd, "Gangs"),
+  giveitem: giveItem,
+  removeitem: removeItem,
+  clearinventory: clearInventory,
+  givemoney: giveMoney,
+  update_character: updateCharacter,
+  delete_character: deleteCharacter,
+  sync_characters: syncCharactersCommand,
+  teleport,
+  vreturn: vehicleReturn,
+  revive: clientEvent(["hospital:client:Revive"]),
+  kill: clientEvent(["hospital:client:KillPlayer"]),
+  // Both appearance resources are tried; the one that is not installed simply ignores the event.
+  pedmenu: clientEvent(["illenium-appearance:client:openClothingMenu", "qb-clothing:client:openMenu"]),
+  pedver: clientEvent(["illenium-appearance:client:changePed"], cmd => (cmd.ped ? [String(cmd.ped)] : null)),
+  pedal: clientEvent(["illenium-appearance:client:resetPed"]),
+  send_dm: sendDm,
+  kick,
+  ban,
+  execute_command: executeConsoleCommand,
+  start_screen_watch: startScreenWatch,
+  stop_screen_watch: stopScreenWatch
+};
+
+// Action names sent by older panel versions.
+const ACTION_ALIASES = {
+  give_item: "giveitem",
+  remove_item: "removeitem",
+  delete_item: "removeitem",
+  clear_inventory: "clearinventory",
+  delete_inventory: "clearinventory",
+  get_characters: "sync_characters",
+  fetch_characters: "sync_characters",
+  sync_all: "sync_characters",
+  execute_raw: "execute_command",
+  console_command: "execute_command"
+};
+
+async function executeBridgeCommand(cmd) {
+  if (!cmd || typeof cmd.action !== "string") return failure("Geçersiz komut.");
+  const action = ACTION_ALIASES[cmd.action] || cmd.action;
+  const handler = COMMAND_HANDLERS[action];
+  if (!handler) return failure(`Bu köprü sürümü '${cmd.action}' eylemini desteklemiyor.`);
   try {
-    const results = await dbQuery(queryStr, queryParams);
-    if (results && results.length > 0) {
-      log(`[SHIELD-SOFTWARE] SQL'den ${results.length} adet detaylı karakter verisi çekildi. Web paneline senkronize ediliyor...`, "^2");
-
-      const onlineMap = {};
-      for (const p of onlinePlayers) {
-        if (p.identifiers) {
-          for (const id of p.identifiers) {
-            onlineMap[id] = p;
-          }
-        }
-        if (p.citizenid) onlineMap[p.citizenid] = p;
-      }
-
-      const mapped = results.map((row) => {
-        const citId = row.citizenid || "";
-        const license = row.license || "";
-        let discord = row.discord || "";
-        let steam = row.steam || "";
-        let fivem = row.fivem || "";
-
-        const cachedIds = playerIdentifiersCache.get(citId) || licenseIdentifiersCache.get(license);
-        if (cachedIds) {
-          if (!discord && cachedIds.discord) discord = cachedIds.discord;
-          if (!steam && cachedIds.steam) steam = cachedIds.steam;
-          if (!fivem && cachedIds.fivem) fivem = cachedIds.fivem;
-        }
-
-        const onlinePlayerObj = onlineMap[license] || onlineMap[discord] || onlineMap[steam] || onlineMap[citId];
-        const isOnline = Boolean(onlinePlayerObj);
-        const sessionMinutes = isOnline && onlinePlayerObj ? getOnlineSessionMinutes(onlinePlayerObj.identifiers) : 0;
-
-        let charinfo = {};
-        try { charinfo = typeof row.charinfo === "string" ? JSON.parse(row.charinfo) : (row.charinfo || {}); } catch (e) { }
-
-        let money = {};
-        try { money = typeof row.money === "string" ? JSON.parse(row.money) : (row.money || {}); } catch (e) { }
-
-        let job = {};
-        try { job = typeof row.job === "string" ? JSON.parse(row.job) : (row.job || {}); } catch (e) { }
-
-        let gang = {};
-        try { gang = typeof row.gang === "string" ? JSON.parse(row.gang) : (row.gang || {}); } catch (e) { }
-
-        let rawInv = row.inventory || "[]";
-        if (isOnline && onlinePlayerObj && isFiveM) {
-          try {
-            const srcNum = parseInt(onlinePlayerObj.id, 10);
-            if (!isNaN(srcNum) && GetResourceState("ox_inventory") === "started") {
-              const liveOx = exports["ox_inventory"].GetInventory(srcNum) || exports["ox_inventory"].GetPlayerItems(srcNum);
-              if (liveOx) {
-                const itemsArr = Array.isArray(liveOx) ? liveOx : (liveOx.items ? Object.values(liveOx.items) : Object.values(liveOx));
-                if (itemsArr && itemsArr.length > 0) rawInv = JSON.stringify(itemsArr);
-              }
-            }
-          } catch (e) { }
-        }
-        const enrichedInvJson = enrichInventoryItems(rawInv, sharedItems);
-
-        let metadata = {};
-        try { metadata = typeof row.metadata === "string" ? JSON.parse(row.metadata) : (row.metadata || {}); } catch (e) { }
-
-        return buildEnrichedCharacterObject({
-          citId: citId,
-          cid: row.cid || 1,
-          license: license,
-          name: row.name || "Karakter",
-          charinfo: charinfo,
-          money: money,
-          job: job,
-          gang: gang,
-          metadata: metadata,
-          enrichedInvJson: enrichedInvJson,
-          rawDiscord: discord,
-          rawSteam: steam,
-          rawFivem: fivem,
-          vehicles: vehiclesByCit[citId] || [],
-          iban: ibanByCit[citId] || (charinfo && charinfo.account) || "",
-          skinModel: skinByCit[citId] || "mp_m_freemode_01",
-          isOnline: isOnline,
-          onlinePlayerObj: onlinePlayerObj,
-          sessionMinutes: sessionMinutes,
-          rawLastLogin: row.last_updated || metadata.lastlogin || metadata.last_seen
-        });
-      });
-
-      await sendCharactersInChunks(mapped);
-    }
+    const result = await handler(cmd);
+    log(`[KOMUT] ${action} (${cmd.id || "-"}) -> ${result.ok ? "başarılı" : "başarısız: " + result.error}`, result.ok ? "^2" : "^3");
+    return result;
   } catch (err) {
-    log(`[ERROR] Karakter listesi SQL çekme hatası: ${err.message}`, "^1");
+    log(`[KOMUT] ${action} (${cmd.id || "-"}) hata: ${err.message}`, "^1");
+    return failure(err instanceof DbLockedError ? err.message : `Sunucu hatası: ${err.message}`);
+  }
+}
+
+/* ==========================================================================
+   POLL LOOP
+   ========================================================================== */
+
+let pendingResults = [];
+let pollInFlight = false;
+
+async function pollServer() {
+  if (pollInFlight) return;
+  pollInFlight = true;
+  const reporting = pendingResults;
+  pendingResults = [];
+  let moreWork = false;
+  try {
+    const playersList = getPlayersList();
+    const response = await signedPost(config.apiUrl, {
+      status: "active",
+      bridgeVersion: BRIDGE_VERSION,
+      playersCount: playersList.length,
+      maxPlayers: maxPlayers(),
+      players: playersList,
+      results: reporting,
+      timestamp: Date.now()
+    });
+    delete lastErrors.Poll;
+    const commands = response && Array.isArray(response.commands) ? response.commands : [];
+    for (const cmd of commands) {
+      const result = await executeBridgeCommand(cmd);
+      if (cmd && cmd.id) pendingResults.push({ id: String(cmd.id), ...result });
+    }
+    moreWork = commands.length > 0;
+  } catch (err) {
+    // Results not delivered go back to the front of the queue for the next attempt.
+    pendingResults = reporting.concat(pendingResults).slice(-MAX_PENDING_RESULTS);
+    if (err.status === 429) log("[UYARI] Panel hız sınırı (HTTP 429). Bekleniyor...", "^3");
+    else logThrottled("Poll", err.message);
+  } finally {
+    pollInFlight = false;
+  }
+  // Report results and pick up follow-up commands right away.
+  if (moreWork) setTimeout(pollServer, 100);
+}
+
+/* ==========================================================================
+   CHARACTER SYNC
+   ========================================================================== */
+
+async function sendCharacters(list) {
+  for (let i = 0; i < list.length; i += CHARACTER_CHUNK_SIZE) {
+    try {
+      await signedPost(bridgeUrl("characters"), { characters: list.slice(i, i + CHARACTER_CHUNK_SIZE), timestamp: Date.now() });
+      delete lastErrors.Characters;
+    } catch (err) {
+      logThrottled("Characters", err.message);
+      return false;
+    }
+  }
+  return true;
+}
+
+// Item list with labels/images filled in from the server's item registry where the inventory entry lacks them.
+function enrichInventoryItems(rawInventory, sharedItems) {
+  const parsed = parseJson(rawInventory, []);
+  const list = Array.isArray(parsed) ? parsed : Object.values(parsed || {});
+  return list.filter(item => item && typeof item === "object").map(item => {
+    const name = item.name || item.item || null;
+    const shared = (name && sharedItems && sharedItems[name]) || {};
+    const count = numberOrNull(item.count ?? item.amount ?? item.quantity);
+    const image = item.image || item.icon || shared.image || shared.icon || null;
+    return { ...item, name, label: item.label || shared.label || null, count, amount: count, image, icon: image };
+  });
+}
+
+const playerOnlineSessions = new Map();
+
+function updateOnlineSessions(onlineList) {
+  const current = new Set();
+  const now = Date.now();
+  for (const p of onlineList) {
+    const key = p.license || p.id;
+    current.add(key);
+    if (!playerOnlineSessions.has(key)) playerOnlineSessions.set(key, now);
+  }
+  for (const key of playerOnlineSessions.keys()) {
+    if (!current.has(key)) playerOnlineSessions.delete(key);
+  }
+}
+
+function sessionMinutes(license) {
+  const start = license ? playerOnlineSessions.get(license) : null;
+  return start ? Math.floor((Date.now() - start) / 60000) : 0;
+}
+
+// Character payload for the panel. Every value comes from the framework/database; missing values stay null.
+function buildCharacterPayload({ citizenid, cid, license, name, charinfo, money, job, gang, metadata, inventory, identifiers, vehicles, iban, skinModel, online, lastSeen }) {
+  const fullName = `${charinfo.firstname || ""} ${charinfo.lastname || ""}`.trim() || name || null;
+  const storedPlaytime = numberOrNull(metadata.playtime ?? metadata.playTime);
+  return {
+    citizenid,
+    cid: numberOrNull(cid),
+    license: license || null,
+    discord: identifiers.discord || null,
+    discord_id: cleanIdentifier(identifiers.discord, "discord") || null,
+    steam: identifiers.steam || null,
+    fivem: identifiers.fivem || null,
+    name: fullName,
+    firstname: typeof charinfo.firstname === "string" ? charinfo.firstname : null,
+    lastname: typeof charinfo.lastname === "string" ? charinfo.lastname : null,
+    birthdate: typeof charinfo.birthdate === "string" ? charinfo.birthdate : null,
+    phone: charinfo.phone || null,
+    gender_raw: charinfo.gender ?? null,
+    nationality: charinfo.nationality || null,
+    skin_model: skinModel || null,
+    iban: iban || charinfo.account || null,
+    money,
+    charinfo,
+    job: job && job.name ? job : null,
+    gang: gang && gang.name ? gang : null,
+    metadata,
+    inventory,
+    vehicles: Array.isArray(vehicles) ? vehicles : [],
+    playtime: storedPlaytime === null ? null : storedPlaytime + (online ? sessionMinutes(license) : 0),
+    is_online: !!online,
+    serverId: online ? online.id : null,
+    last_seen: online ? null : (lastSeen ? new Date(lastSeen).toISOString() : null)
+  };
+}
+
+let pendingSyncIds = new Set();
+let syncTimer = null;
+
+function queueCharacterSync(target) {
+  if (target === true) pendingSyncIds.add("__ALL__");
+  else if (typeof target === "string" && target.trim()) pendingSyncIds.add(target.trim());
+  else return;
+  if (syncTimer) return;
+  syncTimer = setTimeout(async () => {
+    syncTimer = null;
+    const ids = [...pendingSyncIds];
+    pendingSyncIds.clear();
+    if (ids.includes("__ALL__")) await syncUpdatedCharacters(true);
+    else for (const id of ids) await syncUpdatedCharacters(id);
+  }, 300);
+}
+
+async function lookupByCitizen(query, params) {
+  const map = {};
+  try {
+    for (const row of await dbQuery(query, params)) (map[row.citizenid] = map[row.citizenid] || []).push(row);
+  } catch (e) {
+    // Optional table that this server may not have.
+  }
+  return map;
+}
+
+let syncInFlight = false;
+
+// Pushes characters to the panel: one (by citizenid) or all. Returns true when the panel accepted the data.
+async function syncUpdatedCharacters(target) {
+  if (!dbReady) return false;
+  const one = typeof target === "string" && target.trim() ? target.trim() : null;
+  if (!one && syncInFlight) return true;
+  if (!one) syncInFlight = true;
+  try {
+    const shared = getSharedData().items;
+    const onlinePlayers = getPlayersList();
+    updateOnlineSessions(onlinePlayers);
+    const onlineByCitizen = new Map(onlinePlayers.filter(p => p.citizenid).map(p => [p.citizenid, p]));
+    const onlineByLicense = new Map(onlinePlayers.filter(p => p.license).map(p => [p.license, p]));
+
+    const where = one ? " WHERE citizenid = ?" : "";
+    const params = one ? [one] : [];
+    const [vehicles, banks, skins] = await Promise.all([
+      lookupByCitizen(`SELECT citizenid, plate, vehicle, garage, state, fuel FROM player_vehicles${where}`, params),
+      lookupByCitizen(`SELECT citizenid, iban FROM tgiann_bank_player_accounts${where}`, params),
+      lookupByCitizen(`SELECT citizenid, model FROM playerskins WHERE active = 1${one ? " AND citizenid = ?" : ""}`, params)
+    ]);
+
+    const select = "p.citizenid, p.cid, p.license, p.name, p.money, p.charinfo, p.job, p.gang, p.metadata, p.inventory, p.last_updated";
+    const rows = hasAdminIdentifiersTable
+      ? await dbQuery(`SELECT ${select}, f.discord, f.steam, f.fivem FROM players p LEFT JOIN fx_admin_identifiers f ON f.license = p.license${one ? " WHERE p.citizenid = ?" : ""}`, params)
+      : await dbQuery(`SELECT ${select} FROM players p${one ? " WHERE p.citizenid = ?" : ""}`, params);
+    if (one && rows.length === 0) return false;
+
+    const payload = rows.map(row => {
+      const live = getLiveQBCorePlayer(row.citizenid);
+      const pData = live && live.PlayerData ? live.PlayerData : null;
+      const online = onlineByCitizen.get(row.citizenid) || (row.license && onlineByLicense.get(row.license)) || null;
+      const cached = playerIdentifiersCache.get(row.citizenid) || licenseIdentifiersCache.get(row.license) || {};
+
+      let inventory = row.inventory;
+      if (pData && online && GetResourceState("ox_inventory") === "started") {
+        try {
+          const liveInv = exports["ox_inventory"].GetInventoryItems(parseInt(online.id, 10));
+          if (liveInv) inventory = Array.isArray(liveInv) ? liveInv : Object.values(liveInv);
+        } catch (e) { }
+      } else if (pData && pData.items) {
+        inventory = Object.values(pData.items);
+      }
+
+      const vehicleRows = (vehicles[row.citizenid] || []).map(v => ({
+        plate: v.plate || null,
+        vehicle: v.vehicle || null,
+        garage: v.garage || null,
+        state: numberOrNull(v.state),
+        fuel: numberOrNull(v.fuel)
+      }));
+
+      // A loaded character's in-memory data is newer than the last database save.
+      return buildCharacterPayload({
+        citizenid: row.citizenid,
+        cid: pData ? pData.cid : row.cid,
+        license: row.license,
+        name: row.name,
+        charinfo: pData ? pData.charinfo || {} : parseJson(row.charinfo, {}),
+        money: pData ? pData.money || {} : parseJson(row.money, {}),
+        job: pData ? pData.job : parseJson(row.job, null),
+        gang: pData ? pData.gang : parseJson(row.gang, null),
+        metadata: pData ? pData.metadata || {} : parseJson(row.metadata, {}),
+        inventory: enrichInventoryItems(inventory, shared),
+        identifiers: {
+          discord: row.discord || cached.discord || (online && online.identifiers.find(i => i.startsWith("discord:"))) || "",
+          steam: row.steam || cached.steam || "",
+          fivem: row.fivem || cached.fivem || ""
+        },
+        vehicles: vehicleRows,
+        iban: (banks[row.citizenid] || [])[0] ? banks[row.citizenid][0].iban : null,
+        skinModel: (skins[row.citizenid] || [])[0] ? skins[row.citizenid][0].model : null,
+        online,
+        lastSeen: row.last_updated
+      });
+    });
+    if (payload.length === 0) return true;
+    return await sendCharacters(payload);
+  } catch (err) {
+    logThrottled("CharacterSync", err.message);
+    return false;
+  } finally {
+    if (!one) syncInFlight = false;
   }
 }
 
@@ -1997,157 +1188,104 @@ async function syncUpdatedCharacters(targetCitId) {
    SHARED DATA (ITEMS, JOBS, GANGS, VEHICLES)
    ========================================================================== */
 
+// Reads the server's own registries. A registry that cannot be read is null (unknown), not an empty list.
 function getSharedData() {
-  let items = {};
-  let jobs = {};
-  let gangs = {};
-  let vehicles = {};
-
   const QBCore = getQBCore();
+  const result = { items: null, jobs: null, gangs: null, vehicles: null };
   if (QBCore && QBCore.Shared) {
-    items = { ...(QBCore.Shared.Items || {}) };
-    jobs = { ...(QBCore.Shared.Jobs || {}) };
-    gangs = { ...(QBCore.Shared.Gangs || {}) };
-    vehicles = { ...(QBCore.Shared.Vehicles || {}) };
-  } else if (!isFiveM) {
-    items = {
-      phone: { name: "phone", label: "Telefon", weight: 150, image: "phone.png", description: "Akıllı telefon" },
-      water_bottle: { name: "water_bottle", label: "Su Şişesi", weight: 500, image: "water.png", description: "Temiz içme suyu" },
-      sandwich: { name: "sandwich", label: "Sandviç", weight: 200, image: "sandwich.png", description: "Lezzetli sandviç" }
-    };
-    jobs = {
-      unemployed: { label: "İşsiz", grades: { "0": { name: "İşsiz", payment: 50 } } },
-      police: { label: "Polis Departmanı", grades: { "0": { name: "Memur", payment: 500 } } }
-    };
-    gangs = {
-      none: { label: "Yok", grades: { "0": { name: "Yok" } } }
-    };
-    vehicles = {
-      adder: { name: "Adder", brand: "Truffade", price: 1000000, category: "super" }
-    };
+    result.items = QBCore.Shared.Items ? { ...QBCore.Shared.Items } : null;
+    result.jobs = QBCore.Shared.Jobs ? { ...QBCore.Shared.Jobs } : null;
+    result.gangs = QBCore.Shared.Gangs ? { ...QBCore.Shared.Gangs } : null;
+    result.vehicles = QBCore.Shared.Vehicles ? { ...QBCore.Shared.Vehicles } : null;
   }
-
-  // ox_inventory items merge
   if (isFiveM && GetResourceState("ox_inventory") === "started") {
     try {
       const oxItems = exports["ox_inventory"].Items();
       if (oxItems) {
+        result.items = result.items || {};
         for (const [key, item] of Object.entries(oxItems)) {
-          const imageName = item.image || (item.client && item.client.image) || `${key}.png`;
-          items[key] = {
+          const image = item.image || (item.client && item.client.image) || null;
+          result.items[key] = {
             name: item.name || key,
-            label: item.label || key,
-            weight: item.weight || 0,
-            image: imageName,
-            icon: imageName,
-            description: item.description || ""
+            label: item.label || null,
+            weight: numberOrNull(item.weight),
+            image,
+            icon: image,
+            description: item.description || null
           };
         }
       }
     } catch (e) { }
   }
-
-  for (const [k, v] of Object.entries(items)) {
-    if (!v.image && !v.icon) {
-      v.image = `${k}.png`;
-      v.icon = `${k}.png`;
-    } else if (!v.image) {
-      v.image = v.icon;
-    } else if (!v.icon) {
-      v.icon = v.image;
-    }
-  }
-
-  return { items, jobs, gangs, vehicles };
+  return result;
 }
 
 async function syncSharedData() {
+  const data = getSharedData();
+  if (!data.items && !data.jobs && !data.gangs && !data.vehicles) {
+    logThrottled("SharedData", "Framework kayıtları (QBCore.Shared / ox_inventory) okunamadı; panele veri gönderilmedi.");
+    return;
+  }
   try {
-    const sharedData = getSharedData();
-    const requestBody = {
-      ...sharedData,
-      timestamp: Date.now()
-    };
-
-    const timestampHeader = Date.now().toString();
-    const payloadToSign = timestampHeader + JSON.stringify(requestBody);
-    const signature = crypto
-      .createHmac("sha256", config.secretKey)
-      .update(payloadToSign)
-      .digest("hex");
-
-    const headers = {
-      "X-Bridge-Timestamp": timestampHeader,
-      "X-Bridge-Signature": signature
-    };
-
-    const sharedUrl = config.apiUrl.replace("/poll", "/shared-data");
-    await makeRequest(sharedUrl, "POST", headers, requestBody);
-    lastSharedSyncErrorMsg = null;
+    await signedPost(bridgeUrl("shared-data"), { ...data, timestamp: Date.now() });
+    delete lastErrors.SharedData;
   } catch (err) {
-    const errFormatted = formatErrorMessage(err);
-    const now = Date.now();
-    if (errFormatted !== lastSharedSyncErrorMsg || now - lastSharedSyncErrorTime > 60000) {
-      lastSharedSyncErrorMsg = errFormatted;
-      lastSharedSyncErrorTime = now;
-      log(`[ERROR] Paylaşılan veri senkronizasyon hatası - KFAPI11-d (${errFormatted})`, "^1");
-    }
+    logThrottled("SharedData", err.message);
   }
 }
 
-function printStartupBanner() {
-  log("==========================================================================", "^2");
-  log("        🚀 SHIELD-SOFTWARE (Shield Web) BRIDGE MANAGEMENT SYSTEM v1.9.0           ", "^4");
-  log("--------------------------------------------------------------------------", "^7");
-  log("  [STATUS]      : ONLINE & ACTIVE", "^2");
-  log(`  [ENVIRONMENT] : ${isFiveM ? "FiveM FXServer Resource" : "Standalone Node.js Mode"}`, "^3");
-  log(`  [POLL RATE]   : ${config.pollInterval}ms (Instant Action Delivery)`, "^3");
-  log(`  [DATABASE]    : ${config.dbLock ? "🔒 KİLİTLİ" : "MariaDB 'players' (QBCore) - oxmysql Doğrudan Async"}`, "^5");
-  log(`  [API URL]     : ${config.apiUrl}`, "^5");
-  log("==========================================================================", "^2");
-}
-
-printStartupBanner();
-
-setInterval(pollServer, config.pollInterval);
-setTimeout(() => syncUpdatedCharacters(true), 3000);
-setInterval(() => syncUpdatedCharacters(true), 60000); // Periodic character sync every 60s
-setTimeout(syncSharedData, 2000);
-setInterval(syncSharedData, 600000);
-
 /* ==========================================================================
-   FIVEM EVENT LISTENERS
+   STARTUP
    ========================================================================== */
 
-if (isFiveM) {
-  onNet("QBCore:Server:PlayerLoaded", (player) => {
-    if (!player || !player.PlayerData) return;
-    const citizenid = player.PlayerData.citizenid;
-    const source = player.PlayerData.source;
-    updatePlayerIdentifiers(source, citizenid);
-    if (citizenid) {
-      queueCharacterSync(citizenid);
-    }
-  });
+function start() {
+  if (!loadConfig()) {
+    log("Köprü yapılandırma hatası nedeniyle başlatılmadı.", "^1");
+    return;
+  }
+  log("==========================================================================", "^2");
+  log(`  SHIELD-SOFTWARE KÖPRÜSÜ v${RESOURCE_VERSION} (protokol v${BRIDGE_VERSION})`, "^4");
+  log(`  Panel     : ${config.apiUrl}`, "^5");
+  log(`  Poll      : ${config.pollInterval} ms`, "^5");
+  log(`  Veritabanı: ${config.dbLock ? "KİLİTLİ" : "oxmysql (QBCore players)"}`, "^5");
+  log("==========================================================================", "^2");
 
+  setTimeout(initDatabase, 500);
+  setInterval(pollServer, Math.max(250, Number(config.pollInterval) || 1000));
+  setInterval(() => syncUpdatedCharacters(true), FULL_SYNC_INTERVAL_MS);
+  setTimeout(syncSharedData, 2000);
+  setInterval(syncSharedData, SHARED_SYNC_INTERVAL_MS);
+
+  // Local server event raised by qb-core; deliberately not a net event so clients cannot trigger it.
+  on("QBCore:Server:PlayerLoaded", player => {
+    if (!player || !player.PlayerData) return;
+    updatePlayerIdentifiers(player.PlayerData.source, player.PlayerData.citizenid);
+    if (player.PlayerData.citizenid) queueCharacterSync(player.PlayerData.citizenid);
+  });
   on("playerDropped", () => {
-    const src = source;
-    // Fast update on player disconnect
     setTimeout(() => queueCharacterSync(true), 1000);
   });
 }
 
-if (!isFiveM) {
+if (isFiveM) {
+  start();
+} else if (isTest) {
   module.exports = {
     executeBridgeCommand,
-    getPlayersList,
-    getSharedData,
-    isPlayerOnline,
-    dbQuery,
-    dbSingle,
-    dbExecute,
+    executeConsoleCommand,
+    verifyAmount,
+    verifyItem,
     enrichInventoryItems,
-    buildEnrichedCharacterObject,
-    syncUpdatedCharacters
+    buildCharacterPayload,
+    bridgeUrl,
+    signedPost,
+    pollServer,
+    getPendingResults: () => pendingResults,
+    setConfig: next => { config = { ...config, ...next }; },
+    COMMAND_HANDLERS,
+    ACTION_ALIASES,
+    BRIDGE_VERSION
   };
+} else {
+  log("Bu dosya bir FiveM resource'udur; FXServer içinde çalıştırılmalıdır.", "^3");
 }

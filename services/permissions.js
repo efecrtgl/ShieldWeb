@@ -29,6 +29,7 @@ const LEGACY_PERM_KEYS = [
 ];
 
 const SUPERUSER_PERMS = Object.freeze({
+  ...Object.fromEntries([...ALL_RANK_PERM_KEYS, ...LEGACY_PERM_KEYS, "createDepartment"].map(key => [key, true])),
   isSuperuser: true,
   isProjectLeader: true,
   viewOverview: true,
@@ -214,11 +215,11 @@ function computeRankPermissions(applicableRanks) {
   let businessBlacklistAdd = hasPerm("businessBlacklistAdd") || teamBlacklistAdd;
   let businessWipe = hasPerm("businessWipe") || teamWipe;
 
-  let charEditModal = hasPerm("charEditModal") || editUsers || true;
-  let charEditName = hasPerm("charEditName") || editUsers || true;
-  let charEditBirthdate = hasPerm("charEditBirthdate") || editUsers || true;
-  let charEditMoney = hasPerm("charEditMoney") || editUsers || true;
-  let charEditJob = hasPerm("charEditJob") || editUsers || true;
+  let charEditModal = hasPerm("charEditModal") || editUsers;
+  let charEditName = hasPerm("charEditName") || editUsers;
+  let charEditBirthdate = hasPerm("charEditBirthdate") || editUsers;
+  let charEditMoney = hasPerm("charEditMoney") || editUsers;
+  let charEditJob = hasPerm("charEditJob") || editUsers;
   let charClearInventory = hasPerm("charClearInventory") || deleteUsers;
   let charDeleteItem = hasPerm("charDeleteItem") || deleteUsers;
 
@@ -317,4 +318,4 @@ async function getUserPermissions(userSession) {
   return perms;
 }
 
-module.exports = { ALL_RANK_PERM_KEYS, getUserPermissions, hasAnyPermission };
+module.exports = { ALL_RANK_PERM_KEYS, getUserPermissions, hasAnyPermission, computeRankPermissions };

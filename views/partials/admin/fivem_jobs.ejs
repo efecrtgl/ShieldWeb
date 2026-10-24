@@ -1,107 +1,23 @@
-<section id="fivem-jobs-content" class="admin-section-inner" style="font-family: 'Outfit', sans-serif;">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-    <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-briefcase text-primary"></i> FiveM Meslek Listesi</h2>
-    <span id="fivem-jobs-total" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;">0 Tanımlı Meslek</span>
+<section class="admin-section-inner" data-catalog="jobs" aria-labelledby="catalog-jobs-title">
+  <div class="section-head">
+    <div>
+      <h2 id="catalog-jobs-title">Meslekler</h2>
+      <p>Sunucunun tanımlı meslekleri, kademeleri ve maaşları. Veri yalnızca FiveM sunucusundan gelir.</p>
+    </div>
+    <div class="actions">
+      <span class="freshness" data-catalog-count></span>
+      <button type="button" class="btn" data-catalog-refresh><i class="fa-solid fa-rotate" aria-hidden="true"></i> Yenile</button>
+    </div>
   </div>
-
-  <div class="content-panel" style="padding: 24px;">
-    <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
-      <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-        <div style="position: relative; width: 320px; max-width: 100%;">
-          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; z-index: 2;"></i>
-          <input type="text" id="search-fivem-jobs" oninput="filterFiveMJobs()" placeholder="Meslek adı veya kod ara..." class="form-input" style="padding-left: 38px !important; height: 40px; border-radius: 8px; font-size: 13px; width: 100%;">
-        </div>
-      </div>
+  <div class="content-panel">
+    <div class="catalog-toolbar">
+      <label class="catalog-search">
+        <span class="sr-only">Meslek adı veya kodu ara</span>
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input type="search" class="form-input" placeholder="Meslek adı veya kodu ara" autocomplete="off">
+      </label>
+      <div data-catalog-status></div>
     </div>
-
-    <div id="fivem-jobs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-      <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0;">
-        <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px; color: var(--primary);"></i><br>Meslek verileri alınıyor...
-      </div>
-    </div>
+    <div class="catalog-grid" aria-live="polite"></div>
   </div>
 </section>
-
-<script>
-  let fivemJobsCached = {};
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const tabLink = document.querySelector('.sidebar-link[href="#fivem-jobs"]');
-    if (tabLink) {
-      tabLink.addEventListener("click", fetchFiveMJobs);
-    }
-    if (window.location.hash === "#fivem-jobs") {
-      fetchFiveMJobs();
-    }
-  });
-
-  async function fetchFiveMJobs() {
-    try {
-      const res = await fetch("/api/fivem/shared-data");
-      const data = await res.json();
-      if (data.success && data.jobs) {
-        fivemJobsCached = data.jobs;
-        filterFiveMJobs();
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  function filterFiveMJobs() {
-    const query = document.getElementById("search-fivem-jobs").value.toLowerCase().trim();
-    const grid = document.getElementById("fivem-jobs-grid");
-    if (!grid) return;
-
-    const jobEntries = Object.entries(fivemJobsCached);
-    const filtered = jobEntries.filter(([code, job]) => {
-      return code.toLowerCase().includes(query) || (job.label || "").toLowerCase().includes(query);
-    });
-
-    document.getElementById("fivem-jobs-total").innerText = `${filtered.length} Tanımlı Meslek`;
-
-    if (filtered.length === 0) {
-      grid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0;">Meslek bulunamadı.</div>
-      `;
-      return;
-    }
-
-    let html = '';
-    filtered.forEach(([code, job]) => {
-      let gradesHtml = '';
-      if (job.grades) {
-        Object.entries(job.grades).forEach(([gradeLevel, g]) => {
-          const pay = g.payment ? `$${g.payment.toLocaleString()}` : '';
-          const name = g.name || g.label || `Grade ${gradeLevel}`;
-          gradesHtml += `
-            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.15); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.02); font-size: 11px;">
-              <span style="font-weight: 600; color: #fff;"><span style="color: var(--primary); font-family: monospace; font-weight: 800; margin-right: 6px;">[${gradeLevel}]</span>${name}</span>
-              <span style="color: #34d399; font-weight: 700; font-family: monospace;">${pay}</span>
-            </div>
-          `;
-        });
-      }
-
-      html += `
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px; transition: transform 0.2s;">
-          <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 10px;">
-            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); display: flex; align-items: center; justify-content: center;">
-              <i class="fa-solid fa-briefcase text-primary" style="font-size: 16px;"></i>
-            </div>
-            <div>
-              <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #fff;">${job.label || code}</h4>
-              <span style="font-family: monospace; font-size: 11px; color: var(--text-muted);">${code}</span>
-            </div>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 6px;">
-            <div style="color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Rütbeler & Maaşlar</div>
-            ${gradesHtml || '<div style="font-style: italic; color: var(--text-muted); font-size: 11px;">Rütbe bilgisi bulunamadı.</div>'}
-          </div>
-        </div>
-      `;
-    });
-
-    grid.innerHTML = html;
-  }
-</script>

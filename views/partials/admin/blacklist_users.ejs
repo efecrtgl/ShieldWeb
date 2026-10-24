@@ -11,8 +11,8 @@
     </div>
 
     <!-- Blacklist Add Form -->
-    <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; box-shadow: none;">
-      <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+    <div class="content-panel" style="padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.01); border-radius: 12px; ">
+      <h3 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-top: 0; margin-bottom: 12px;  display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-user-slash" style="color: var(--danger);"></i> Blacklist'e Kullanıcı Ekle
       </h3>
       <form action="/admin/users/blacklist/add" method="POST" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
@@ -50,7 +50,7 @@
                   <img class="sensitive-info" src="<%= dUser.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);">
                 </td>
                 <td class="sensitive-info" style="font-weight: 600;"><%= dUser.username %></td>
-                <td class="sensitive-info" style="font-family: monospace; font-size: 12px; color: var(--text-muted);"><%= dUser.discordId %></td>
+                <td class="sensitive-info" style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);"><%= dUser.discordId %></td>
                 <td style="color: var(--danger); font-weight: 600;">
                   ● Kalıcı Yasaklı (Perma)
                 </td>
@@ -58,12 +58,12 @@
                   <div style="display: flex; gap: 8px;">
                     <% if (userPermissions.blacklistUserRemove || userPermissions.blacklistRemove) { %>
                       <form action="/admin/users/blacklist/remove/<%= dUser.discordId %>" method="POST" style="display: inline;" onsubmit="return confirm('Bu kullanıcının blacklist yasağını kaldırmak istediğinize emin misiniz?')">
-                        <button type="submit" class="btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer; border-style: none;">
+                        <button type="submit" class="btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; border-style: none;">
                           <i class="fa-solid fa-user-check"></i> Yasak Kaldır (Affet)
                         </button>
                       </form>
                     <% } else { %>
-                      <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: not-allowed; opacity: 0.5;">
+                      <button type="button" class="btn btn-locked" disabled style="background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: not-allowed; opacity: 0.5;">
                         <i class="fa-solid fa-lock"></i> Yasak Kaldır
                       </button>
                     <% } %>

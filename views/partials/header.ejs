@@ -15,8 +15,6 @@
     }
   </style>
   <script src="/js/toastManager.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="/js/light-pillar.js" defer></script>
   <% if (locals.themeColor) { %>
     <style>
       :root {
@@ -26,7 +24,7 @@
       }
     </style>
   <% } %>
-  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="/css/site.css">
   <script>
     function hidePreloader() {
       const loader = document.getElementById('preloader');
@@ -86,12 +84,12 @@
       left: 50%;
       transform: translateX(-50%) translateY(12px);
       background: rgba(11, 13, 22, 0.96);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
+      
+      
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 16px;
       width: 190px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(224, 169, 139, 0.15);
+      
       opacity: 0;
       visibility: hidden;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -127,7 +125,7 @@
     }
 
     .nav-dropdown-item:hover {
-      background: rgba(224, 169, 139, 0.16);
+      background: rgba(var(--accent-rgb), 0.16);
       color: #ffffff !important;
       transform: translateX(4px);
     }
@@ -141,7 +139,7 @@
         background: transparent;
         border: none;
         width: 100%;
-        box-shadow: none;
+        
         padding: 0;
         margin-top: 5px;
         display: none;
@@ -164,21 +162,7 @@
     </div>
   </div>
 
-  <!-- LightPillar WebGL Background Effect (React Bits) -->
-  <div id="light-pillar-bg" 
-       class="light-pillar-container"
-       data-top-color="#ffffff"
-       data-bottom-color="#000000"
-       data-intensity="1.2"
-       data-rotation-speed="0.6"
-       data-glow-amount="0.001"
-       data-pillar-width="6.5"
-       data-pillar-height="0.4"
-       data-noise-intensity="0"
-       data-pillar-rotation="49"
-       data-interactive="false"
-       data-mix-blend-mode="luminosity">
-  </div>
+
 
   <header class="navbar">
     <div class="navbar-container">
@@ -201,7 +185,7 @@
           )) { %>
           <li class="nav-dropdown-wrapper" style="position: relative;">
             <a href="#" class="nav-link" style="display: flex; align-items: center; gap: 6px;">
-              <i class="fa-solid fa-house"></i> Hakkımızda <i class="fa-solid fa-chevron-down" style="font-size: 10px; transition: transform 0.3s ease;"></i>
+              <i class="fa-solid fa-house"></i> Hakkımızda <i class="fa-solid fa-chevron-down" style="font-size: 11px; transition: transform 0.3s ease;"></i>
             </a>
             <div class="nav-dropdown-menu">
               <ul class="nav-dropdown-list" style="list-style: none; padding: 4px; margin: 0; display: flex; flex-direction: column; gap: 2px;">

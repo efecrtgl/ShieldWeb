@@ -4,12 +4,17 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const config = require("../config");
-const { ServerStats, PunishmentRecord, DiscordUser, FivemCharacter, DeletedCharacter } = require("../models/ServerInfo");
+const { PunishmentRecord, DiscordUser, FivemCharacter, DeletedCharacter } = require("../models/ServerInfo");
 const { getUserPermissions, hasAnyPermission } = require("../services/permissions");
 const { actorFrom, logAction } = require("../services/auditLog");
 const { addLog } = require("../services/systemLog");
-const { fivem, queueCommand, appendConsoleLogs, findOnlinePlayer, queueCharacterDeletion } = require("../services/fivemState");
+const {
+  fivem, queueCommand, appendConsoleLogs, findOnlinePlayer, livePlayers, bridgeStatus,
+  takeQueuedCommands, applyCommandResults, getCommand
+} = require("../services/fivemState");
+const { dispatchCommand, sendDispatchResult } = require("../services/fivemCommands");
 const { clientIp } = require("../utils/http");
+const { rateLimit } = require("../middleware/rateLimit");
 
 const router = express.Router();
 
@@ -19,8 +24,9 @@ const MJPEG_IDLE_STOP_MS = 5000;
 const SSE_IDLE_STOP_MS = 7000;
 const SSE_HEARTBEAT_MS = 10000;
 const MIN_SCREEN_INTERVAL_MS = 15;
-const DEFAULT_BAN_SECONDS = 3 * 86400;
 const PERMA_BAN_EXPIRY = 2147483647;
+// Shared data older than this is still shown, but flagged as stale (the bridge re-sends it every 10 minutes).
+const SHARED_DATA_STALE_MS = 30 * 60 * 1000;
 
 const screenUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_SCREEN_FRAME_BYTES } });
 
@@ -36,31 +42,6 @@ const BAN_DURATIONS = {
   "30_days": [30 * 86400, "30 Gün"], "30d": [30 * 86400, "30 Gün"]
 };
 
-const DEFAULT_SHARED_DATA = {
-  items: {
-    phone: { name: "phone", label: "Telefon", weight: 150, type: "item", unique: true, useable: true, image: "phone.png", description: "Akıllı telefon" },
-    water_bottle: { name: "water_bottle", label: "Su Şişesi", weight: 500, type: "item", unique: false, useable: true, image: "water.png", description: "Temiz içme suyu" },
-    sandwich: { name: "sandwich", label: "Sandviç", weight: 200, type: "item", unique: false, useable: true, image: "sandwich.png", description: "Lezzetli bir sandviç" },
-    lockpick: { name: "lockpick", label: "Maymuncuk", weight: 100, type: "item", unique: false, useable: true, image: "lockpick.png", description: "Kilitleri açmaya yarar" }
-  },
-  jobs: {
-    unemployed: { label: "İşsiz", grades: { 0: { name: "İşsiz", payment: 50 } } },
-    police: { label: "Polis Departmanı", grades: { 0: { name: "Memur", payment: 500 }, 1: { name: "Çavuş", payment: 700 }, 2: { name: "Şerif", payment: 1000 } } },
-    ambulance: { label: "Sağlık Bakanlığı", grades: { 0: { name: "Asistan", payment: 450 }, 1: { name: "Paramedik", payment: 650 }, 2: { name: "Doktor", payment: 950 } } }
-  },
-  gangs: {
-    none: { label: "Yok", grades: { 0: { name: "Yok" } } },
-    ballas: { label: "Ballas", grades: { 0: { name: "Üye" }, 1: { name: "Lider" } } },
-    vagos: { label: "Vagos", grades: { 0: { name: "Üye" }, 1: { name: "Lider" } } }
-  },
-  vehicles: {
-    adder: { name: "Adder", brand: "Truffade", price: 1000000, category: "super" },
-    t20: { name: "T20", brand: "Progen", price: 2200000, category: "super" },
-    zentorno: { name: "Zentorno", brand: "Pegassi", price: 750000, category: "super" },
-    sultan: { name: "Sultan", brand: "Karin", price: 35000, category: "sports" }
-  }
-};
-
 function safeEqual(a, b) {
   const bufA = Buffer.from(String(a));
   const bufB = Buffer.from(String(b));
@@ -72,7 +53,21 @@ function isIpAllowed(ip) {
   return config.fivemBridge.allowedIp.split(",").map(s => s.trim()).filter(Boolean).includes(ip);
 }
 
-// Authenticates game-server calls: allowed IP + HMAC-SHA256(timestamp + JSON body) with the shared secret.
+// Signatures accepted within the freshness window; a repeated signature is a replayed request.
+const seenSignatures = new Map();
+
+function rememberSignature(signature, now) {
+  for (const [sig, ts] of seenSignatures) {
+    if (now - ts <= MAX_SIGNATURE_AGE_MS) break;
+    seenSignatures.delete(sig);
+  }
+  if (seenSignatures.has(signature)) return false;
+  seenSignatures.set(signature, now);
+  return true;
+}
+
+// Authenticates game-server calls: allowed IP + HMAC-SHA256(timestamp + raw JSON body) with the shared secret,
+// a timestamp within MAX_SIGNATURE_AGE_MS, and a signature that has not been used before.
 function verifyBridgeRequest(req, res, next) {
   const ip = clientIp(req);
   if (!isIpAllowed(ip)) {
@@ -88,14 +83,21 @@ function verifyBridgeRequest(req, res, next) {
   if (!timestamp || !signature) {
     return res.status(403).json({ success: false, message: "Erişim reddedildi. Kimlik doğrulama başlıkları eksik." });
   }
-  const drift = Math.abs(Date.now() - parseInt(timestamp, 10));
+  const now = Date.now();
+  const drift = Math.abs(now - parseInt(timestamp, 10));
   if (isNaN(drift) || drift > MAX_SIGNATURE_AGE_MS) {
     return res.status(403).json({ success: false, message: "Erişim reddedildi. Geçersiz veya zaman aşımına uğramış zaman damgası." });
   }
 
-  const expected = crypto.createHmac("sha256", config.fivemBridge.secretKey).update(timestamp + JSON.stringify(req.body)).digest("hex");
+  // app.js keeps the raw body for bridge routes; re-serializing is only a fallback for parsers that do not.
+  const signedBody = req.rawBody ? req.rawBody.toString("utf8") : JSON.stringify(req.body);
+  const expected = crypto.createHmac("sha256", config.fivemBridge.secretKey).update(timestamp + signedBody).digest("hex");
   if (!safeEqual(signature, expected)) {
     return res.status(403).json({ success: false, message: "Erişim reddedildi. Geçersiz imza." });
+  }
+  if (!rememberSignature(signature, now)) {
+    addLog("sync", `FiveM Köprüsü: Tekrarlanan (replay) istek reddedildi. IP: ${ip}`, "error");
+    return res.status(409).json({ success: false, message: "Bu istek daha önce işlendi." });
   }
   next();
 }
@@ -135,43 +137,45 @@ function playerIdentifiers(player) {
     generalInfo: {
       fivem: extract("fivem"),
       discord: extract("discord") || (player.discordId ? String(player.discordId) : ""),
-      license2: extract("license2") || extract("licanse2"),
-      license: extract("license") || extract("licanse"),
+      license2: extract("license2"),
+      license: extract("license"),
       steam: extract("steam"),
       xbl: extract("xbl") || extract("live"),
-      ip: extract("ip") || (player.endpoint ? String(player.endpoint).split(":")[0] : "") || (player.ip ? String(player.ip) : "")
+      ip: extract("ip")
     }
   };
 }
 
 // ---- Game server -> panel ---------------------------------------------------------------
 
-router.post("/api/fivem/bridge/poll", verifyBridgeRequest, async (req, res) => {
-  if (req.body && req.body.status) {
+function toPlayerList(players) {
+  // Lua serializes an empty player table as {} and keyed tables as objects.
+  if (Array.isArray(players)) return players.filter(p => p && typeof p === "object");
+  if (players && typeof players === "object") return Object.values(players).filter(p => p && typeof p === "object");
+  return [];
+}
+
+router.post("/api/fivem/bridge/poll", verifyBridgeRequest, (req, res) => {
+  const body = req.body || {};
+  if (body.status) {
+    const wasOnline = bridgeStatus().online;
     fivem.lastPoll = Date.now();
-    addLog("sync", `FiveM Köprüsü: Oyun sunucusu durumu alındı. Aktif oyuncu: ${req.body.playersCount || 0}`, "info");
-    const { players } = req.body;
-    if (players) {
-      // Lua serializes an empty player table as {} and keyed tables as objects.
-      fivem.activePlayers = Array.isArray(players) ? players : (typeof players === "object" ? Object.values(players) : []);
-    }
-    try {
-      await ServerStats.updateOne({}, { activePlayers: req.body.playersCount || 0 }, { upsert: true });
-    } catch (err) {
-      addLog("sync", `FiveM Köprüsü: İstatistik güncellenirken hata: ${err.message}`, "error");
+    fivem.bridgeVersion = Number.isInteger(body.bridgeVersion) ? body.bridgeVersion : 1;
+    fivem.activePlayers = toPlayerList(body.players);
+    fivem.maxPlayers = Number.isInteger(body.maxPlayers) && body.maxPlayers > 0 ? body.maxPlayers : null;
+    if (!wasOnline) {
+      addLog("sync", `FiveM Köprüsü: Oyun sunucusu bağlandı (köprü sürümü ${fivem.bridgeVersion}, ${fivem.activePlayers.length} oyuncu).`, "info");
     }
   }
-
-  if (req.body && Array.isArray(req.body.consoleLogs)) {
-    appendConsoleLogs(...req.body.consoleLogs);
+  applyCommandResults(body.results);
+  if (Array.isArray(body.consoleLogs)) {
+    appendConsoleLogs(...body.consoleLogs.filter(l => l && typeof l.text === "string").map(l => ({ type: String(l.type || "info"), text: l.text.slice(0, 2000) })));
   }
-
-  const commands = fivem.commandQueue.splice(0, fivem.commandQueue.length);
-  res.json({ success: true, commands });
+  res.json({ success: true, commands: takeQueuedCommands() });
 });
 
 function parseJsonField(value) {
-  if (typeof value !== "string") return value;
+  if (typeof value !== "string") return value && typeof value === "object" ? value : null;
   try {
     return JSON.parse(value);
   } catch (err) {
@@ -179,84 +183,127 @@ function parseJsonField(value) {
   }
 }
 
-// Normalizes a QBCore/ESX "players" row sent by the bridge into a FivemCharacter update.
+function finiteOrNull(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+function stringOrNull(value) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+// Maps a character payload from the bridge onto FivemCharacter fields. Only reported values are written: a field
+// the bridge did not send is left out of the update (keeping the last known value) or stored as null on insert.
 function normalizeCharacter(char, existingChar) {
   const money = parseJsonField(char.money) || {};
   const job = parseJsonField(char.job) || {};
   const info = parseJsonField(char.charinfo) || {};
   const meta = parseJsonField(char.metadata) || {};
+  const grade = job.grade && typeof job.grade === "object" ? job.grade : {};
 
-  let firstname = info.firstname || char.firstname || "";
-  let lastname = info.lastname || char.lastname || "";
-  if (!firstname && !lastname && char.name) {
-    const parts = String(char.name).split(" ");
-    firstname = parts[0] || "Karakter";
-    lastname = parts.slice(1).join(" ");
-  }
-  if (!firstname && !lastname) {
-    firstname = "Karakter";
-    lastname = char.citizenid || "";
+  const update = { lastUpdated: new Date() };
+  const discordId = String(char.discord_id || char.discordId || char.discord || "").replace(/^discord:/, "");
+  if (discordId) update.discordId = discordId;
+  if (char.license) update.license = String(char.license).trim();
+  const cid = finiteOrNull(char.cid);
+  if (cid !== null) update.cid = cid;
+
+  const firstname = info.firstname || char.firstname;
+  const lastname = info.lastname || char.lastname;
+  if (typeof firstname === "string") update.firstname = firstname;
+  if (typeof lastname === "string") update.lastname = lastname;
+  const birthdate = info.birthdate || char.birthdate;
+  if (typeof birthdate === "string") update.birthdate = birthdate;
+
+  const cash = finiteOrNull(money.cash);
+  const bank = finiteOrNull(money.bank);
+  if (cash !== null) update["money.cash"] = cash;
+  if (bank !== null) update["money.bank"] = bank;
+
+  if (stringOrNull(job.name)) {
+    update["job.name"] = job.name.trim();
+    update["job.label"] = stringOrNull(job.label);
+    update["job.grade"] = stringOrNull(grade.name) || stringOrNull(grade.label) || (typeof job.grade === "string" ? stringOrNull(job.grade) : null);
+    const level = finiteOrNull(grade.level !== undefined ? grade.level : grade.grade);
+    update["job.gradeLevel"] = level !== null && Number.isInteger(level) ? level : null;
   }
 
+  if (Array.isArray(char.inventory)) {
+    update.inventory = char.inventory;
+  } else if (typeof char.inventory === "string") {
+    const inv = parseJsonField(char.inventory);
+    if (Array.isArray(inv)) update.inventory = inv;
+  }
+
+  // Playtime only ever grows; a smaller or missing value keeps what we already know.
   const savedPlaytime = existingChar && typeof existingChar.playtime === "number" ? existingChar.playtime : 0;
-  const incomingPlaytime = [char.playtime, char.play_time, meta.playtime, meta.playTime]
-    .find(v => v !== undefined && v !== null && !isNaN(Number(v)));
-  const playtime = incomingPlaytime !== undefined && Number(incomingPlaytime) > savedPlaytime ? Number(incomingPlaytime) : savedPlaytime;
+  const incoming = [char.playtime, char.play_time, meta.playtime, meta.playTime].map(finiteOrNull).find(v => v !== null);
+  if (incoming !== undefined && incoming > savedPlaytime) update.playtime = incoming;
 
-  let inventory = [];
-  if (typeof char.inventory === "string") {
-    inventory = parseJsonField(char.inventory) || [];
-  } else if (Array.isArray(char.inventory)) {
-    inventory = char.inventory;
-  }
-
-  return {
-    discordId: String(char.discord || "").replace(/^discord:/, ""),
-    license: char.license ? String(char.license).trim() : (existingChar && existingChar.license ? existingChar.license : ""),
-    cid: char.cid || 1,
-    firstname,
-    lastname,
-    birthdate: info.birthdate || char.birthdate || "",
-    money: { cash: money.cash || 0, bank: money.bank || 0 },
-    job: {
-      name: job.name || "unemployed",
-      label: job.label || "Civilian",
-      grade: (job.grade && (job.grade.name || job.grade.label)) || "Freelancer"
-    },
-    inventory,
-    playtime,
-    lastUpdated: new Date()
-  };
+  return update;
 }
 
 router.post("/api/fivem/bridge/characters", verifyBridgeRequest, async (req, res) => {
-  const characters = req.body.characters;
-  if (Array.isArray(characters)) {
-    const deletedCitizenIds = new Set((await DeletedCharacter.find({}, "citizenid").lean()).map(d => d.citizenid));
-    for (const char of characters) {
-      if (!char || !char.citizenid) continue;
-      if (deletedCitizenIds.has(char.citizenid)) {
-        addLog("sync", `FiveM Köprüsü: Silinmiş karakter pas geçildi (CitizenID: ${char.citizenid})`, "info");
-        continue;
-      }
-      const existingChar = await FivemCharacter.findOne({ citizenid: char.citizenid });
-      await FivemCharacter.findOneAndUpdate({ citizenid: char.citizenid }, normalizeCharacter(char, existingChar), { upsert: true });
-    }
-    addLog("sync", `FiveM Köprüsü: ${characters.length} adet karakter senkronize edildi.`, "info");
+  const characters = Array.isArray(req.body.characters) ? req.body.characters.filter(c => c && typeof c.citizenid === "string" && c.citizenid.trim()) : null;
+  if (!characters) {
+    return res.status(400).json({ success: false, message: "characters dizisi bekleniyor." });
   }
-  res.json({ success: true });
+  try {
+    const citizenIds = characters.map(c => c.citizenid.trim());
+    const [deleted, existing] = await Promise.all([
+      DeletedCharacter.find({ citizenid: { $in: citizenIds } }, "citizenid").lean(),
+      FivemCharacter.find({ citizenid: { $in: citizenIds } }, { citizenid: 1, playtime: 1 }).lean()
+    ]);
+    const deletedIds = new Set(deleted.map(d => d.citizenid));
+    const existingById = new Map(existing.map(c => [c.citizenid, c]));
+
+    const ops = [];
+    for (const char of characters) {
+      const citizenid = char.citizenid.trim();
+      if (deletedIds.has(citizenid)) continue;
+      ops.push({
+        updateOne: {
+          filter: { citizenid },
+          update: { $set: normalizeCharacter(char, existingById.get(citizenid)) },
+          upsert: true
+        }
+      });
+    }
+    if (ops.length > 0) await FivemCharacter.bulkWrite(ops, { ordered: false });
+    if (deletedIds.size > 0) {
+      addLog("sync", `FiveM Köprüsü: ${deletedIds.size} silinmiş karakter senkronizasyonda pas geçildi.`, "info");
+    }
+    res.json({ success: true, synced: ops.length, skipped: deletedIds.size });
+  } catch (err) {
+    addLog("sync", `FiveM Köprüsü: Karakter senkronizasyonu başarısız: ${err.message}`, "error");
+    res.status(500).json({ success: false, message: "Karakterler kaydedilemedi." });
+  }
 });
 
+function writeFileAtomic(file, content) {
+  const tmp = `${file}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, content, "utf8");
+  fs.renameSync(tmp, file);
+}
+
+const SHARED_DATA_KEYS = ["items", "jobs", "gangs", "vehicles"];
+
 router.post("/api/fivem/bridge/shared-data", verifyBridgeRequest, (req, res) => {
-  const data = {
-    items: req.body.items || {},
-    jobs: req.body.jobs || {},
-    gangs: req.body.gangs || {},
-    vehicles: req.body.vehicles || {},
-    timestamp: Date.now()
-  };
-  fs.writeFileSync(config.sharedDataPath, JSON.stringify(data, null, 2), "utf8");
-  addLog("sync", "FiveM Köprüsü: Paylaşılan oyun verileri (items, jobs, gangs, vehicles) başarıyla senkronize edildi.", "info");
+  const data = { syncedAt: Date.now(), source: "fivem-bridge" };
+  for (const key of SHARED_DATA_KEYS) {
+    const value = req.body[key];
+    // A missing collection is recorded as null (not reported), not as an empty list.
+    data[key] = value && typeof value === "object" && !Array.isArray(value) ? value : null;
+  }
+  try {
+    writeFileAtomic(config.sharedDataPath, JSON.stringify(data, null, 2));
+  } catch (err) {
+    addLog("sync", `FiveM Köprüsü: Paylaşılan oyun verileri kaydedilemedi: ${err.message}`, "error");
+    return res.status(500).json({ success: false, message: "Paylaşılan veriler kaydedilemedi." });
+  }
+  const counts = SHARED_DATA_KEYS.map(k => `${k}: ${data[k] ? Object.keys(data[k]).length : "yok"}`).join(", ");
+  addLog("sync", `FiveM Köprüsü: Paylaşılan oyun verileri alındı (${counts}).`, "info");
   res.json({ success: true });
 });
 
@@ -308,8 +355,14 @@ router.post("/api/fivem/screen/upload", screenUpload.single("file"), (req, res) 
 
 // ---- Panel -> game server ---------------------------------------------------------------
 
+router.get("/api/fivem/bridge/status", requireStaff(), (req, res) => {
+  res.json({ success: true, bridge: bridgeStatus() });
+});
+
 router.get("/api/fivem/active-players", requireStaff(), (req, res) => {
-  res.json({ success: true, playersCount: fivem.activePlayers.length, players: fivem.activePlayers });
+  const bridge = bridgeStatus();
+  const players = livePlayers();
+  res.json({ success: true, bridge, playersCount: bridge.online ? players.length : null, players });
 });
 
 function resolveBan(duration, durationSeconds, durationText, isPerma) {
@@ -322,154 +375,167 @@ function resolveBan(duration, durationSeconds, durationText, isPerma) {
     return { seconds, label, isPerma: false };
   }
   if (!isNaN(Number(durationSeconds)) && Number(durationSeconds) > 0) {
-    const seconds = Number(durationSeconds);
+    const seconds = Math.floor(Number(durationSeconds));
     return { seconds, label: durationText || `${Math.round(seconds / 3600)} Saat`, isPerma: false };
   }
-  return { seconds: DEFAULT_BAN_SECONDS, label: "3 Gün", isPerma: false };
+  return null;
 }
 
-const COMMAND_LOG_DESCRIPTIONS = {
-  setjob: b => ["fivemSetJob", `Setjob atildi. Meslek: ${b.job}, Grade: ${b.grade}`],
-  setgang: b => ["fivemSetGang", `Setgang atildi. Gang: ${b.gang}, Grade: ${b.grade}`],
-  giveitem: b => ["fivemGiveItem", `Eşya verildi. Eşya: ${b.item}, Miktar: ${b.amount}`],
-  pedmenu: () => ["fivemPedMenu", "Ped menusu acildi."],
-  kill: () => ["fivemKill", "Olduruldu (kill)."],
-  revive: () => ["fivemRevive", "Canlandirildi (revive)."],
-  send_dm: b => ["fivemSendDM", `DM atildi. Mesaj: ${b.reason || ""}`],
-  pedver: b => ["fivemPedVer", `Ped verildi. Model: ${b.ped}`],
-  pedal: () => ["fivemPedAl", "Ped geri alindi."],
-  givemoney: b => ["fivemGiveMoney", `Para verildi. Tip: ${b.type || "cash"}, Miktar: ${b.amount}`],
-  vreturn: b => ["fivemVReturn", `Araba çekildi (vreturn). Target: ID #${b.targetPlayer}${b.plate ? ", Plaka: " + b.plate : ""}`],
-  teleport: b => ["fivemTeleport", b.location
-    ? `Oyuncu ışınlandı. Lokasyon: ${b.location}`
-    : `Oyuncu ışınlandı. Koordinatlar: X:${b.x || 0}, Y:${b.y || 0}, Z:${b.z || 0}`]
+// Actions the panel may send through the generic command endpoint, with the fields each one needs.
+const COMMAND_SPECS = {
+  setjob: { fields: ["job", "grade"], log: b => ["fivemSetJob", `Setjob. Meslek: ${b.job}, Grade: ${b.grade}`] },
+  setgang: { fields: ["gang", "grade"], log: b => ["fivemSetGang", `Setgang. Gang: ${b.gang}, Grade: ${b.grade}`] },
+  giveitem: { fields: ["item", "amount"], log: b => ["fivemGiveItem", `Eşya verildi. Eşya: ${b.item}, Miktar: ${b.amount}`] },
+  givemoney: { fields: ["type", "amount"], log: b => ["fivemGiveMoney", `Para verildi. Tip: ${b.type}, Miktar: ${b.amount}`] },
+  pedmenu: { fields: [], log: () => ["fivemPedMenu", "Ped menüsü açıldı."] },
+  kill: { fields: [], log: () => ["fivemKill", "Öldürüldü (kill)."] },
+  revive: { fields: [], log: () => ["fivemRevive", "Canlandırıldı (revive)."] },
+  send_dm: { fields: ["reason"], log: b => ["fivemSendDM", `DM gönderildi. Mesaj: ${b.reason}`] },
+  pedver: { fields: ["ped"], log: b => ["fivemPedVer", `Ped verildi. Model: ${b.ped}`] },
+  pedal: { fields: [], log: () => ["fivemPedAl", "Ped geri alındı."] },
+  vreturn: { fields: [], log: b => ["fivemVReturn", `Araç çekildi (vreturn)${b.plate ? ", Plaka: " + b.plate : ""}`] },
+  teleport: {
+    fields: [],
+    log: b => ["fivemTeleport", b.location ? `Oyuncu ışınlandı. Lokasyon: ${b.location}` : `Oyuncu ışınlandı. X:${b.x}, Y:${b.y}, Z:${b.z}`]
+  },
+  kick: { fields: ["reason"] },
+  ban: { fields: ["reason"] },
+  execute_command: { fields: ["command"], noTarget: true, log: b => ["fivemConsoleCommand", `Konsol komutu: ${b.command}`] }
 };
+
+const VALID_PLAYER_ID = /^\d{1,6}$/;
+
+function validateCommandBody(action, b) {
+  const spec = COMMAND_SPECS[action];
+  if (!spec) return "Geçersiz veya desteklenmeyen eylem.";
+  if (!spec.noTarget && !VALID_PLAYER_ID.test(String(b.targetPlayer ?? ""))) return "Geçerli bir hedef oyuncu ID'si gereklidir.";
+  for (const field of spec.fields) {
+    if (b[field] === undefined || b[field] === null || String(b[field]).trim() === "") return `Eksik alan: ${field}`;
+  }
+  if (["giveitem", "givemoney"].includes(action) && !(Number.isInteger(Number(b.amount)) && Number(b.amount) > 0)) return "Miktar pozitif bir tam sayı olmalıdır.";
+  if (["setjob", "setgang"].includes(action) && !(Number.isInteger(Number(b.grade)) && Number(b.grade) >= 0)) return "Kademe 0 veya daha büyük bir tam sayı olmalıdır.";
+  if (action === "givemoney" && !["cash", "bank", "crypto"].includes(b.type)) return "Para tipi cash, bank veya crypto olmalıdır.";
+  if (action === "teleport" && !b.location && ![b.x, b.y, b.z].every(v => Number.isFinite(Number(v)) && String(v).trim() !== "")) return "Lokasyon veya geçerli X/Y/Z koordinatları gereklidir.";
+  return null;
+}
 
 async function recordFivemKick(req, { discordId, playerName, reason }) {
   if (!discordId) return;
-  try {
-    await new PunishmentRecord({
-      discordId,
-      username: playerName || "Bilinmeyen Kullanıcı",
-      punishments: [`Kick: ${reason}`],
-      executorId: req.session.user.id || "system",
-      executorUsername: req.session.user.username || "Web Panel",
-      action: "FiveM Kick",
-      reason,
-      duration: "Anlık"
-    }).save();
-  } catch (err) {
-    console.error("Kick ceza kaydı hatası:", err);
-  }
+  await new PunishmentRecord({
+    discordId,
+    username: playerName || "Bilinmeyen Kullanıcı",
+    punishments: [`Kick: ${reason}`],
+    executorId: req.session.user.id || "system",
+    executorUsername: req.session.user.username || "Web Panel",
+    action: "FiveM Kick",
+    reason,
+    duration: "Anlık"
+  }).save();
 }
 
 async function recordFivemBan(req, { discordId, playerName, reason }, ban) {
-  try {
-    const dUser = await DiscordUser.findOne({ discordId });
-    if (dUser) {
-      if (ban.isPerma) {
-        dUser.isPermaBanned = true;
-        dUser.isWhitelist = false;
-      } else {
-        dUser.wlCezaBitis = new Date(Date.now() + ban.seconds * 1000);
-      }
-      await dUser.save();
+  const dUser = await DiscordUser.findOne({ discordId });
+  if (dUser) {
+    if (ban.isPerma) {
+      dUser.isPermaBanned = true;
+      dUser.isWhitelist = false;
+    } else {
+      dUser.wlCezaBitis = new Date(Date.now() + ban.seconds * 1000);
     }
-    await new PunishmentRecord({
-      discordId,
-      username: playerName || (dUser ? dUser.username : "Bilinmeyen Kullanıcı"),
-      punishments: [`FiveM Ban: ${reason} (${ban.label})`],
-      isPerma: ban.isPerma,
-      wlDaysAdded: ban.isPerma ? 0 : Math.round(ban.seconds / 86400),
-      executorId: req.session.user.id || "system",
-      executorUsername: req.session.user.username || "Web Panel",
-      action: "FiveM Ban",
-      reason,
-      duration: ban.label
-    }).save();
-  } catch (err) {
-    console.error("Ban ceza kaydı hatası:", err);
+    await dUser.save();
   }
+  await new PunishmentRecord({
+    discordId,
+    username: playerName || (dUser ? dUser.username : "Bilinmeyen Kullanıcı"),
+    punishments: [`FiveM Ban: ${reason} (${ban.label})`],
+    isPerma: ban.isPerma,
+    wlDaysAdded: ban.isPerma ? 0 : Math.round(ban.seconds / 86400),
+    executorId: req.session.user.id || "system",
+    executorUsername: req.session.user.username || "Web Panel",
+    action: "FiveM Ban",
+    reason,
+    duration: ban.label
+  }).save();
 }
 
-router.post("/api/fivem/bridge/command", requireStaff(["fivemBridgeCommands"]), async (req, res) => {
-  const b = req.body;
-  const { action, targetPlayer } = b;
-  if (!action) {
-    return res.status(400).json({ success: false, message: "Geçersiz eylem." });
+router.post("/api/fivem/bridge/command", requireStaff(["fivemBridgeCommands"]), rateLimit({ name: "bridge-command", windowMs: 60 * 1000, max: 60 }), async (req, res) => {
+  const b = req.body || {};
+  const action = typeof b.action === "string" ? b.action.trim() : "";
+  const invalid = validateCommandBody(action, b);
+  if (invalid) {
+    return res.status(400).json({ success: false, message: invalid });
   }
-  const reason = typeof b.reason === "string" ? b.reason.trim() : "";
-  if (action === "kick" || action === "ban") {
-    if (!reason) {
-      return res.status(400).json({ success: false, message: action === "kick" ? "Kick sebebi girmek zorunludur." : "Ban sebebi girmek zorunludur." });
-    }
-    if (action === "ban" && !b.duration) {
-      return res.status(400).json({ success: false, message: "Yasaklama süresi seçmek zorunludur." });
-    }
-    if (!targetPlayer) {
-      return res.status(400).json({ success: false, message: "Hedef oyuncu bulunamadı." });
-    }
+  const reason = typeof b.reason === "string" ? b.reason.trim().slice(0, 500) : "";
+  const targetPlayer = b.targetPlayer !== undefined && b.targetPlayer !== null ? String(b.targetPlayer) : undefined;
+
+  let ban = null;
+  if (action === "ban") {
+    ban = resolveBan(b.duration, b.durationSeconds, b.durationText, !!b.isPerma);
+    if (!ban) return res.status(400).json({ success: false, message: "Geçerli bir yasaklama süresi seçmek zorunludur." });
   }
 
-  const ban = action === "ban"
-    ? resolveBan(b.duration, b.durationSeconds, b.durationText, !!b.isPerma)
-    : { seconds: 0, label: b.durationText || "3 Gün", isPerma: !!b.isPerma };
-
-  const vreturnCommand = action === "vreturn" ? (b.plate ? `vreturn ${targetPlayer} ${b.plate}` : `vreturn ${targetPlayer}`) : undefined;
-  const { id: commandId } = queueCommand("cmd", {
-    action,
-    command: b.command || vreturnCommand,
+  const adminUser = req.session.user.username || "Web Panel";
+  const payload = {
+    command: typeof b.command === "string" ? b.command.trim().slice(0, 500) : undefined,
     targetPlayer,
-    amount: b.amount,
-    identifier: b.identifier,
-    reason: b.reason || b.command || "",
-    admin: req.session.user.username || "Web Panel",
+    citizenid: typeof b.citizenid === "string" ? b.citizenid : undefined,
+    amount: b.amount !== undefined ? Number(b.amount) : undefined,
+    reason,
+    admin: adminUser,
     job: b.job,
-    grade: b.grade,
+    grade: b.grade !== undefined ? Number(b.grade) : undefined,
     ped: b.ped,
     gang: b.gang,
     item: b.item,
     type: b.type,
-    x: b.x,
-    y: b.y,
-    z: b.z,
+    x: b.x !== undefined ? Number(b.x) : undefined,
+    y: b.y !== undefined ? Number(b.y) : undefined,
+    z: b.z !== undefined ? Number(b.z) : undefined,
     location: b.location,
     plate: b.plate,
-    duration: ban.label,
-    durationSeconds: ban.seconds,
-    expire: ban.isPerma ? PERMA_BAN_EXPIRY : Math.floor(Date.now() / 1000) + ban.seconds,
-    isPerma: ban.isPerma,
     playerName: b.playerName || "",
     discordId: b.discordId || "",
-    license: b.license || "",
-    timestamp: Date.now()
-  });
-  addLog("sync", `FiveM Köprüsü: Yeni köprü komutu kuyruğa eklendi. ID: ${commandId} (Eylem: ${action})`, "info");
+    license: b.license || ""
+  };
+  if (ban) {
+    Object.assign(payload, {
+      duration: ban.label,
+      durationSeconds: ban.seconds,
+      expire: ban.isPerma ? PERMA_BAN_EXPIRY : Math.floor(Date.now() / 1000) + ban.seconds,
+      isPerma: ban.isPerma
+    });
+  }
 
-  let logEntry = COMMAND_LOG_DESCRIPTIONS[action] ? COMMAND_LOG_DESCRIPTIONS[action](b) : null;
-  if (action === "kick") {
-    const details = `Oyuncu sunucudan atıldı (Kick). Hedef: #${targetPlayer}, Sebep: ${reason}`;
-    logEntry = ["fivemKick", details];
-    addLog("sync", `FiveM Köprüsü: ${details}, Yetkili: ${req.session.user.username}`, "info");
-    await recordFivemKick(req, { discordId: b.discordId, playerName: b.playerName, reason });
-  } else if (action === "ban") {
-    const details = `Oyuncu sunucudan yasaklandı (Ban). Hedef: #${targetPlayer}, Süre: ${ban.label}, Sebep: ${reason}`;
-    logEntry = ["fivemBan", details];
-    addLog("sync", `FiveM Köprüsü: ${details}, Yetkili: ${req.session.user.username}`, "info");
-    if (b.discordId && b.syncDiscord !== false) {
-      await recordFivemBan(req, { discordId: b.discordId, playerName: b.playerName, reason }, ban);
+  const result = await dispatchCommand(action, payload);
+  addLog("sync", `FiveM Köprüsü: ${action} komutu (hedef: ${targetPlayer || "-"}) -> ${result.status}${result.ok ? "" : ": " + result.message}`, result.ok ? "info" : "error");
+  if (!result.ok) return sendDispatchResult(res, result);
+
+  let logEntry = COMMAND_SPECS[action].log ? COMMAND_SPECS[action].log(payload) : null;
+  try {
+    if (action === "kick") {
+      logEntry = ["fivemKick", `Oyuncu sunucudan atıldı (Kick). Hedef: #${targetPlayer}, Sebep: ${reason}`];
+      await recordFivemKick(req, { discordId: b.discordId, playerName: b.playerName, reason });
+    } else if (action === "ban") {
+      logEntry = ["fivemBan", `Oyuncu sunucudan yasaklandı (Ban). Hedef: #${targetPlayer}, Süre: ${ban.label}, Sebep: ${reason}`];
+      if (b.discordId && b.syncDiscord !== false) {
+        await recordFivemBan(req, { discordId: b.discordId, playerName: b.playerName, reason }, ban);
+      }
     }
+  } catch (err) {
+    // The game-side action already happened; report the bookkeeping failure instead of hiding it.
+    addLog("sync", `FiveM Köprüsü: ${action} ceza kaydı yazılamadı: ${err.message}`, "error");
+    return sendDispatchResult(res, result, { message: `${result.message} Ancak ceza kaydı veritabanına yazılamadı.`, recordSaved: false });
   }
 
   if (logEntry) {
     logAction(logEntry[0], {
       executor: actorFrom(req),
-      target: { id: targetPlayer ? targetPlayer.toString() : "", username: targetPlayer ? "FiveM ID: " + targetPlayer : "Bilinmeyen" },
-      details: logEntry[1],
+      target: { id: targetPlayer || "", username: targetPlayer ? "FiveM ID: " + targetPlayer : "Sunucu" },
+      details: `${logEntry[1]} (${result.confirmed ? "onaylandı" : "iletildi, doğrulanamadı"})`,
       context: "FiveM Koprusu"
     });
   }
-  res.json({ success: true, message: "Komut kuyruğa başarıyla eklendi.", commandId });
+  sendDispatchResult(res, result);
 });
 
 router.get("/display/d/api", async (req, res) => {
@@ -489,7 +555,8 @@ router.get("/display/d/api", async (req, res) => {
 });
 
 router.get("/api/fivem/bridge/queue", requireStaff(["fivemBridgeCommands"]), (req, res) => {
-  res.json({ success: true, queue: fivem.commandQueue });
+  const recent = [...fivem.commands.keys()].slice(-50).reverse().map(getCommand);
+  res.json({ success: true, bridge: bridgeStatus(), queue: fivem.commandQueue, recent });
 });
 
 function charactersOf(discordId) {
@@ -500,7 +567,7 @@ router.get("/api/fivem/user-characters/:discordId", requireStaff(), async (req, 
   try {
     res.json({ success: true, characters: await charactersOf(req.params.discordId) });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: "Karakterler alınamadı." });
   }
 });
 
@@ -513,7 +580,7 @@ router.get("/api/fivem/player-detail/:discordId", requireStaff(), async (req, re
       charactersOf(discId)
     ]);
 
-    const found = fivem.activePlayers.find(p =>
+    const found = livePlayers().find(p =>
       (serverId && String(p.id) === String(serverId)) ||
       (Array.isArray(p.identifiers) && p.identifiers.some(id => typeof id === "string" && (id === `discord:${discId}` || id === discId))) ||
       (p.discordId && String(p.discordId) === String(discId))
@@ -525,12 +592,13 @@ router.get("/api/fivem/player-detail/:discordId", requireStaff(), async (req, re
       generalInfo.discord = generalInfo.discord || discId;
       onlinePlayer = { id: found.id, name: found.name, ping: found.ping, coords: found.coords || null, discordId: generalInfo.discord, identifiers, generalInfo };
     }
-    res.json({ success: true, discordUser, characters, onlinePlayer });
+    res.json({ success: true, bridge: bridgeStatus(), discordUser, characters, onlinePlayer });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: "Oyuncu detayı alınamadı." });
   }
 });
 
+// Deletes a character on the game server first; the panel copy is removed only once the game accepted the deletion.
 router.post("/api/fivem/character/delete", requireStaff(["teamRemoveMember"]), async (req, res) => {
   try {
     const { characterId, citizenid } = req.body;
@@ -549,33 +617,16 @@ router.post("/api/fivem/character/delete", requireStaff(["teamRemoveMember"]), a
     const adminName = req.session.user.username || "Web Panel";
     const onlinePlayer = findOnlinePlayer({ discordId: character.discordId, citizenid: character.citizenid });
 
-    // 1) Kick the player if online, 2) queue every delete variant the bridge understands.
-    if (onlinePlayer) {
-      queueCommand("cmd_kick", {
-        action: "kick",
-        type: "kick",
-        targetPlayer: onlinePlayer.id,
-        citizenid: character.citizenid,
-        reason: "Karakteriniz web paneli üzerinden silindi.",
-        admin: adminName,
-        timestamp: Date.now()
-      });
-    }
-    queueCharacterDeletion({
+    // The bridge drops an online owner itself before deleting the rows.
+    const result = await dispatchCommand("delete_character", {
       citizenid: character.citizenid,
-      identifier: character.citizenid,
-      charId: character._id.toString(),
       targetPlayer: onlinePlayer ? onlinePlayer.id : null,
       reason: "Karakter web paneli üzerinden silindi.",
-      admin: adminName,
-      timestamp: Date.now()
-    }, {
-      actions: ["delete_character", "deletecharacter", "delchar", "delete_char", "deleteChar"],
-      consoleCommands: [`deletechar ${character.citizenid}`, `qb-core:deletechar ${character.citizenid}`],
-      sqlActions: ["execute_sql", "sql"]
+      admin: adminName
     });
+    if (!result.ok) return sendDispatchResult(res, result);
 
-    // 3) Remember the deletion so the next bridge sync does not re-create the character.
+    // Remember the deletion so a later bridge sync does not re-create the character.
     await DeletedCharacter.updateOne(
       { citizenid: character.citizenid },
       { citizenid: character.citizenid, discordId: character.discordId || "", charName, deletedBy: adminName, deletedAt: new Date() },
@@ -583,15 +634,14 @@ router.post("/api/fivem/character/delete", requireStaff(["teamRemoveMember"]), a
     );
     await FivemCharacter.deleteMany({ citizenid: character.citizenid });
 
-    addLog("sync", `FiveM Köprüsü: Karakter silme işlemi gerçekleştirildi (Önce Kick -> Sonra SQL Data Silme). Karakter: ${charName} (CitizenID: ${character.citizenid}${onlinePlayer ? ", Aktif Oyuncu ID: #" + onlinePlayer.id : ""})`, "info");
+    addLog("sync", `FiveM Köprüsü: Karakter silindi (${result.status}). Karakter: ${charName} (CitizenID: ${character.citizenid})`, "info");
     logAction("fivemCharacterDelete", {
       executor: actorFrom(req),
       target: { id: character._id, username: charName },
-      details: `FiveM Karakteri (${charName} - CID: ${character.citizenid}) kicklendi ve veritabanından kalıcı olarak silindi.`,
+      details: `FiveM karakteri (${charName} - CID: ${character.citizenid}) silindi (${result.confirmed ? "oyun sunucusu onayladı" : "iletildi, doğrulanamadı"}).`,
       context: "Web Panel"
     });
-
-    res.json({ success: true, message: `"${charName}" isimli karakter veritabanından silindi.`, targetDiscordId: character.discordId });
+    sendDispatchResult(res, result, { message: `"${charName}": ${result.message}`, targetDiscordId: character.discordId });
   } catch (err) {
     console.error("Delete character error:", err);
     res.status(500).json({ success: false, message: "Karakter silinirken veritabanı hatası oluştu." });
@@ -600,17 +650,19 @@ router.post("/api/fivem/character/delete", requireStaff(["teamRemoveMember"]), a
 
 router.get("/api/fivem/active-players-characters", requireStaff(), async (req, res) => {
   try {
-    const players = fivem.activePlayers.map(p => ({ player: p, ...playerIdentifiers(p) }));
+    const bridge = bridgeStatus();
+    const players = livePlayers().map(p => ({ player: p, ...playerIdentifiers(p) }));
     const discordIds = players.map(p => p.generalInfo.discord).filter(Boolean);
-    const characters = await FivemCharacter.find({ discordId: { $in: discordIds } });
+    const characters = discordIds.length ? await FivemCharacter.find({ discordId: { $in: discordIds } }, { discordId: 1, firstname: 1, lastname: 1 }).lean() : [];
 
     const namesByDiscordId = {};
     for (const c of characters) {
-      (namesByDiscordId[c.discordId] = namesByDiscordId[c.discordId] || []).push(`${c.firstname} ${c.lastname}`);
+      (namesByDiscordId[c.discordId] = namesByDiscordId[c.discordId] || []).push(`${c.firstname} ${c.lastname}`.trim());
     }
 
     res.json({
       success: true,
+      bridge,
       players: players.map(({ player, identifiers, generalInfo }) => ({
         id: player.id,
         name: player.name,
@@ -623,23 +675,44 @@ router.get("/api/fivem/active-players-characters", requireStaff(), async (req, r
       }))
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: "Aktif oyuncular alınamadı." });
   }
 });
 
+// Items/jobs/gangs/vehicles exactly as last reported by the game server. Nothing is substituted when the bridge has
+// never reported them: the response says so with available:false.
 router.get("/api/fivem/shared-data", (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({ success: false, message: "Oturum kapalı." });
   }
+  let data = null;
   try {
-    if (!fs.existsSync(config.sharedDataPath)) {
-      fs.writeFileSync(config.sharedDataPath, JSON.stringify({ ...DEFAULT_SHARED_DATA, timestamp: Date.now() }, null, 2), "utf8");
-    }
-    const data = JSON.parse(fs.readFileSync(config.sharedDataPath, "utf8"));
-    res.json({ success: true, ...data });
+    if (fs.existsSync(config.sharedDataPath)) data = JSON.parse(fs.readFileSync(config.sharedDataPath, "utf8"));
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    addLog("sync", `Paylaşılan oyun verisi okunamadı: ${err.message}`, "error");
+    return res.status(500).json({ success: false, available: false, message: "Kayıtlı oyun verisi okunamadı (dosya bozuk olabilir)." });
   }
+  if (!data) {
+    return res.json({
+      success: true,
+      available: false,
+      message: "FiveM sunucusu henüz eşya/meslek verisi göndermedi.",
+      items: null, jobs: null, gangs: null, vehicles: null, syncedAt: null, stale: null
+    });
+  }
+  // Older files stored the sync time as "timestamp".
+  const syncedAt = Number(data.syncedAt || data.timestamp) || null;
+  res.json({
+    success: true,
+    available: true,
+    items: data.items ?? null,
+    jobs: data.jobs ?? null,
+    gangs: data.gangs ?? null,
+    vehicles: data.vehicles ?? null,
+    syncedAt: syncedAt ? new Date(syncedAt).toISOString() : null,
+    stale: !syncedAt || Date.now() - syncedAt > SHARED_DATA_STALE_MS,
+    bridgeOnline: bridgeStatus().online
+  });
 });
 
 // ---- Live screen watching ---------------------------------------------------------------
@@ -726,6 +799,9 @@ router.post("/api/fivem/screen/start", requireStaff(SCREEN_FLAGS), (req, res) =>
   const { targetPlayer, quality, interval } = req.body;
   if (!targetPlayer) {
     return res.status(400).json({ success: false, message: "Hedef oyuncu belirtilmedi." });
+  }
+  if (!bridgeStatus().online) {
+    return res.status(503).json({ success: false, message: "FiveM sunucusu çevrimdışı; ekran izleme başlatılamaz." });
   }
   const targetPlayerStr = String(targetPlayer);
   const token = crypto.randomBytes(16).toString("hex");

@@ -2,7 +2,7 @@
   <section id="developer-settings-content" class="admin-section-inner">
     <div class="main-layout" style="margin-bottom: 30px;">
       <div class="content-panel" style="grid-column: span 12;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 8px; ">
           <i class="fa-solid fa-code text-sky-400"></i> Modül Yönetimi (Geliştirici Ayarları)
         </h3>
         <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 24px; line-height: 1.5;">
@@ -13,7 +13,7 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; margin-bottom: 24px;">
           <% if (locals.siteModules && siteModules.length > 0) { %>
             <% siteModules.forEach(m => { %>
-              <div class="content-panel module-card <%= m.isEnabled ? 'active' : '' %>" id="card-<%= m.key %>" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px; transition: all 0.3s ease; position: relative; margin: 0; box-shadow: none;">
+              <div class="content-panel module-card <%= m.isEnabled ? 'active' : '' %>" id="card-<%= m.key %>" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px; transition: all 0.3s ease; position: relative; margin: 0; ">
                 
                 <!-- Header: Icon, Name, Switch -->
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
@@ -75,10 +75,10 @@
                       <h4 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 6px;">
                         <%= m.name %>
                         <% if (m.key === 'maintenance') { %>
-                          <span style="font-size: 8px; padding: 2px 6px; border-radius: 4px; background: rgba(239, 68, 68, 0.15); color: var(--danger); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Kritik</span>
+                          <span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(239, 68, 68, 0.15); color: var(--danger); font-weight: 700;  ">Kritik</span>
                         <% } %>
                       </h4>
-                      <span class="module-status-badge" style="font-size: 9px; font-weight: 700; color: <%= m.isEnabled ? 'var(--success)' : 'var(--text-muted)' %>; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                      <span class="module-status-badge" style="font-size: 11px; font-weight: 700; color: <%= m.isEnabled ? 'var(--success)' : 'var(--text-muted)' %>; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;  ">
                         <span style="width: 5px; height: 5px; border-radius: 50%; background: <%= m.isEnabled ? 'var(--success)' : 'var(--text-muted)' %>;"></span>
                         <%= m.isEnabled ? 'Aktif' : 'Pasif' %>
                       </span>
@@ -98,24 +98,24 @@
                 <div style="border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; margin-top: auto;">
                   <% if (m.key === 'maintenance') { %>
                     <div style="display: flex; flex-direction: column; gap: 6px;">
-                      <label class="form-label" style="font-size: 10px; opacity: 0.7; margin: 0;">Bakım Mesajı</label>
+                      <label class="form-label" style="font-size: 11px; opacity: 0.7; margin: 0;">Bakım Mesajı</label>
                       <textarea id="msg-<%= m.key %>" class="form-input module-auto-input" data-key="<%= m.key %>" style="min-height: 80px; resize: vertical;" placeholder="Bakım mesajını girin..."><%= m.customMessage || "Sizlere daha iyi bir deneyim sunabilmek amacıyla sitemizde güncellemeler ve bakım çalışmaları yapıyoruz. Çok yakında tekrar çevrimiçi olacağız!" %></textarea>
-                      <span style="font-size: 9px; color: var(--text-muted);"><i class="fa-solid fa-cloud-arrow-up"></i> Değişiklikler anında kaydedilir.</span>
+                      <span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-cloud-arrow-up"></i> Değişiklikler anında kaydedilir.</span>
                     </div>
                   <% } else { %>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                       <div style="display: flex; flex-direction: column; gap: 6px;">
-                        <label class="form-label" style="font-size: 10px; opacity: 0.7; margin: 0;">Pasif Durum Davranışı</label>
+                        <label class="form-label" style="font-size: 11px; opacity: 0.7; margin: 0;">Pasif Durum Davranışı</label>
                         <select id="behavior-<%= m.key %>" class="form-input module-auto-select" data-key="<%= m.key %>" style="background: #0c0d10; width: 100%;">
                           <option value="redirect" <%= m.behavior === 'redirect' ? 'selected' : '' %>>Ana Sayfaya Yönlendir</option>
                           <option value="preloader" <%= m.behavior === 'preloader' ? 'selected' : '' %>>Yapım Aşaması (Preloader)</option>
                         </select>
                       </div>
                       <div style="display: flex; flex-direction: column; gap: 6px;">
-                        <label class="form-label" style="font-size: 10px; opacity: 0.7; margin: 0;">Yapım Aşaması Mesajı</label>
+                        <label class="form-label" style="font-size: 11px; opacity: 0.7; margin: 0;">Yapım Aşaması Mesajı</label>
                         <input type="text" id="msg-<%= m.key %>" class="form-input module-auto-input" data-key="<%= m.key %>" value="<%= m.customMessage %>" placeholder="Bu bölüm yapım aşamasındadır.">
                       </div>
-                      <span style="font-size: 9px; color: var(--text-muted);"><i class="fa-solid fa-cloud-arrow-up"></i> Değişiklikler anında kaydedilir.</span>
+                      <span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-cloud-arrow-up"></i> Değişiklikler anında kaydedilir.</span>
                     </div>
                   <% } %>
                 </div>
@@ -135,7 +135,7 @@
     <!-- Discord Role Settings -->
     <div class="main-layout" style="margin-bottom: 30px; margin-top: 30px;">
       <div class="content-panel" style="grid-column: span 12;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 8px; ">
           <i class="fa-brands fa-discord" style="color: #5865F2;"></i> Discord Rol Ayarları
         </h3>
         <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 24px; line-height: 1.5;">
@@ -464,7 +464,7 @@
     }
     .module-card.active {
       border-color: rgba(0, 113, 227, 0.4) !important;
-      box-shadow: 0 0 15px rgba(0, 113, 227, 0.05);
+      
     }
   </style>
 <% } %>

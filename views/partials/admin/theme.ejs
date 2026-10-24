@@ -15,8 +15,8 @@
         <div class="color-picker-wrapper" style="display: flex; align-items: center; gap: 16px; background: rgba(0,0,0,0.15); padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
           <input type="color" name="themeColor" id="theme-color-picker" class="color-input-field" value="<%= (locals.stats && locals.stats.themeColor) || '#e0a98b' %>" style="width: 64px; height: 38px; border: 1.5px solid var(--border-color); border-radius: 6px; cursor: pointer; background: none;">
           <div>
-            <div style="font-size: 13px; font-weight: 700; color: #fff; font-family: monospace;" id="theme-color-hex"><%= (locals.stats && locals.stats.themeColor) || '#e0a98b' %></div>
-            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Renk kodu otomatik güncellenir.</div>
+            <div style="font-size: 13px; font-weight: 700; color: #fff; font-family: var(--font-mono);" id="theme-color-hex"><%= (locals.stats && locals.stats.themeColor) || '#e0a98b' %></div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Renk kodu otomatik güncellenir.</div>
           </div>
         </div>
       </div>

@@ -6,14 +6,13 @@ const config = require("../../config");
 const { ServerStats } = require("../../models/ServerInfo");
 const { getUserPermissions } = require("../../services/permissions");
 const { logUserAction } = require("../../services/systemLog");
-const { fivem, queueCommand, appendConsoleLogs } = require("../../services/fivemState");
+const { fivem, appendConsoleLogs, bridgeStatus } = require("../../services/fivemState");
+const { dispatchCommand, sendDispatchResult } = require("../../services/fivemCommands");
 const scriptFiles = require("../../services/scriptFiles");
 const { timeTr } = require("../../utils/format");
 
 const router = express.Router();
 
-// The bridge polls about once a second; no poll for this long means the game server is offline.
-const FIVEM_ONLINE_WINDOW_MS = 7000;
 const RECENT_ACTIONS_LIMIT = 15;
 const CONSOLE_LOG_RESPONSE_LIMIT = 200;
 const RESTART_GRACE_MS = 2000;
@@ -72,18 +71,18 @@ function defaultServerCfg() {
 }
 
 router.get("/admin/server/status", async (req, res) => {
-  if (!fivem.serverControl) {
-    fivem.serverControl = { status: "online", startedAt: new Date(), lastAction: "Sistem Başlatıldı" };
-  }
-  const isFivemOnline = Date.now() - (fivem.lastPoll || 0) < FIVEM_ONLINE_WINDOW_MS;
-  const stats = await ServerStats.findOne();
+  const bridge = bridgeStatus();
+  const stats = await ServerStats.findOne().lean();
   res.json({
     success: true,
-    status: isFivemOnline ? "online" : "offline",
-    fivemOnline: isFivemOnline,
+    status: bridge.online ? "online" : "offline",
+    fivemOnline: bridge.online,
+    bridge,
+    // Gateway (this Node process) metrics, not the game server.
     uptime: process.uptime(),
     memory: process.memoryUsage(),
-    activePlayers: fivem.activePlayers.length,
+    activePlayers: bridge.playersCount,
+    maxPlayers: bridge.maxPlayers,
     actions: fivem.serverActionLogs.slice(-RECENT_ACTIONS_LIMIT).reverse(),
     fivemStartCommand: fivemStartCommand(stats)
   });
@@ -96,138 +95,99 @@ router.post("/admin/server/config", async (req, res) => {
   res.json({ success: true, message: "FiveM başlatma ayarları kaydedildi." });
 });
 
+// Kills every FXServer process on this machine (the panel and the game server run on the same Windows host).
+function killFxServer() {
+  return new Promise(resolve => {
+    exec(KILL_FXSERVER_COMMAND, (err, stdout, stderr) => {
+      // taskkill exits with 128 when no matching process exists.
+      if (!err) return resolve({ ok: true, text: String(stdout).trim() });
+      resolve({ ok: false, notRunning: err.code === 128, text: String(stderr || err.message).trim() });
+    });
+  });
+}
+
 router.post("/admin/server/start", async (req, res) => {
   const adminUser = adminName(req);
-  fivem.serverControl = { ...(fivem.serverControl || {}), status: "online", lastAction: "FiveM Sunucusu Başlatıldı" };
-  recordServerAction("FiveM Sunucusu Başlatıldı", adminUser, "success");
-
-  const separator = "================================================================================";
-  appendConsoleLogs(
-    { type: "system", text: separator },
-    { type: "system", text: `[FXServer] Başlatma tetiklendi. Yönetici: ${adminUser}` },
-    { type: "info", text: "[FXServer] Creating script environments for _cfx_internal" },
-    { type: "info", text: "[FXServer] Initializing network endpoint on 0.0.0.0:30120" },
-    { type: "info", text: "[FXServer] Authenticating server license key with Cfx.re Keymaster..." },
-    { type: "success", text: "[FXServer] Authentication success! Server licensed to FiveM Production." },
-    { type: "info", text: "[FXServer] Parsing server.cfg configuration file..." },
-    { type: "info", text: "[script:oxmysql] Connecting to MySQL database pool..." },
-    { type: "success", text: "[script:oxmysql] Database connection pool established." },
-    { type: "info", text: "[FXServer] Loading core framework scripts and resources..." },
-    { type: "info", text: "Starting resource oxmysql... [OK]" },
-    { type: "info", text: "Starting resource qb-core... [OK]" },
-    { type: "info", text: "Starting resource screenshot-basic... [OK]" },
-    { type: "success", text: "Starting resource shield-software... [OK]" },
-    { type: "info", text: "[shield-software] Initializing Two-Way Bridge and Live Screen Watch..." },
-    { type: "success", text: `[shield-software] Bridge connected: ${config.siteUrl}/api/fivem/bridge/poll` },
-    { type: "success", text: "[FXServer] All resources started. Server is now online and advertising." },
-    { type: "system", text: separator }
-  );
-
   const command = fivemStartCommand(await ServerStats.findOne());
-  if (command) launchFxServer(command);
-
-  queueCommand("cmd_srv_start", { action: "server_start", admin: adminUser, timestamp: Date.now() });
-  logUserAction(req, "FiveM Sunucu Başlatma", "FiveM sunucusu panel üzerinden başlatıldı.");
-  res.json({ success: true, message: "FiveM oyun sunucusu başlatma işlemi tetiklendi." });
+  if (!command) {
+    return res.status(400).json({ success: false, message: "FiveM başlatma komutu ayarlanmamış. Önce başlatma komutunu kaydedin." });
+  }
+  if (bridgeStatus().online) {
+    return res.status(409).json({ success: false, message: "FiveM sunucusu zaten çevrimiçi görünüyor (köprü aktif)." });
+  }
+  appendConsoleLogs({ type: "system", text: `[Panel] FXServer başlatma komutu çalıştırılıyor (${adminUser}).` });
+  launchFxServer(command);
+  recordServerAction("FiveM Sunucusu Başlatma Komutu Çalıştırıldı", adminUser, "success");
+  logUserAction(req, "FiveM Sunucu Başlatma", "Başlatma komutu çalıştırıldı.");
+  res.status(202).json({ success: true, message: "Başlatma komutu çalıştırıldı. Sunucu, köprü bağlandığında çevrimiçi görünecek." });
 });
 
 router.post("/admin/server/stop", async (req, res) => {
   const adminUser = adminName(req);
-  fivem.serverControl = { ...(fivem.serverControl || {}), status: "offline", lastAction: "FiveM Sunucusu Kapatıldı" };
+  const result = await killFxServer();
+  if (!result.ok) {
+    const message = result.notRunning ? "Bu makinede çalışan bir FXServer süreci bulunamadı." : `FXServer durdurulamadı: ${result.text}`;
+    appendConsoleLogs({ type: "danger", text: `[Panel] ${message}` });
+    recordServerAction("FiveM Sunucusu Kapatma Başarısız", adminUser, "danger");
+    return res.status(result.notRunning ? 409 : 500).json({ success: false, message });
+  }
+  appendConsoleLogs({ type: "warning", text: `[Panel] FXServer süreci ${adminUser} tarafından durduruldu.` });
   recordServerAction("FiveM Sunucusu Kapatıldı", adminUser, "danger");
-  appendConsoleLogs(
-    { type: "warning", text: `[FXServer] Kapatma isteği alındı. Yetkili: ${adminUser}` },
-    { type: "info", text: "[FXServer] Oyuncular sunucudan güvenli şekilde ayrılıyor..." },
-    { type: "danger", text: "[FXServer] FXServer süreci durduruldu. (Server Offline)" }
-  );
-
-  queueCommand("cmd_srv_stop", {
-    action: "server_stop",
-    command: "quit \"FiveM sunucusu yönetim paneli tarafından kapatıldı.\"",
-    admin: adminUser,
-    timestamp: Date.now()
-  });
-  exec(KILL_FXSERVER_COMMAND, () => {});
-  logUserAction(req, "FiveM Sunucu Kapatma", "FiveM sunucusu panel üzerinden kapatıldı.");
-  res.json({ success: true, message: "FiveM oyun sunucusu kapatma komutu başarıyla iletildi." });
+  logUserAction(req, "FiveM Sunucu Kapatma", "FXServer süreci durduruldu.");
+  res.json({ success: true, message: "FXServer süreci durduruldu." });
 });
 
 router.post("/admin/server/restart", async (req, res) => {
   const parsedCountdown = parseInt(req.body.countdown, 10);
   const countdown = Number.isFinite(parsedCountdown) ? Math.min(Math.max(parsedCountdown, 0), MAX_RESTART_COUNTDOWN_S) : 0;
   const adminUser = adminName(req);
-
-  fivem.serverControl = {
-    ...(fivem.serverControl || {}),
-    status: "online",
-    lastAction: countdown ? `FiveM ${countdown}s Duyurulu Restart` : "FiveM Hızlı Restart"
-  };
-  recordServerAction(countdown ? `FiveM Restart (${countdown}s Geri Sayım)` : "FiveM Anlık Restart", adminUser, "warning");
-  appendConsoleLogs(
-    { type: "warning", text: `[FXServer] Restart işlemi tetiklendi. Geri sayım: ${countdown}s (Yetkili: ${adminUser})` },
-    { type: "info", text: "[FXServer] Kaynaklar ve önbellek sıfırlanıp yeniden yükleniyor..." }
-  );
-
-  if (countdown) {
-    queueCommand("cmd_srv_announce", {
-      action: "announce",
-      command: `say "DIKKAT: FiveM Sunucusu ${countdown} saniye sonra yeniden baslatilacaktir!"`,
-      admin: adminUser,
-      timestamp: Date.now()
-    });
-  }
-  queueCommand("cmd_srv_restart", { action: "server_restart", command: "restart", admin: adminUser, countdown, timestamp: Date.now() });
-
   const command = fivemStartCommand(await ServerStats.findOne());
-  if (command) {
-    setTimeout(() => {
-      exec(KILL_FXSERVER_COMMAND, () => {
-        setTimeout(() => {
-          exec(command, err => {
-            if (err) console.error("FiveM restart launch error:", err);
-          });
-        }, RESTART_GRACE_MS);
-      });
-    }, countdown * 1000 + RESTART_GRACE_MS);
+  if (!command) {
+    return res.status(400).json({ success: false, message: "Yeniden başlatma için FiveM başlatma komutu ayarlanmalıdır." });
   }
 
-  logUserAction(req, "FiveM Sunucu Restart", `FiveM sunucusu yeniden başlatıldı. Geri sayım: ${countdown}s`);
-  res.json({ success: true, message: countdown ? `FiveM sunucusu ${countdown} saniye geri sayımla yeniden başlatılıyor.` : "FiveM sunucusuna restart komutu iletildi." });
+  let announced = false;
+  if (countdown && bridgeStatus().online) {
+    const announce = await dispatchCommand("execute_command", { command: `say DIKKAT: Sunucu ${countdown} saniye sonra yeniden baslatilacaktir!`, admin: adminUser });
+    announced = announce.ok;
+  }
+  appendConsoleLogs({ type: "warning", text: `[Panel] Restart planlandı: ${countdown}s sonra (${adminUser}).` });
+  recordServerAction(countdown ? `FiveM Restart (${countdown}s Geri Sayım)` : "FiveM Anlık Restart", adminUser, "warning");
+
+  setTimeout(async () => {
+    const killed = await killFxServer();
+    appendConsoleLogs({
+      type: killed.ok ? "warning" : "danger",
+      text: killed.ok ? "[Panel] FXServer durduruldu, yeniden başlatılıyor..." : `[Panel] FXServer durdurulamadı (${killed.text}); yine de başlatılıyor.`
+    });
+    setTimeout(() => launchFxServer(command), RESTART_GRACE_MS);
+  }, countdown * 1000 + RESTART_GRACE_MS);
+
+  logUserAction(req, "FiveM Sunucu Restart", `Geri sayım: ${countdown}s`);
+  res.status(202).json({
+    success: true,
+    message: countdown
+      ? `Restart ${countdown} saniye sonra yapılacak.${announced ? "" : " Oyuncu duyurusu gönderilemedi (köprü çevrimdışı veya reddetti)."}`
+      : "Restart başlatıldı."
+  });
 });
 
 router.get("/admin/server/console-logs", (req, res) => {
-  if (fivem.consoleLogs.length === 0) {
-    appendConsoleLogs(
-      { type: "system", text: "Microsoft Windows [Version 10.0.19045] FXServer Console Monitor" },
-      { type: "info", text: "CMD Console & Script Deployment Stream active." }
-    );
-  }
   res.json({ success: true, logs: fivem.consoleLogs.slice(-CONSOLE_LOG_RESPONSE_LIMIT) });
 });
 
-// Simulated console echo for common commands (the real execution happens on the game server).
-function consoleEcho(cmd) {
-  const target = cmd.split(" ")[1] || "script";
-  if (cmd.startsWith("ensure ") || cmd.startsWith("start ")) return { type: "info", text: `Starting resource ${target}... [OK]` };
-  if (cmd.startsWith("stop ")) return { type: "warning", text: `Stopping resource ${target}... [DONE]` };
-  if (cmd.startsWith("restart ")) return { type: "info", text: `Restarting resource ${target}... [OK]` };
-  if (cmd === "refresh") return { type: "info", text: "Scanning resources and checking for updates... [REFRESH COMPLETE]" };
-  if (cmd === "status") return { type: "info", text: `FXServer Status: ${fivem.activePlayers.length} players online. Port: 30120` };
-  return null;
-}
-
-router.post("/admin/server/console-command", (req, res) => {
-  const cleanCmd = String(req.body.command || "").trim();
+// Sends a console command through the bridge. The resource only runs start/ensure/stop/restart <resource> and
+// say/announce <text>; anything else is rejected there and reported back here.
+router.post("/admin/server/console-command", async (req, res) => {
+  const cleanCmd = String(req.body.command || "").trim().slice(0, 500);
   if (!cleanCmd) {
     return res.status(400).json({ success: false, message: "Komut belirtilmedi." });
   }
   appendConsoleLogs({ type: "cmd", text: `> ${cleanCmd}` });
-  queueCommand("cmd_console", { action: "execute_raw", command: cleanCmd, admin: adminName(req), timestamp: Date.now() });
-  const echo = consoleEcho(cleanCmd);
-  if (echo) appendConsoleLogs(echo);
-
-  logUserAction(req, "FiveM Konsol Komutu Gönderildi", cleanCmd);
-  res.json({ success: true, message: `Komut gönderildi: ${cleanCmd}` });
+  const result = await dispatchCommand("execute_command", { command: cleanCmd, admin: adminName(req) });
+  appendConsoleLogs({ type: result.ok ? (result.confirmed ? "success" : "info") : "danger", text: `[Köprü] ${result.message}` });
+  logUserAction(req, "FiveM Konsol Komutu Gönderildi", `${cleanCmd} -> ${result.status}`);
+  sendDispatchResult(res, result);
 });
 
 router.get("/admin/server/config-file", async (req, res) => {
@@ -518,10 +478,10 @@ router.post("/admin/server/scripts/restart-resource", scriptRoute("Komut gönder
     return res.status(400).json({ success: false, message: "Geçersiz resource adı." });
   }
   const adminUser = adminName(req, "Yetkili");
-  queueCommand("cmd_script_res", { action: "console_command", command: `restart ${cleanName}`, admin: adminUser, timestamp: Date.now() });
-  appendConsoleLogs({ type: "info", text: `[Resource Restart] ${cleanName} scripti ${adminUser} tarafından yeniden başlatıldı. (restart ${cleanName})` });
-  logUserAction(req, "FiveM Script Yeniden Başlatıldı (restart)", cleanName);
-  res.json({ success: true, message: `"${cleanName}" scripti için restart komutu FiveM köprüsüne gönderildi.` });
+  const result = await dispatchCommand("execute_command", { command: `restart ${cleanName}`, admin: adminUser });
+  appendConsoleLogs({ type: result.ok ? "info" : "danger", text: `[Resource Restart] restart ${cleanName} (${adminUser}): ${result.message}` });
+  logUserAction(req, "FiveM Script Yeniden Başlatıldı (restart)", `${cleanName} -> ${result.status}`);
+  sendDispatchResult(res, result, { message: `"${cleanName}": ${result.message}` });
 }));
 
 module.exports = router;

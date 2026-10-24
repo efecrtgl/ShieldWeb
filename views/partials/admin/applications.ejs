@@ -16,45 +16,45 @@
   %>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 32px;">
     <!-- Card 1: Toplam Şablon -->
-    <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+    <div style="background: rgba(22, 28, 36, 0.85);   border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; " onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
       <div>
-        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); letter-spacing: -0.5px;"><%= totalTemplates %></div>
+        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); "><%= totalTemplates %></div>
         <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Toplam Şablon</div>
       </div>
-      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(0, 113, 227, 0.1); border: 1.5px solid rgba(0, 113, 227, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(0, 113, 227, 0.15);">
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(0, 113, 227, 0.1); border: 1.5px solid rgba(0, 113, 227, 0.35); display: flex; align-items: center; justify-content: center; ">
         <i class="fa-solid fa-file-invoice" style="color: var(--primary); font-size: 19px;"></i>
       </div>
     </div>
     
     <!-- Card 2: Toplam Başvuru -->
-    <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(139, 92, 246, 0.8)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+    <div style="background: rgba(22, 28, 36, 0.85);   border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; " onmouseover="this.style.borderColor='rgba(139, 92, 246, 0.8)'; this.style.transform='';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
       <div>
-        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); letter-spacing: -0.5px;"><%= totalSubmissions %></div>
+        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); "><%= totalSubmissions %></div>
         <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Toplam Başvuru</div>
       </div>
-      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); border: 1.5px solid rgba(139, 92, 246, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(139, 92, 246, 0.15);">
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); border: 1.5px solid rgba(139, 92, 246, 0.35); display: flex; align-items: center; justify-content: center; ">
         <i class="fa-solid fa-inbox" style="color: var(--purple); font-size: 19px;"></i>
       </div>
     </div>
     
     <!-- Card 3: Bekleyen Başvuru -->
-    <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(245, 158, 11, 0.8)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+    <div style="background: rgba(22, 28, 36, 0.85);   border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; " onmouseover="this.style.borderColor='rgba(245, 158, 11, 0.8)'; this.style.transform='';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
       <div>
-        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); letter-spacing: -0.5px;"><%= pendingSubmissions %></div>
+        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); "><%= pendingSubmissions %></div>
         <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Bekleyen Başvuru</div>
       </div>
-      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); border: 1.5px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(245, 158, 11, 0.15);">
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); border: 1.5px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; ">
         <i class="fa-solid fa-clock" style="color: var(--warning); font-size: 19px;"></i>
       </div>
     </div>
     
     <!-- Card 4: Onaylanan -->
-    <div style="background: rgba(22, 28, 36, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.borderColor='rgba(16, 185, 129, 0.8)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
+    <div style="background: rgba(22, 28, 36, 0.85);   border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s ease, border-color 0.2s ease; " onmouseover="this.style.borderColor='rgba(16, 185, 129, 0.8)'; this.style.transform='';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
       <div>
-        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); letter-spacing: -0.5px;"><%= approvedSubmissions %></div>
+        <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; font-family: var(--font-display); "><%= approvedSubmissions %></div>
         <div style="font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-top: 8px;">Onaylanan</div>
       </div>
-      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); border: 1.5px solid rgba(16, 185, 129, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);">
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); border: 1.5px solid rgba(16, 185, 129, 0.35); display: flex; align-items: center; justify-content: center; ">
         <i class="fa-solid fa-circle-check" style="color: var(--success); font-size: 19px;"></i>
       </div>
     </div>
@@ -63,7 +63,7 @@
   <div class="main-layout" style="gap: 32px;">
     <!-- Left Column: Submissions (Gelen Başvurular) -->
     <div class="content-panel" style="grid-column: span 8; padding: 24px; overflow-x: auto;">
-      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px;  display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-envelope-open-text text-sky-400"></i> Gelen Başvurular
       </h3>
       
@@ -83,9 +83,9 @@
         <div style="display: flex; flex-direction: column; gap: 24px;">
           <% Object.entries(groupedSubmissions).forEach(([appTitle, subList]) => { %>
             <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; background: rgba(255,255,255,0.01);">
-              <h4 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; color: var(--text-main);">
+              <h4 style="font-family: var(--font-display); font-size: 13px; font-weight: 700; margin-bottom: 16px;  display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; color: var(--text-main);">
                 <span><%= appTitle %></span>
-                <span class="status-badge connecting" style="font-size: 10px; padding: 2px 6px; border-radius: 4px;"><%= subList.filter(s => s.status === 'pending').length %> Bekleyen</span>
+                <span class="status-badge connecting" style="font-size: 11px; padding: 2px 6px; border-radius: 4px;"><%= subList.filter(s => s.status === 'pending').length %> Bekleyen</span>
               </h4>
               <table class="admin-table">
                 <thead>
@@ -99,24 +99,24 @@
                 <tbody>
                   <% subList.forEach(sub => { %>
                     <tr>
-                      <td style="font-weight: 600;"><%= sub.username %> <span style="font-size: 11px; color: var(--text-muted); font-family: monospace;">(<%= sub.discordId %>)</span></td>
+                      <td style="font-weight: 600;"><%= sub.username %> <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">(<%= sub.discordId %>)</span></td>
                       <td style="color: var(--text-muted); font-size: 12px;"><%= new Date(sub.date).toLocaleDateString('tr-TR') %></td>
                       <td>
                         <% if (sub.status === 'pending') { %>
-                          <span class="status-badge connecting" style="font-size: 10px;">● BEKLEMEDE</span>
+                          <span class="status-badge connecting" style="font-size: 11px;">● BEKLEMEDE</span>
                         <% } else if (sub.status === 'approved') { %>
-                          <span class="status-badge online" style="font-size: 10px;">✔ ONAYLANDI</span>
+                          <span class="status-badge online" style="font-size: 11px;">✔ ONAYLANDI</span>
                         <% } else { %>
-                          <span class="status-badge error" style="font-size: 10px;">✖ REDDEDİLDİ</span>
+                          <span class="status-badge error" style="font-size: 11px;">✖ REDDEDİLDİ</span>
                         <% } %>
                       </td>
                       <td>
                         <div style="display: flex; gap: 6px; align-items: center;">
-                          <button type="button" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 10px;" data-sub="<%= Buffer.from(JSON.stringify(sub)).toString('base64') %>" onclick="openReviewModalFromBtn(this)">
+                          <button type="button" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 11px;" data-sub="<%= Buffer.from(JSON.stringify(sub)).toString('base64') %>" onclick="openReviewModalFromBtn(this)">
                             <i class="fa-solid fa-magnifying-glass"></i> İncele
                           </button>
                           <form action="/admin/submissions/delete/<%= sub._id %>" method="POST" style="display: inline;" onsubmit="return confirm('Bu başvuruyu kalıcı olarak silmek istediğinize emin misiniz?')">
-                            <button type="submit" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 10px; background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3);" title="Başvuruyu Sil">
+                            <button type="submit" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 11px; background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3);" title="Başvuruyu Sil">
                               <i class="fa-solid fa-trash-can"></i> Sil
                             </button>
                           </form>
@@ -140,7 +140,7 @@
     <!-- Right Column: Existing Templates (Mevcut Şablonlar) -->
     <div class="content-panel" style="grid-column: span 4; padding: 24px; overflow-x: auto;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 8px; margin: 0;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700;  display: flex; align-items: center; gap: 8px; margin: 0;">
           <i class="fa-solid fa-file-invoice text-sky-400"></i> Mevcut Şablonlar
         </h3>
       </div>
@@ -167,38 +167,38 @@
                 <td style="font-weight: 700; font-size: 12.5px;"><%= app.title %></td>
                 <td>
                   <% if (app.status === 'open') { %>
-                    <span class="status-badge online" style="font-size: 9px; padding: 2px 6px;">AÇIK</span>
+                    <span class="status-badge online" style="font-size: 11px; padding: 2px 6px;">AÇIK</span>
                   <% } else { %>
-                    <span class="status-badge error" style="font-size: 9px; padding: 2px 6px;">KAPALI</span>
+                    <span class="status-badge error" style="font-size: 11px; padding: 2px 6px;">KAPALI</span>
                   <% } %>
                 </td>
                 <td>
                   <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
                     <!-- Up / Down Reorder Buttons -->
                     <form action="/admin/applications/move/<%= app._id %>/up" method="POST" style="display: inline;">
-                      <button type="submit" class="btn" <%= appIdx === 0 ? 'disabled' : '' %> style="background: rgba(255, 255, 255, 0.05); color: <%= appIdx === 0 ? 'rgba(255,255,255,0.2)' : 'var(--text-muted)' %>; padding: 5px 7px; border-radius: 6px; font-size: 10px;" title="Yukarı Taşı">
+                      <button type="submit" class="btn" <%= appIdx === 0 ? 'disabled' : '' %> style="background: rgba(255, 255, 255, 0.05); color: <%= appIdx === 0 ? 'rgba(255,255,255,0.2)' : 'var(--text-muted)' %>; padding: 5px 7px; border-radius: 6px; font-size: 11px;" title="Yukarı Taşı">
                         <i class="fa-solid fa-chevron-up"></i>
                       </button>
                     </form>
                     <form action="/admin/applications/move/<%= app._id %>/down" method="POST" style="display: inline;">
-                      <button type="submit" class="btn" <%= appIdx === applications.length - 1 ? 'disabled' : '' %> style="background: rgba(255, 255, 255, 0.05); color: <%= appIdx === applications.length - 1 ? 'rgba(255,255,255,0.2)' : 'var(--text-muted)' %>; padding: 5px 7px; border-radius: 6px; font-size: 10px;" title="Aşağı Taşı">
+                      <button type="submit" class="btn" <%= appIdx === applications.length - 1 ? 'disabled' : '' %> style="background: rgba(255, 255, 255, 0.05); color: <%= appIdx === applications.length - 1 ? 'rgba(255,255,255,0.2)' : 'var(--text-muted)' %>; padding: 5px 7px; border-radius: 6px; font-size: 11px;" title="Aşağı Taşı">
                         <i class="fa-solid fa-chevron-down"></i>
                       </button>
                     </form>
 
                     <!-- Edit Button -->
-                    <button type="button" class="btn" data-app="<%= Buffer.from(JSON.stringify(app)).toString('base64') %>" onclick="editApplicationFromBtn(this)" style="background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 5px 8px; border-radius: 6px; font-size: 10px;" title="Düzenle"><i class="fa-solid fa-edit"></i></button>
+                    <button type="button" class="btn" data-app="<%= Buffer.from(JSON.stringify(app)).toString('base64') %>" onclick="editApplicationFromBtn(this)" style="background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 5px 8px; border-radius: 6px; font-size: 11px;" title="Düzenle"><i class="fa-solid fa-edit"></i></button>
                     
                     <!-- Toggle Visibility -->
                     <form action="/admin/applications/toggle/<%= app._id %>" method="POST" style="display: inline;">
-                      <button type="submit" class="btn" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); padding: 5px 8px; border-radius: 6px; font-size: 10px;" title="<%= app.status === 'open' ? 'Kapat' : 'Aç' %>">
+                      <button type="submit" class="btn" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); padding: 5px 8px; border-radius: 6px; font-size: 11px;" title="<%= app.status === 'open' ? 'Kapat' : 'Aç' %>">
                         <i class="fa-solid <%= app.status === 'open' ? 'fa-eye-slash' : 'fa-eye' %>"></i>
                       </button>
                     </form>
                     
                     <!-- Delete Button -->
                     <form action="/admin/applications/delete/<%= app._id %>" method="POST" style="display: inline;" onsubmit="return confirm('Bu şablonu silmek istediğinize emin misiniz? Tüm başvurular da silinecektir.')">
-                      <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 5px 8px; border-radius: 6px; font-size: 10px;" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                      <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 5px 8px; border-radius: 6px; font-size: 11px;" title="Sil"><i class="fa-solid fa-trash"></i></button>
                     </form>
                   </div>
                 </td>
@@ -228,7 +228,7 @@
           dragEl = row;
           e.dataTransfer.effectAllowed = "move";
           row.style.opacity = "0.4";
-          row.style.background = "rgba(168, 85, 247, 0.1)";
+          row.style.background = "rgba(var(--accent-rgb), 0.1)";
         });
 
         row.addEventListener("dragend", () => {

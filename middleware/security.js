@@ -22,12 +22,27 @@ function trustedOrigins() {
   return origins;
 }
 
+// The views still rely on inline scripts and third-party CDNs, so script sources stay permissive; framing, plugins and
+// <base> hijacking are locked down. Framing is allowed for Discord (the panel can run as a Discord Activity).
+const CSP = [
+  "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "frame-ancestors 'self' https://discord.com https://*.discordsays.com"
+].join("; ");
+
 function contentSecurityPolicy(req, res, next) {
-  res.setHeader("Content-Security-Policy", "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;");
+  res.setHeader("Content-Security-Policy", CSP);
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   next();
 }
 
-// CSRF protection for admin mutations: rejects cross-site requests by Origin and
+// Mutating routes authenticated by something other than the session cookie (HMAC-signed game server calls and
+// token-authenticated screen uploads). Every other POST/PUT/PATCH/DELETE gets the Origin check.
+const NON_SESSION_ROUTES = ["/api/fivem/bridge/poll", "/api/fivem/bridge/characters", "/api/fivem/bridge/shared-data", "/api/fivem/screen/upload"];
+
+// CSRF protection for session-authenticated mutations: rejects cross-site requests by Origin and
 // mismatching anti-CSRF tokens (when a client sends one).
 function csrfProtection() {
   const allowedOrigins = trustedOrigins();
@@ -40,7 +55,7 @@ function csrfProtection() {
       res.locals.csrfToken = req.session.csrfToken;
     }
 
-    if (!req.path.startsWith("/admin") || !MUTATING_METHODS.includes(req.method)) {
+    if (!MUTATING_METHODS.includes(req.method) || NON_SESSION_ROUTES.includes(req.path)) {
       return next();
     }
 

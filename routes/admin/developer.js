@@ -18,8 +18,10 @@ const router = express.Router();
 const PROJECT_ROOT = path.join(__dirname, "..", "..");
 const ROLE_RESTORE_DELAY_MS = 250;
 // Never shipped in a website-files backup: dependencies, VCS/tool folders, logs and secrets.
-const BACKUP_EXCLUDED_DIRS = new Set(["node_modules", ".git", ".gemini", ".claude", "tmp", "logs"]);
+const BACKUP_EXCLUDED_DIRS = new Set(["node_modules", ".git", ".gemini", ".claude", ".taste-skill", "tmp", "logs"]);
 const BACKUP_EXCLUDED_FILE = /^\.env(\..*)?$/;
+// Files holding secrets, matched by their path from the project root.
+const BACKUP_EXCLUDED_PATHS = new Set(["shield-software/config.json"]);
 
 const DISCORD_SETTING_FIELDS = [
   "guildId", "loggerGuildId", "whitelistRoleId", "unregisteredRoleId", "staffRoleId", "voiceSupportRoleId",
@@ -124,13 +126,17 @@ async function discordRolesBackup(guildId, token) {
   return Buffer.from(JSON.stringify({ roles, members }, null, 2), "utf-8");
 }
 
+// Whether a project-relative path may go into the downloadable website-files backup.
+function includeInBackup(relativePath) {
+  const parts = relativePath.split(/[\\/]/);
+  if (parts.some(part => BACKUP_EXCLUDED_DIRS.has(part))) return false;
+  if (BACKUP_EXCLUDED_PATHS.has(parts.join("/"))) return false;
+  return !BACKUP_EXCLUDED_FILE.test(parts[parts.length - 1]);
+}
+
 function websiteFilesBackup() {
   const zip = new AdmZip();
-  zip.addLocalFolder(PROJECT_ROOT, "", filepath => {
-    const parts = path.relative(PROJECT_ROOT, filepath).split(path.sep);
-    if (parts.some(part => BACKUP_EXCLUDED_DIRS.has(part))) return false;
-    return !BACKUP_EXCLUDED_FILE.test(parts[parts.length - 1]);
-  });
+  zip.addLocalFolder(PROJECT_ROOT, "", filepath => includeInBackup(path.relative(PROJECT_ROOT, filepath)));
   return zip.toBuffer();
 }
 
@@ -237,3 +243,4 @@ router.post("/admin/developer/backup/restore-roles", allowDeveloper("manageDevel
 });
 
 module.exports = router;
+module.exports.includeInBackup = includeInBackup;

@@ -1,5 +1,5 @@
--- Arcanium-Web (Arcanium Web) Client Script
--- Teleport, Vehicle Return, Screen Watch Handlers
+-- Shield Software client script: teleport, vehicle return and screen watch handlers.
+-- Event names are kept in both the arcanium-web and ps-web namespaces for older panel builds.
 
 local cachedFwType = nil
 local cachedFwObj = nil
