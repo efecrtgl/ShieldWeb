@@ -171,3 +171,23 @@ test("website backup never includes secrets, dependencies or VCS data", () => {
   assert.strictEqual(includeInBackup("node_modules/express/index.js"), false);
   assert.strictEqual(includeInBackup(".git/config"), false);
 });
+
+test("health endpoints: liveness always ok, readiness follows the database", async () => {
+  resetBridge({ online: false });
+  const express = require("express");
+  const app = express();
+  app.use(require("../routes/health"));
+  const server = await new Promise(resolve => { const s = app.listen(0, "127.0.0.1", () => resolve(s)); });
+  try {
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const live = await fetch(`${base}/healthz`);
+    assert.strictEqual(live.status, 200);
+    const ready = await fetch(`${base}/readyz`);
+    const body = await ready.json();
+    assert.strictEqual(ready.status, 503, "no database connection in unit tests");
+    assert.strictEqual(body.checks.mongodb, "down");
+    assert.strictEqual(body.info.fivemBridge, "never_connected");
+  } finally {
+    server.close();
+  }
+});
