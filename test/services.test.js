@@ -159,3 +159,15 @@ test("admin module guard maps URLs to the same modules as before the refactor", 
     assert.strictEqual(requiredAdminModule(url), expected, url);
   }
 });
+
+test("website backup never includes secrets, dependencies or VCS data", () => {
+  const { includeInBackup } = require("../routes/admin/developer");
+  assert.strictEqual(includeInBackup("app.js"), true);
+  assert.strictEqual(includeInBackup("shield-software/server.js"), true);
+  assert.strictEqual(includeInBackup("shield-software/config.json"), false);
+  assert.strictEqual(includeInBackup("shield-software\\config.json"), false);
+  assert.strictEqual(includeInBackup(".env"), false);
+  assert.strictEqual(includeInBackup(".env.production"), false);
+  assert.strictEqual(includeInBackup("node_modules/express/index.js"), false);
+  assert.strictEqual(includeInBackup(".git/config"), false);
+});
