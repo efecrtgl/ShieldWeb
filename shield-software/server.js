@@ -24,9 +24,7 @@ let config = {
   apiUrl: "",
   secretKey: "",
   pollInterval: 1000,
-  serverStatus: true,
   dbLock: false,
-  commands: {},
   locations: {}
 };
 

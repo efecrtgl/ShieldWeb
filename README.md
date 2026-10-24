@@ -94,10 +94,29 @@ Windows için `module.bat` (bağımlılık kurulumu) ve `pm2-baslat.bat` / `pm2-
 - Gizli bilgiler (bot tokenları, OAuth client secret, oturum anahtarı, köprü anahtarı, Gemini anahtarı) **yalnızca** `.env` içinde tutulur; `.env` git'e eklenmez.
 - Yönetim paneline yapılan durum değiştiren istekler `Origin` kontrolünden geçer. Panel bir ters proxy veya farklı bir alan adı üzerinden kullanılıyorsa bu adresi `SITE_URL` ya da `CSRF_TRUSTED_ORIGINS` içinde tanımlayın.
 - Mağaza yüklemeleri yalnızca resim dosyalarını kabul eder.
+- Oyuncu, karakter ve Discord adları her yerde kaçışlanarak gösterilir; güncelleme notlarında ham HTML çalışmaz.
+- Giriş, başvuru, mağaza ve oyun komutları hız sınırlıdır (`AUTH_RATE_LIMIT_PER_MINUTE`).
+- Köprü istekleri ham gövde üzerinden HMAC ile doğrulanır; tekrar gönderilen (replay) istekler reddedilir.
+
+---
+
+## 📚 Dokümantasyon
+
+- [`docs/SYSTEM_AUDIT.md`](docs/SYSTEM_AUDIT.md) — gerçek mimari, bulunan hatalar ve kök nedenleri
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — kurulum, ortam değişkenleri, portlar, ters proxy, sağlık kontrolleri, yedekleme
+- [`docs/REFACTORING_PROGRESS.md`](docs/REFACTORING_PROGRESS.md) — yapılan çalışma, testler, açık konular
+- [`shield-software/README.md`](shield-software/README.md) — FiveM köprüsü
 
 ---
 
 ## 📑 Sürüm Geçmişi
+
+### Yayınlanmamış — Üretime hazırlık
+- FiveM köprüsü protokol v2: komut sonuçları panele bildirilir; sunucu kapalıyken komut gönderilmez; bekleyen komutlar 30 sn sonra iptal edilir.
+- Uydurma veri kaldırıldı: varsayılan meslek/eşya listeleri, "Civilian/Freelancer", sahte oyuncu/whitelist sayıları, sahte FXServer konsol çıktıları.
+- Güvenlik: oyuncu adlarından kaynaklı XSS, karakter düzenleme yetki açığı, CSRF kapsamı, köprü replay koruması, markdown/HTML temizleme, hız sınırlama, bağımlılık açıkları (npm audit: 0).
+- Yönetim paneli ve site için yeni tasarım sistemi (`public/css/console.css`, `public/css/site.css`), gerçek verili genel bakış.
+- `/healthz` ve `/readyz` sağlık uç noktaları.
 
 ### Yayınlanmamış — Kod tabanı yeniden yapılandırması
 - `index.js` monolitik dosyası `routes/`, `services/`, `middleware/` katmanlarına ayrıldı; yapılandırma tamamen ortam değişkenlerine taşındı.
