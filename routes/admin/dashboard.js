@@ -2,12 +2,12 @@ const express = require("express");
 const os = require("os");
 const {
   UpdateNote, Rank, UserRank, FAQItem, GalleryImage, DiscordBot, Application, ApplicationSubmission, DonateItem,
-  DonatePurchase, SiteModule, Team, DiscordUser, Business, PunishmentRecord, Streamer
+  DonatePurchase, SiteModule, Team, DiscordUser, Business, PunishmentRecord, Streamer, FivemCharacter
 } = require("../../models/ServerInfo");
 const { getUserPermissions, hasAnyPermission } = require("../../services/permissions");
 const { getCachedServerStats } = require("../../services/siteCache");
 const { fetchDiscordLiveStats } = require("../../services/discordStats");
-const { onlineDiscordIds, bridgeStatus } = require("../../services/fivemState");
+const { fivem, onlineDiscordIds, bridgeStatus, getCommand } = require("../../services/fivemState");
 const { systems } = require("../../services/systemLog");
 const { isSnowflake } = require("../../utils/http");
 
@@ -157,6 +157,82 @@ router.get("/admin/dashboard", async (req, res) => {
   } catch (error) {
     console.error("Admin dashboard render error:", error);
     res.status(500).send("Internal Server Error");
+  }
+});
+
+const TREND_DAYS = 14;
+const RECENT_COMMANDS = 6;
+const RECENT_PUNISHMENT_ROWS = 5;
+
+// Local calendar day key (Europe/Istanbul is the community's timezone; the server runs in it as well).
+function dayKey(date) {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+// Every figure on the overview comes from here, with the time it was read and where it came from.
+router.get("/admin/api/overview", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, message: "Oturum kapalı." });
+  }
+  const perms = await getUserPermissions(req.session.user);
+  if (!perms || (!perms.isSuperuser && !perms.viewOverview)) {
+    return res.status(403).json({ success: false, message: "Genel bakış yetkiniz yok." });
+  }
+
+  const since = new Date();
+  since.setHours(0, 0, 0, 0);
+  since.setDate(since.getDate() - (TREND_DAYS - 1));
+  const weekAgo = new Date(Date.now() - 7 * 86400000);
+
+  try {
+    const [community, pendingApplications, submissionsByDay, recentPunishments, punishmentsThisWeek, characterCount, lastCharacter] = await Promise.all([
+      fetchDiscordLiveStats(),
+      ApplicationSubmission.countDocuments({ status: "pending", isDeleted: { $ne: true } }),
+      ApplicationSubmission.aggregate([
+        { $match: { isDeleted: { $ne: true }, date: { $gte: since } } },
+        { $group: { _id: { day: { $dateToString: { format: "%Y-%m-%d", date: "$date", timezone: "Europe/Istanbul" } }, status: "$status" }, n: { $sum: 1 } } }
+      ]),
+      PunishmentRecord.find({}, { username: 1, action: 1, reason: 1, executorUsername: 1, duration: 1, date: 1 }).sort({ date: -1 }).limit(RECENT_PUNISHMENT_ROWS).lean(),
+      PunishmentRecord.countDocuments({ date: { $gte: weekAgo } }),
+      FivemCharacter.estimatedDocumentCount(),
+      FivemCharacter.findOne({}, { lastUpdated: 1 }).sort({ lastUpdated: -1 }).lean()
+    ]);
+
+    const days = [];
+    for (let i = 0; i < TREND_DAYS; i++) {
+      const d = new Date(since);
+      d.setDate(since.getDate() + i);
+      days.push({ day: dayKey(d), pending: 0, approved: 0, rejected: 0 });
+    }
+    const byDay = new Map(days.map(d => [d.day, d]));
+    for (const row of submissionsByDay) {
+      const target = byDay.get(row._id.day);
+      if (target && row._id.status in target) target[row._id.status] += row.n;
+    }
+
+    const recentCommands = [...fivem.commands.keys()].slice(-RECENT_COMMANDS).reverse().map(getCommand).filter(Boolean)
+      .map(c => ({ id: c.id, action: c.action, status: c.status, error: c.error, createdAt: new Date(c.createdAt).toISOString() }));
+
+    res.json({
+      success: true,
+      generatedAt: new Date().toISOString(),
+      bridge: bridgeStatus(),
+      recentCommands,
+      community: community
+        ? { totalUsers: community.totalUsers ?? null, whitelistCount: community.whitelistCount ?? null, staffCount: community.staffCount ?? null, source: community.source || null, readAt: community.readAt || null }
+        : null,
+      queue: { pendingApplications, punishmentsThisWeek },
+      applications: { days: TREND_DAYS, series: days },
+      recentPunishments,
+      characters: { count: characterCount, lastSyncAt: lastCharacter ? lastCharacter.lastUpdated : null },
+      services: perms.isSuperuser
+        ? Object.entries(systems).map(([key, s]) => ({ key, name: s.name, status: s.status, details: s.details || null }))
+        : null
+    });
+  } catch (err) {
+    console.error("Overview API error:", err);
+    res.status(500).json({ success: false, message: "Genel bakış verileri okunamadı." });
   }
 });
 

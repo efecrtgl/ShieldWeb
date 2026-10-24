@@ -2,8 +2,8 @@
   <section id="discord-bots-content" class="admin-section-inner">
     <h2 class="panel-title" style="margin-bottom: 24px;"><i class="fa-brands fa-discord"></i> Discord Botları Yönetimi</h2>
     
-    <div class="content-panel" style="padding: 24px; margin-bottom: 24px; border-radius: 12px; border: 1px solid rgba(0, 113, 227, 0.15); background: linear-gradient(135deg, rgba(8, 10, 15, 0.9) 0%, rgba(3, 4, 6, 0.95) 100%);">
-      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 800; margin: 0 0 16px 0; color: #fff; display: flex; align-items: center; gap: 10px;">
+    <div class="content-panel" style="padding: 24px; margin-bottom: 24px; border-radius: 12px; border: 1px solid rgba(0, 113, 227, 0.15); background: rgba(8, 10, 15, 0.9);">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 600; margin: 0 0 16px 0; color: #fff; display: flex; align-items: center; gap: 10px;">
         <i class="fa-solid fa-layer-group text-primary" style="color: var(--primary);"></i> Toplu Bot Kontrol Merkezi
       </h3>
       
@@ -20,12 +20,12 @@
           </div>
           <form onsubmit="executeMassVoiceJoin(event)" style="margin: 0; display: flex; flex-direction: column; gap: 12px;">
             <div>
-              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Ses Kanalı ID</label>
+              <label class="form-label" style="font-size: 11px; margin-bottom: 4px;">Ses Kanalı ID</label>
               <input type="text" name="channelId" placeholder="Ses Kanalı ID" class="form-input" required style="border-radius: 8px; font-size: 12px; width: 100%;">
             </div>
             <div>
-              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">İşlem Sıralaması (Bot ID'leri)</label>
-              <input type="text" name="order" value="verification,logger,moderation,sync,management" placeholder="Örn: verification,logger,..." class="form-input" required style="border-radius: 8px; font-size: 11px; font-family: monospace;">
+              <label class="form-label" style="font-size: 11px; margin-bottom: 4px;">İşlem Sıralaması (Bot ID'leri)</label>
+              <input type="text" name="order" value="verification,logger,moderation,sync,management" placeholder="Örn: verification,logger,..." class="form-input" required style="border-radius: 8px; font-size: 11px; font-family: var(--font-mono);">
             </div>
             <button type="submit" class="btn btn-secondary" style="font-size: 12px; font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
               <i class="fa-solid fa-play"></i> Sırayla Bağla
@@ -40,7 +40,7 @@
           <form onsubmit="executeMassPresence(event)" style="margin: 0; display: flex; flex-direction: column; gap: 12px;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
               <div>
-                <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Durum Tipi</label>
+                <label class="form-label" style="font-size: 11px; margin-bottom: 4px;">Durum Tipi</label>
                 <select name="statusType" class="form-input" style="border-radius: 6px; font-size: 12px; background: #0c0d10; padding: 8px 10px;">
                   <option value="online">Online</option>
                   <option value="idle">Idle (Boşta)</option>
@@ -49,7 +49,7 @@
                 </select>
               </div>
               <div>
-                <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Etkinlik</label>
+                <label class="form-label" style="font-size: 11px; margin-bottom: 4px;">Etkinlik</label>
                 <select name="activityType" id="mass-activity-select" class="form-input" onchange="toggleMassStreamingField(this.value)" style="border-radius: 6px; font-size: 12px; background: #0c0d10; padding: 8px 10px;">
                   <option value="playing">Oynuyor</option>
                   <option value="streaming">Yayın Yapıyor</option>
@@ -59,16 +59,16 @@
               </div>
             </div>
             <div>
-              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Durum Yazısı</label>
+              <label class="form-label" style="font-size: 11px; margin-bottom: 4px;">Durum Yazısı</label>
               <input type="text" name="statusText" placeholder="Örn: Shield Altyapısı" class="form-input" required style="border-radius: 6px; font-size: 12px; padding: 8px 10px;">
             </div>
             <div id="mass-streaming-group" style="display: none;">
-              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Yayın URL (Twitch/YouTube)</label>
+              <label class="form-label" style="font-size: 11px; margin-bottom: 4px;">Yayın URL (Twitch/YouTube)</label>
               <input type="text" name="streamingUrl" placeholder="https://twitch.tv/..." class="form-input" style="border-radius: 6px; font-size: 12px; padding: 8px 10px;">
             </div>
             <div>
-              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">İşlem Sıralaması (Bot ID'leri)</label>
-              <input type="text" name="order" value="verification,logger,moderation,sync,management" placeholder="Örn: verification,logger,..." class="form-input" required style="border-radius: 8px; font-size: 11px; font-family: monospace;">
+              <label class="form-label" style="font-size: 11px; margin-bottom: 4px;">İşlem Sıralaması (Bot ID'leri)</label>
+              <input type="text" name="order" value="verification,logger,moderation,sync,management" placeholder="Örn: verification,logger,..." class="form-input" required style="border-radius: 8px; font-size: 11px; font-family: var(--font-mono);">
             </div>
             <button type="submit" class="btn btn-secondary" style="font-size: 12px; font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
               <i class="fa-solid fa-arrows-spin"></i> Sırayla Durumları Güncelle
@@ -82,23 +82,23 @@
               <i class="fa-solid fa-user-gear text-primary" style="color: var(--primary);"></i> Toplu Profil Ayarla
             </h4>
             <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 8px 12px; border-radius: 8px; margin-bottom: 12px;">
-              <p style="font-size: 10px; color: var(--danger); margin: 0; line-height: 1.4; display: flex; align-items: center; gap: 6px;">
+              <p style="font-size: 11px; color: var(--danger); margin: 0; line-height: 1.4; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-circle-exclamation"></i> Discord ad ve profil resmi değişikliklerini saatte en fazla 2 kez yapmanıza izin verir. Lütfen dikkatli kullanın!
               </p>
             </div>
           </div>
           <form onsubmit="executeMassProfile(event)" style="margin: 0; display: flex; flex-direction: column; gap: 10px;">
             <div>
-              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Ortak İsim Başlangıcı (Ön Ek)</label>
+              <label class="form-label" style="font-size: 11px; margin-bottom: 4px;">Ortak İsim Başlangıcı (Ön Ek)</label>
               <input type="text" name="baseName" placeholder="Örn: Shield (Shield Loglama vb. olur)" class="form-input" style="border-radius: 6px; font-size: 12px; padding: 8px 10px;">
             </div>
             <div>
-              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">Yeni Profil Resmi URL'si</label>
+              <label class="form-label" style="font-size: 11px; margin-bottom: 4px;">Yeni Profil Resmi URL'si</label>
               <input type="text" name="avatarUrl" placeholder="Profil Resmi URL'si" class="form-input" style="border-radius: 6px; font-size: 12px; padding: 8px 10px;">
             </div>
             <div>
-              <label class="form-label" style="font-size: 10px; margin-bottom: 4px;">İşlem Sıralaması (Bot ID'leri)</label>
-              <input type="text" name="order" value="verification,logger,moderation,sync,management" placeholder="Örn: verification,logger,..." class="form-input" required style="border-radius: 8px; font-size: 11px; font-family: monospace;">
+              <label class="form-label" style="font-size: 11px; margin-bottom: 4px;">İşlem Sıralaması (Bot ID'leri)</label>
+              <input type="text" name="order" value="verification,logger,moderation,sync,management" placeholder="Örn: verification,logger,..." class="form-input" required style="border-radius: 8px; font-size: 11px; font-family: var(--font-mono);">
             </div>
             <button type="submit" class="btn btn-secondary" style="font-size: 12px; font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
               <i class="fa-solid fa-id-card"></i> Sırayla Profilleri Güncelle
@@ -111,7 +111,7 @@
 
     <div style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 40px;">
       <% bots.forEach(bot => { %>
-        <div class="content-panel bot-card" style="padding: 24px; background: rgba(8, 10, 15, 0.5); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06);" id="card-<%= bot.botId %>">
+        <div class="content-panel bot-card" style="padding: 24px; background: rgba(8, 10, 15, 0.5);  border: 1px solid rgba(255,255,255,0.06);" id="card-<%= bot.botId %>">
           <form id="form-<%= bot.botId %>" oninput="debounceAutoSave('<%= bot.botId %>')" onchange="autoSaveBot('<%= bot.botId %>')">
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
@@ -123,12 +123,12 @@
                   <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
                     <span id="name-display-<%= bot.botId %>"><%= bot.name %></span>
                     <% if (bot.isEnabled) { %>
-                      <span class="bot-inline-status online" id="inline-status-<%= bot.botId %>" style="background: rgba(16, 185, 129, 0.1); color: var(--success); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Aktif</span>
+                      <span class="bot-inline-status online" id="inline-status-<%= bot.botId %>" style="background: rgba(16, 185, 129, 0.1); color: var(--success); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Aktif</span>
                     <% } else { %>
-                      <span class="bot-inline-status offline" id="inline-status-<%= bot.botId %>" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Pasif</span>
+                      <span class="bot-inline-status offline" id="inline-status-<%= bot.botId %>" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Pasif</span>
                     <% } %>
                   </h3>
-                  <span style="font-size: 10px; color: var(--text-muted); font-family: monospace;">ID: <%= bot.botId %></span>
+                  <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">ID: <%= bot.botId %></span>
                 </div>
               </div>
               

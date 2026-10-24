@@ -38,13 +38,13 @@
     .punish-checkbox-custom:checked::after {
       content: "\f00c";
       font-family: "Font Awesome 6 Free";
-      font-weight: 900;
+      font-weight: 600;
       color: #fff;
-      font-size: 10px;
+      font-size: 11px;
     }
     .punish-checkbox-custom:focus {
       outline: none;
-      box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
+      
     }
 
     .sicil-timeline {
@@ -75,19 +75,19 @@
     }
     .sicil-timeline-item.warning .sicil-timeline-badge {
       background: #ffb703;
-      box-shadow: 0 0 8px rgba(255, 183, 3, 0.4);
+      
     }
     .sicil-timeline-item.wl .sicil-timeline-badge {
       background: #219ebc;
-      box-shadow: 0 0 8px rgba(33, 157, 188, 0.4);
+      
     }
     .sicil-timeline-item.perma .sicil-timeline-badge {
       background: var(--danger);
-      box-shadow: 0 0 8px rgba(235, 94, 40, 0.4);
+      
     }
     .sicil-timeline-item.pardon .sicil-timeline-badge {
       background: var(--success);
-      box-shadow: 0 0 8px rgba(46, 196, 182, 0.4);
+      
     }
     
     .sicil-card {
@@ -116,7 +116,7 @@
     }
     .warning-step.active {
       background: #ffb703;
-      box-shadow: 0 0 6px rgba(255, 183, 3, 0.5);
+      
     }
   </style>
 
@@ -129,14 +129,14 @@
       
       <!-- Left side: Apply Punishment -->
       <div class="content-panel" style="grid-column: span 8; padding: 24px;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: var(--danger); display: flex; align-items: center; gap: 8px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px;  color: var(--danger); display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-triangle-exclamation"></i> Ceza Uygula
         </h3>
         
         <form id="punishment-form" onsubmit="submitPunishmentForm(event)" style="display: flex; flex-direction: column; gap: 20px;">
           <div class="form-group">
             <label class="form-label">Kullanıcı Discord ID'leri (Toplu giriş için virgülle veya yeni satırla ayırın)</label>
-            <textarea id="punish-discordIds" class="form-input" style="height: 100px; resize: vertical; font-family: monospace;" placeholder="Örn: 444578261494661122, 1243266940873740381" required></textarea>
+            <textarea id="punish-discordIds" class="form-input" style="height: 100px; resize: vertical; font-family: var(--font-mono);" placeholder="Örn: 444578261494661122, 1243266940873740381" required></textarea>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
@@ -371,7 +371,7 @@
 
       <!-- Right side: Calculation summary -->
       <div class="content-panel" style="grid-column: span 4; padding: 24px; display: flex; flex-direction: column; gap: 20px;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 0px; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 0px;  color: var(--primary); display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-calculator"></i> Ceza Özeti (Hesaplayıcı)
         </h3>
         
@@ -407,7 +407,7 @@
 
     <!-- Quick Punishment Clear Section -->
     <div class="content-panel" style="padding: 24px; margin-bottom: 30px;">
-      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; color: var(--success); display: flex; align-items: center; gap: 8px;">
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-top: 0; margin-bottom: 12px;  color: var(--success); display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-hands-holding-child"></i> Hızlı Ceza Kaldırma & Affetme Sistemi
       </h3>
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
@@ -416,7 +416,7 @@
 
       <form id="quick-clear-form" onsubmit="submitQuickClearForm(event)" style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 280px;">
-          <textarea id="quick-clear-discordIds" class="form-input" style="height: 44px; min-height: 44px; resize: vertical; font-family: monospace; font-size: 12px; padding: 10px 14px;" placeholder="Discord ID (Toplu işlem için virgül veya yeni satır ile ayırın...)" required></textarea>
+          <textarea id="quick-clear-discordIds" class="form-input" style="height: 44px; min-height: 44px; resize: vertical; font-family: var(--font-mono); font-size: 12px; padding: 10px 14px;" placeholder="Discord ID (Toplu işlem için virgül veya yeni satır ile ayırın...)" required></textarea>
         </div>
         <button type="submit" id="btn-quick-clear-submit" class="btn" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; font-size: 13px; height: 44px; padding: 0 24px; border-radius: 8px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-style: solid; white-space: nowrap;">
           <i class="fa-solid fa-circle-check"></i> Cezayı Kaldır & Whitelist Ver
@@ -429,7 +429,7 @@
       
       <!-- Lookup Sicil Timeline (Premium Design) -->
       <div class="content-panel" style="grid-column: span 7; padding: 24px; min-height: 480px; display: flex; flex-direction: column;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px;  color: var(--primary); display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-address-card"></i> Kullanıcı Sicil Sorgulama & Detaylar
         </h3>
         
@@ -450,7 +450,7 @@
 
       <!-- Recent Punishments list -->
       <div class="content-panel" style="grid-column: span 5; padding: 24px; min-height: 480px;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 20px;  color: var(--primary); display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-clock-rotate-left"></i> Son Verilen Cezalar
         </h3>
         
@@ -471,18 +471,18 @@
                   <tr>
                     <td>
                       <div style="font-weight: 600;"><%= r.username %></div>
-                      <div style="font-size: 10px; color: var(--text-muted); font-family: monospace;"><%= r.discordId %></div>
+                      <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);"><%= r.discordId %></div>
                     </td>
                     <td style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= r.punishments.join(", ") %>">
                       <%= r.punishments.join(", ") %>
                     </td>
                     <td>
                       <% if (r.isPerma) { %>
-                        <span class="status-badge offline" style="font-size: 10px;">Perma</span>
+                        <span class="status-badge offline" style="font-size: 11px;">Perma</span>
                       <% } else if (r.wlDaysAdded > 0) { %>
-                        <span class="status-badge online" style="font-size: 10px; background: rgba(33, 157, 188, 0.15); color: #219ebc; border: 1px solid rgba(33, 157, 188, 0.3);"><%= r.wlDaysAdded %>G WL</span>
+                        <span class="status-badge online" style="font-size: 11px; background: rgba(33, 157, 188, 0.15); color: #219ebc; border: 1px solid rgba(33, 157, 188, 0.3);"><%= r.wlDaysAdded %>G WL</span>
                       <% } else { %>
-                        <span class="status-badge online" style="font-size: 10px; background: rgba(255, 183, 3, 0.15); color: #ffb703; border: 1px solid rgba(255, 183, 3, 0.3);"><%= r.warningsAdded %>X Uyarı</span>
+                        <span class="status-badge online" style="font-size: 11px; background: rgba(255, 183, 3, 0.15); color: #ffb703; border: 1px solid rgba(255, 183, 3, 0.3);"><%= r.warningsAdded %>X Uyarı</span>
                       <% } %>
                     </td>
                     <td><%= r.executorUsername %></td>
@@ -660,7 +660,7 @@
             itemsList.forEach(item => {
               const itemDiv = document.createElement("div");
               itemDiv.style = "display: flex; justify-content: space-between; gap: 8px;";
-              itemDiv.innerHTML = `<span>• ${item.name}</span><strong style="color: #fff;">${item.weight}</strong>`;
+              itemDiv.innerHTML = `<span>• ${escapeHtml(item.name)}</span><strong style="color: #fff;">${escapeHtml(item.weight)}</strong>`;
               selectedItemsContainer.appendChild(itemDiv);
             });
           } else {
@@ -787,11 +787,11 @@
             isPermaBanned = data.user.isPermaBanned || false;
           }
 
-          let wlStatusHtml = `<span class="status-badge online" style="background: rgba(46,196,182,0.15); color: var(--success); border: 1px solid rgba(46,196,182,0.3); font-size: 10px;">Temiz</span>`;
+          let wlStatusHtml = `<span class="status-badge online" style="background: rgba(46,196,182,0.15); color: var(--success); border: 1px solid rgba(46,196,182,0.3); font-size: 11px;">Temiz</span>`;
           if (isPermaBanned) {
-            wlStatusHtml = `<span class="status-badge offline" style="font-size: 10px;">Kalıcı Yasaklı (Perma)</span>`;
+            wlStatusHtml = `<span class="status-badge offline" style="font-size: 11px;">Kalıcı Yasaklı (Perma)</span>`;
           } else if (wlCezaBitis && wlCezaBitis > new Date()) {
-            wlStatusHtml = `<span class="status-badge offline" style="font-size: 10px; background: rgba(235,94,40,0.15); color: var(--danger); border: 1px solid rgba(235,94,40,0.3);">Yasaklı (Bitiş: ${wlCezaBitis.toLocaleString("tr-TR")})</span>`;
+            wlStatusHtml = `<span class="status-badge offline" style="font-size: 11px; background: rgba(235,94,40,0.15); color: var(--danger); border: 1px solid rgba(235,94,40,0.3);">Yasaklı (Bitiş: ${wlCezaBitis.toLocaleString("tr-TR")})</span>`;
           }
 
           let warningStepsHtml = "";
@@ -806,7 +806,7 @@
                   <img src="${avatarUrl}" alt="avatar" style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--border-color);">
                   <div>
                     <div style="font-weight: 700; color: #fff; font-size: 13px;">${username}</div>
-                    <div style="font-size: 10px; color: var(--text-muted); font-family: monospace;">ID: ${searchId}</div>
+                    <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">ID: ${searchId}</div>
                   </div>
                 </div>
                 
@@ -846,23 +846,23 @@
             
             if (h.punishments && h.punishments.join(", ").includes("Affedildi")) {
               typeClass = "pardon";
-              actionBadgeText = `<span style="font-size: 10px; background: rgba(46,196,182,0.15); color: var(--success); border: 1px solid rgba(46,196,182,0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">Affedildi</span>`;
+              actionBadgeText = `<span style="font-size: 11px; background: rgba(46,196,182,0.15); color: var(--success); border: 1px solid rgba(46,196,182,0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">Affedildi</span>`;
             } else if (h.isPerma) {
               typeClass = "perma";
-              actionBadgeText = `<span style="font-size: 10px; background: rgba(235,94,40,0.15); color: var(--danger); border: 1px solid rgba(235,94,40,0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">Perma</span>`;
+              actionBadgeText = `<span style="font-size: 11px; background: rgba(235,94,40,0.15); color: var(--danger); border: 1px solid rgba(235,94,40,0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">Perma</span>`;
             } else if (h.wlDaysAdded > 0) {
               typeClass = "wl";
-              actionBadgeText = `<span style="font-size: 10px; background: rgba(33, 157, 188, 0.15); color: #219ebc; border: 1px solid rgba(33, 157, 188, 0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">+${h.wlDaysAdded}G WL</span>`;
+              actionBadgeText = `<span style="font-size: 11px; background: rgba(33, 157, 188, 0.15); color: #219ebc; border: 1px solid rgba(33, 157, 188, 0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">+${h.wlDaysAdded}G WL</span>`;
             } else if (h.warningsAdded !== 0) {
               typeClass = "warning";
-              actionBadgeText = `<span style="font-size: 10px; background: rgba(255, 183, 3, 0.15); color: #ffb703; border: 1px solid rgba(255, 183, 3, 0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">${h.warningsAdded > 0 ? "+" : ""}${h.warningsAdded}X Uyarı</span>`;
+              actionBadgeText = `<span style="font-size: 11px; background: rgba(255, 183, 3, 0.15); color: #ffb703; border: 1px solid rgba(255, 183, 3, 0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px;">${h.warningsAdded > 0 ? "+" : ""}${h.warningsAdded}X Uyarı</span>`;
             }
 
             timelineHtml += `
               <div class="sicil-timeline-item ${typeClass}">
                 <div class="sicil-timeline-badge"></div>
                 <div class="sicil-card" style="padding: 12px; display: flex; flex-direction: column; gap: 6px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-muted); flex-wrap: wrap; gap: 6px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted); flex-wrap: wrap; gap: 6px;">
                     <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i>${dateStr}</span>
                     <span><i class="fa-solid fa-user-shield" style="margin-right: 4px;"></i>${h.executorUsername}</span>
                   </div>

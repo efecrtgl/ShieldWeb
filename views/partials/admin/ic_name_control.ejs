@@ -16,7 +16,7 @@
         <input type="text" id="discord-name-input" class="form-input" placeholder="Tüm çakışmaları görmek için boş bırakın..." style="background: rgba(13, 16, 26, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; width: 100%; color: white; margin-bottom: 12px;">
       </div>
 
-      <button onclick="scanDuplicateNames()" class="btn" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; width: 100%;">
+      <button onclick="scanDuplicateNames()" class="btn" style="background:#fff;color:#000; width: 100%;">
         <i class="fa-solid fa-magnifying-glass"></i> İsimleri Tarat
       </button>
       <div id="duplicate-names-results" style="margin-top: 24px; display: none;">
@@ -29,7 +29,7 @@
 
     <!-- Gemini AI Scan -->
     <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 24px;">
-      <h4 style="color: #fff; margin-bottom: 12px;"><i class="fa-solid fa-robot" style="color: #a855f7;"></i> Yapay Zeka (Gemini) Ünlü Kontrolü</h4>
+      <h4 style="color: #fff; margin-bottom: 12px;"><i class="fa-solid fa-robot" style="color: var(--accent);"></i> Yapay Zeka (Gemini) Ünlü Kontrolü</h4>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
         Yazılan İC ismin dünyaca veya yerel olarak ünlü birine ait olup olmadığını kontrol eder. Uygun değilse belirtir.
       </p>
@@ -39,7 +39,7 @@
         <input type="text" id="ai-name-input" class="form-input" placeholder="Örn: Ryan Gosling, John Doe..." style="background: rgba(13, 16, 26, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; width: 100%; color: white;">
       </div>
       
-      <button onclick="checkNameWithAI()" class="btn" style="background: linear-gradient(135deg, #a855f7, #7e22ce); color: white; width: 100%;">
+      <button onclick="checkNameWithAI()" class="btn" style="background: var(--accent); color: white; width: 100%;">
         <i class="fa-solid fa-wand-magic-sparkles"></i> Yapay Zeka ile Kontrol Et
       </button>
 
@@ -90,7 +90,7 @@ async function scanDuplicateNames() {
                 <div style="font-weight: 600; font-size: 18px; color: #f87171; display: flex; align-items: center; gap: 8px;">
                   <i class="fa-solid fa-triangle-exclamation"></i> ${dup.name}
                 </div>
-                <span style="font-size: 13px; font-weight: bold; background: #ef4444; color: white; padding: 4px 10px; border-radius: 8px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);">
+                <span style="font-size: 13px; font-weight: bold; background: #ef4444; color: white; padding: 4px 10px; border-radius: 8px; ">
                   ${dup.count} Kişi
                 </span>
               </div>
@@ -148,7 +148,7 @@ async function checkNameWithAI() {
             <div style="background: rgba(239, 68, 68, 0.2); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
               <i class="fa-solid fa-xmark" style="color: #ef4444; font-size: 20px;"></i>
             </div>
-            <div style="font-weight: 700; font-size: 18px; color: #f87171; letter-spacing: 0.5px;">KULLANILAMAZ!</div>
+            <div style="font-weight: 700; font-size: 18px; color: #f87171; ">KULLANILAMAZ!</div>
           </div>
           <div style="font-size: 14.5px; line-height: 1.6; color: #e2e8f0; padding-left: 4px;">
             ${data.reason}
@@ -163,7 +163,7 @@ async function checkNameWithAI() {
             <div style="background: rgba(16, 185, 129, 0.2); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
               <i class="fa-solid fa-check" style="color: #10b981; font-size: 20px;"></i>
             </div>
-            <div style="font-weight: 700; font-size: 18px; color: #34d399; letter-spacing: 0.5px;">UYGUNDUR!</div>
+            <div style="font-weight: 700; font-size: 18px; color: #34d399; ">UYGUNDUR!</div>
           </div>
           <div style="font-size: 14.5px; line-height: 1.6; color: #e2e8f0; padding-left: 4px;">
             ${data.reason}
@@ -185,7 +185,7 @@ async function checkNameWithAI() {
           <div style="background: rgba(245, 158, 11, 0.2); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
             <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b; font-size: 20px;"></i>
           </div>
-          <div style="font-weight: 700; font-size: 18px; color: #fbbf24; letter-spacing: 0.5px;">SİSTEM UYARISI</div>
+          <div style="font-weight: 700; font-size: 18px; color: #fbbf24; ">SİSTEM UYARISI</div>
         </div>
         <div style="font-size: 13.5px; line-height: 1.6; color: #e2e8f0; padding-left: 4px; word-break: break-word;">
           ${errorMsg}
@@ -203,7 +203,7 @@ async function checkNameWithAI() {
         <div style="background: rgba(239, 68, 68, 0.2); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
           <i class="fa-solid fa-bug" style="color: #ef4444; font-size: 20px;"></i>
         </div>
-        <div style="font-weight: 700; font-size: 18px; color: #f87171; letter-spacing: 0.5px;">BEKLENMEYEN HATA</div>
+        <div style="font-weight: 700; font-size: 18px; color: #f87171; ">BEKLENMEYEN HATA</div>
       </div>
       <div style="font-size: 13.5px; line-height: 1.6; color: #e2e8f0; padding-left: 4px;">
         Sistemle iletişim kurulamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.

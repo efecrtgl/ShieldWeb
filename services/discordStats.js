@@ -26,14 +26,16 @@ function askAnyBotForStats() {
 
 async function refresh() {
   try {
+    // totalUsers means different things per source: Discord guild members (bot) or panel user records (database).
     let stats = await askAnyBotForStats();
+    if (stats) stats = { ...stats, source: "discord", readAt: new Date().toISOString() };
     if (!stats) {
       const [totalUsers, staffCount, whitelistCount] = await Promise.all([
         DiscordUser.countDocuments({}),
         DiscordUser.countDocuments({ rankId: { $ne: null } }),
         DiscordUser.countDocuments({ isWhitelist: true })
       ]);
-      stats = { totalUsers, staffCount, whitelistCount };
+      stats = { totalUsers, staffCount, whitelistCount, source: "database", readAt: new Date().toISOString() };
     }
     cachedStats = stats;
     lastFetchTime = Date.now();

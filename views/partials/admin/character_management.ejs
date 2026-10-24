@@ -32,8 +32,8 @@
     </div>
   </div>
   <!-- Karakter Düzenleme Modalı -->
-  <div id="char-edit-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
-    <div style="background: var(--bg-panel, #12141a); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)); border-radius: 16px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85); width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; padding: 28px; position: relative; margin: auto; box-sizing: border-box;">
+  <div id="char-edit-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(0, 0, 0, 0.75);   align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
+    <div style="background: var(--bg-panel, #12141a); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)); border-radius: 16px;  width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; padding: 28px; position: relative; margin: auto; box-sizing: border-box;">
       <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color);">
         <div style="display: flex; align-items: center; gap: 10px;">
           <div style="width: 36px; height: 36px; background: rgba(0,113,227,0.15); border: 1px solid rgba(0,113,227,0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
@@ -41,7 +41,7 @@
           </div>
           <div>
             <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #fff;">Karakter Düzenleme</h3>
-            <span id="char-edit-citizenid-badge" style="font-size: 11px; color: var(--primary); background: rgba(0,113,227,0.15); border: 1px solid rgba(0,113,227,0.3); border-radius: 6px; padding: 2px 8px; font-family: monospace; display: inline-block; margin-top: 2px;"></span>
+            <span id="char-edit-citizenid-badge" style="font-size: 11px; color: var(--primary); background: rgba(0,113,227,0.15); border: 1px solid rgba(0,113,227,0.3); border-radius: 6px; padding: 2px 8px; font-family: var(--font-mono); display: inline-block; margin-top: 2px;"></span>
           </div>
         </div>
         <button type="button" onclick="closeCharEditModal()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
@@ -55,7 +55,7 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
           <!-- Kişisel Bilgiler -->
           <div style="background: rgba(255,255,255,0.015); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;">
-            <h4 style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 14px 0; display: flex; align-items: center; gap: 6px;">
+            <h4 style="font-size: 12px; font-weight: 700; color: var(--text-muted);   margin: 0 0 14px 0; display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-id-card" style="color: var(--primary);"></i> Kişisel Bilgiler
             </h4>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -77,7 +77,7 @@
           <!-- Para ve Meslek -->
           <div style="background: rgba(255,255,255,0.015); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 16px;">
             <div>
-              <h4 style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;">
+              <h4 style="font-size: 12px; font-weight: 700; color: var(--text-muted);   margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-dollar-sign" style="color: #10b981;"></i> Para Bilgileri
               </h4>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -93,7 +93,7 @@
             </div>
 
             <div>
-              <h4 style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;">
+              <h4 style="font-size: 12px; font-weight: 700; color: var(--text-muted);   margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-briefcase" style="color: #f59e0b;"></i> Meslek Bilgileri
               </h4>
               <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
@@ -118,7 +118,7 @@
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px;">
           <div style="background: rgba(255,255,255,0.015); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <h4 style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0; display: flex; align-items: center; gap: 6px;">
+              <h4 style="font-size: 12px; font-weight: 700; color: var(--text-muted);   margin: 0; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-box" style="color: #8b5cf6;"></i> Karakter Envanteri
               </h4>
               <div style="display: flex; gap: 8px; align-items: center;">
@@ -134,7 +134,7 @@
           </div>
 
           <div style="background: rgba(255,255,255,0.015); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; justify-content: center;">
-            <h4 style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;">
+            <h4 style="font-size: 12px; font-weight: 700; color: var(--text-muted);   margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-clock" style="color: #06b6d4;"></i> Toplam Oyun Süresi
             </h4>
             <div style="background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.2); border-radius: 8px; padding: 14px; text-align: center;">
@@ -180,15 +180,15 @@
 
 </section>
 
-<div id="char-delete-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:20px;">
-  <div style="background:var(--panel-bg); border:1px solid rgba(239,68,68,0.3); border-radius:16px; width:100%; max-width:440px; box-shadow:0 24px 64px rgba(0,0,0,0.8);">
+<div id="char-delete-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.75);  align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--panel-bg); border:1px solid rgba(239,68,68,0.3); border-radius:16px; width:100%; max-width:440px; ">
     <div style="padding:24px;">
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
         <div style="width:44px; height:44px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:12px; display:flex; align-items:center; justify-content:center;">
           <i class="fa-solid fa-trash-can" style="color:var(--danger); font-size:18px;"></i>
         </div>
         <div>
-          <h3 style="margin:0; font-size:15px; font-weight:700; color:#fff;">Karakteri Sil <span style="font-size:10px; background:rgba(239,68,68,0.2); color:#f87171; border:1px solid rgba(239,68,68,0.4); padding:2px 8px; border-radius:6px; margin-left:6px; font-weight:700;"><i class="fa-solid fa-lock"></i> SQL Kilitli</span></h3>
+          <h3 style="margin:0; font-size:15px; font-weight:700; color:#fff;">Karakteri Sil <span style="font-size: 11px; background:rgba(239,68,68,0.2); color:#f87171; border:1px solid rgba(239,68,68,0.4); padding:2px 8px; border-radius:6px; margin-left:6px; font-weight:700;"><i class="fa-solid fa-lock"></i> SQL Kilitli</span></h3>
           <p style="margin:4px 0 0; font-size:12px; color:var(--text-muted);">Bu işlem geri alınamaz.</p>
         </div>
       </div>
@@ -297,57 +297,41 @@
       }
 
       tbody.innerHTML = '';
+      var dash = '<span class="dash" title="Bilinmiyor">—</span>';
+      var money = function (v) { return v === null || v === undefined ? dash : '$' + Number(v).toLocaleString('tr-TR'); };
       data.characters.forEach(function(char) {
-        var fullName = ((char.firstname || '') + ' ' + (char.lastname || '')).trim() || 'Isimsiz';
-        var cash = (char.money && char.money.cash ? char.money.cash : 0).toLocaleString('tr-TR');
-        var bank = (char.money && char.money.bank ? char.money.bank : 0).toLocaleString('tr-TR');
-        var jobLabel = (char.job && char.job.label) ? char.job.label : ((char.job && char.job.name) ? char.job.name : 'Civilian');
-        var jobGrade = (char.job && char.job.grade) ? char.job.grade : '';
-        var pt = char.playtime || 0;
-        var playtimeH = pt ? (Math.floor(pt / 60) + 's ' + (pt % 60) + 'dk') : '--';
-        var isOnline = char.isOnline;
-        var onlineBadge = isOnline
-          ? '<span class="status-badge online" style="font-size:11px;">&#9679; Online</span>'
-          : '<span class="status-badge offline" style="font-size:11px;">&#9675; Offline</span>';
-        var discordDisplay = char.discordId ? char.discordId.replace('discord:', '') : '--';
-        var safeId = char.citizenid ? char.citizenid.replace(/'/g, "\\'") : '';
-        var safeName = fullName.replace(/'/g, "\\'");
-        var safeMongoId = char._id ? char._id.toString().replace(/'/g, "\\'") : '';
+        var fullName = ((char.firstname || '') + ' ' + (char.lastname || '')).trim();
+        var job = char.job && (char.job.label || char.job.name) ? escapeHtml(char.job.label || char.job.name) : dash;
+        var jobGrade = char.job && char.job.grade ? escapeHtml(char.job.grade) : '';
+        var pt = Number(char.playtime) || 0;
+        var playtime = pt ? (Math.floor(pt / 60) + ' sa ' + (pt % 60) + ' dk') : dash;
+        var status = char.isOnline ? '<span class="pill pill-positive">Oyunda</span>' : '<span class="pill">Çevrimdışı</span>';
+        var discordDisplay = char.discordId ? escapeHtml(String(char.discordId).replace('discord:', '')) : dash;
 
         var editBtn = charMgmtCanEdit
-          ? '<button onclick="openCharEditModal(\'' + safeId + '\')" style="background:rgba(0,113,227,0.1);color:var(--primary);border:1px solid rgba(0,113,227,0.2);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" title="Karakteri Düzenle"><i class="fa-solid fa-pen-to-square"></i> Düzenle</button>'
-          : '<button disabled style="background:rgba(255,255,255,0.02);color:var(--text-muted);border:1px solid var(--border-color);padding:5px 10px;border-radius:7px;font-size:11px;cursor:not-allowed;opacity:0.5;display:inline-flex;align-items:center;gap:4px;"><i class="fa-solid fa-lock"></i> Düzenle</button>';
-
+          ? '<button type="button" class="btn" style="height:30px;padding:0 12px;" onclick="openCharEditModal(' + jsArg(char.citizenid) + ')">Düzenle</button>'
+          : '<button type="button" class="btn" style="height:30px;padding:0 12px;" disabled title="Düzenleme yetkiniz yok">Düzenle</button>';
         var deleteBtn = charMgmtCanDelete
-          ? '<button onclick="openCharDeleteModal(\'' + safeId + '\',\'' + safeMongoId + '\',\'' + safeName + '\')" style="background:rgba(239,68,68,0.1);color:var(--danger);border:1px solid rgba(239,68,68,0.2);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" title="Karakteri Sil"><i class="fa-solid fa-trash-can"></i> Sil</button>'
-          : '<button disabled style="background:rgba(255,255,255,0.02);color:var(--text-muted);border:1px solid var(--border-color);padding:5px 10px;border-radius:7px;font-size:11px;cursor:not-allowed;opacity:0.5;display:inline-flex;align-items:center;gap:4px;"><i class="fa-solid fa-lock"></i> Sil</button>';
+          ? '<button type="button" class="btn btn-danger" style="height:30px;padding:0 12px;" onclick="openCharDeleteModal(' + jsArg(char.citizenid) + ',' + jsArg(char._id) + ',' + jsArg(fullName) + ')">Sil</button>'
+          : '';
 
         var tr = document.createElement('tr');
         tr.innerHTML =
-          '<td>' +
-            '<div style="display:flex;align-items:center;gap:10px;">' +
-              '<div style="width:36px;height:36px;background:linear-gradient(135deg,rgba(0,113,227,0.15),rgba(139,92,246,0.15));border:1px solid rgba(255,255,255,0.08);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                '<i class="fa-solid fa-user" style="color:var(--primary);font-size:14px;"></i>' +
-              '</div>' +
-              '<div>' +
-                '<div style="font-size:13px;font-weight:600;color:#fff;">' + fullName + '</div>' +
-                '<div style="font-size:11px;color:var(--text-muted);">CID: ' + (char.cid || 1) + '</div>' +
-              '</div>' +
-            '</div>' +
-          '</td>' +
-          '<td><code style="font-size:11px;color:#a5b4fc;background:rgba(165,180,252,0.08);padding:2px 7px;border-radius:5px;">' + (char.citizenid || '--') + '</code></td>' +
-          '<td><span style="font-size:11px;color:var(--text-muted);font-family:monospace;">' + discordDisplay + '</span></td>' +
-          '<td><div style="font-size:12px;font-weight:600;color:#fff;">' + jobLabel + '</div>' + (jobGrade ? '<div style="font-size:11px;color:var(--text-muted);">' + jobGrade + '</div>' : '') + '</td>' +
-          '<td><div style="font-size:12px;color:#10b981;font-weight:600;">$' + cash + '</div><div style="font-size:11px;color:var(--text-muted);">Banka: $' + bank + '</div></td>' +
-          '<td><span style="font-size:12px;color:#06b6d4;">' + playtimeH + '</span></td>' +
-          '<td>' + onlineBadge + '</td>' +
-          '<td><div style="display:flex;gap:6px;flex-wrap:wrap;">' + editBtn + deleteBtn + '</div></td>';
+          '<td><div style="font-weight:500;">' + (fullName ? escapeHtml(fullName) : dash) + '</div>' +
+            '<div style="font-size:12px;color:var(--faint);">CID ' + (char.cid !== null && char.cid !== undefined ? escapeHtml(char.cid) : '—') + '</div></td>' +
+          '<td style="font-family:var(--font-mono);font-size:12px;">' + escapeHtml(char.citizenid || '') + '</td>' +
+          '<td class="sensitive-info" style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">' + discordDisplay + '</td>' +
+          '<td><div>' + job + '</div>' + (jobGrade ? '<div style="font-size:12px;color:var(--faint);">' + jobGrade + '</div>' : '') + '</td>' +
+          '<td class="num"><div>' + money(char.money && char.money.cash) + '</div><div style="font-size:12px;color:var(--faint);">Banka ' + money(char.money && char.money.bank) + '</div></td>' +
+          '<td class="num">' + playtime + '</td>' +
+          '<td>' + status + '</td>' +
+          '<td style="text-align:right;white-space:nowrap;"><div style="display:inline-flex;gap:6px;">' + editBtn + deleteBtn + '</div></td>';
         tbody.appendChild(tr);
       });
 
       charMgmtRenderPagination(charMgmtTotalPages);
     } catch (err) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--danger);padding:20px;">Hata: ' + err.message + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8"><div class="state-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><div><strong>Karakterler yüklenemedi.</strong> ' + escapeHtml(err.message) + '</div></div></td></tr>';
     }
   };
 
@@ -424,7 +408,7 @@
         if (imgFile.startsWith('.png')) imgFile = (name || 'default') + '.png';
         var imgUrl = 'https://raw.githubusercontent.com/overextended/ox_inventory/main/web/images/' + encodeURIComponent(imgFile);
 
-        var slotDisplay = slot !== '' ? '<span style="font-size:10px; color:var(--text-muted); margin-left:4px;">(Slot ' + slot + ')</span>' : '';
+        var slotDisplay = slot !== '' ? '<span style="font-size: 11px; color:var(--text-muted); margin-left:4px;">(Slot ' + slot + ')</span>' : '';
         var safeLabel = label.replace(/'/g, "\\'");
         var safeName = name.replace(/'/g, "\\'");
 
@@ -433,11 +417,11 @@
             '<img src="' + imgUrl + '" onerror="this.onerror=null; this.src=\'https://cdn-icons-png.flaticon.com/512/679/679821.png\';" style="width:28px; height:28px; object-fit:contain; background:rgba(0,0,0,0.3); border-radius:6px; padding:2px; border:1px solid rgba(255,255,255,0.08);" />' +
             '<div>' +
               '<span style="color:#fff; font-weight:600; font-size:12px;">' + label + '</span>' + slotDisplay +
-              '<div style="font-size:10px; color:var(--text-muted); font-family:monospace;">' + name + '</div>' +
+              '<div style="font-size: 11px; color:var(--text-muted); font-family: var(--font-mono);">' + name + '</div>' +
             '</div>' +
           '</div>' +
           '<div style="display:flex; align-items:center; gap:8px;">' +
-            '<span style="color:#60a5fa; font-family:monospace; background:rgba(59,130,246,0.15); padding:2px 6px; border-radius:4px; font-weight:700; font-size:11px;">x' + count + '</span>' +
+            '<span style="color:#60a5fa; font-family: var(--font-mono); background:rgba(59,130,246,0.15); padding:2px 6px; border-radius:4px; font-weight:700; font-size:11px;">x' + count + '</span>' +
             (charMgmtCanDeleteItem
               ? '<button type="button" onclick="deleteCharInventoryItem(\'' + citizenid + '\', \'' + safeName + '\', ' + (slot !== '' ? slot : 'null') + ', \'' + safeLabel + '\')" title="Eşyayı Sil" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#f87171; border-radius:6px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:11px;"><i class="fa-solid fa-trash"></i></button>'
               : '<button type="button" disabled title="Eşya Silme Yetkiniz Yok" style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); color:var(--text-muted); border-radius:6px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; cursor:not-allowed; opacity:0.4; font-size:11px;"><i class="fa-solid fa-lock"></i></button>'
@@ -494,7 +478,7 @@
       });
       var data = await res.json();
       if (data.success) {
-        if (typeof showToast === 'function') showToast(data.message || 'Eşya silindi.', 'success');
+        toastForResult(data);
         renderCharInventoryList(data.inventory || [], citizenid);
         if (typeof refreshActivePlayerDetails === 'function') {
           refreshActivePlayerDetails();
@@ -519,7 +503,7 @@
       });
       var data = await res.json();
       if (data.success) {
-        if (typeof showToast === 'function') showToast(data.message || 'Tüm envanter sıfırlandı.', 'success');
+        toastForResult(data);
         renderCharInventoryList([], citizenid);
         if (typeof refreshActivePlayerDetails === 'function') {
           refreshActivePlayerDetails();
@@ -564,7 +548,7 @@
       });
       var data = await res.json();
       if (data.success) {
-        if (typeof showToast === 'function') showToast(data.message || 'Karakter guncellendi.', 'success');
+        toastForResult(data);
         if (typeof charMgmtFetch === 'function') charMgmtFetch(typeof charMgmtCurrentPage !== 'undefined' ? charMgmtCurrentPage : 1);
         if (typeof refreshActivePlayerDetails === 'function') refreshActivePlayerDetails();
       } else {
@@ -613,7 +597,7 @@
       });
       var data = await res.json();
       if (data.success) {
-        if (typeof showToast === 'function') showToast(data.message || 'Karakter silindi.', 'success');
+        toastForResult(data);
         closeCharDeleteModal();
         charMgmtFetch(charMgmtCurrentPage);
       } else {

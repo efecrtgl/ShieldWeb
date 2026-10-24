@@ -2,32 +2,32 @@
   <section id="streamers-settings-content" class="admin-section-inner">
     <!-- Quick Link to Public Page -->
     <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
-      <a href="/streamers" target="_blank" class="btn" style="background: linear-gradient(135deg, var(--primary), #a855f7); color: #fff; font-size: 12px; font-weight: 700; padding: 8px 18px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);">
+      <a href="/streamers" target="_blank" class="btn" style="background: var(--primary); color: #fff; font-size: 12px; font-weight: 700; padding: 8px 18px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; ">
         <i class="fa-solid fa-arrow-up-right-from-square"></i> Streamer's Sayfasını Görüntüle
       </a>
     </div>
     <div class="main-layout">
       <!-- Add Streamer Panel -->
       <div class="content-panel" style="grid-column: span 5;">
-        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase;">
+        <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 16px; ">
           <i class="fa-solid fa-headset text-sky-400"></i> Yeni Yayıncı Ekle
         </h3>
 
         <!-- Smart Auto-Fetch Box -->
-        <div style="background: rgba(168, 85, 247, 0.08); border: 1px dashed rgba(168, 85, 247, 0.35); border-radius: 12px; padding: 14px; margin-bottom: 18px;">
+        <div style="background: rgba(var(--accent-rgb), 0.08); border: 1px dashed rgba(var(--accent-rgb), 0.35); border-radius: 12px; padding: 14px; margin-bottom: 18px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-            <label style="font-size: 11px; font-weight: 700; color: #d8b4fe; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 11px; font-weight: 700; color: #d8b4fe;  display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-wand-magic-sparkles"></i> Otomatik Profil & Avatar Çekici
             </label>
-            <span style="font-size: 10px; color: var(--text-muted);">Kick / Twitch</span>
+            <span style="font-size: 11px; color: var(--text-muted);">Kick / Twitch</span>
           </div>
           <div style="display: flex; gap: 8px;">
             <input type="text" id="admin-streamer-quickQuery" class="form-input" placeholder="Örn: elraenn veya kick.com/elraenn" style="flex: 1; font-size: 12px; padding: 8px 12px;">
-            <button type="button" id="btn-fetch-streamer-info" onclick="handleAutoFetchStreamerInfo()" class="btn" style="background: linear-gradient(135deg, #a855f7, var(--primary)); color: #fff; font-size: 11px; font-weight: 700; padding: 8px 14px; border-radius: 8px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
+            <button type="button" id="btn-fetch-streamer-info" onclick="handleAutoFetchStreamerInfo()" class="btn" style="background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 8px 14px; border-radius: 8px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-cloud-arrow-down"></i> <span id="fetch-btn-text">Bilgileri Çek</span>
             </button>
           </div>
-          <p style="font-size: 10px; color: var(--text-muted); margin: 6px 0 0 0;">
+          <p style="font-size: 11px; color: var(--text-muted); margin: 6px 0 0 0;">
             Kanal adını veya linkini yazdığınızda profil fotoğrafı, banner ve canlı durumu otomatik doldurulur.
           </p>
         </div>
@@ -38,8 +38,8 @@
             <img id="preview-avatar" src="https://cdn.discordapp.com/embed/avatars/0.png" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light);">
             <div style="flex: 1; min-width: 0;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span id="preview-name" style="font-weight: 800; color: #fff; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Yayıncı</span>
-                <span id="preview-live-badge" class="status-badge offline" style="font-size: 9px; padding: 2px 6px;">ÇEVRİMDIŞI</span>
+                <span id="preview-name" style="font-weight: 600; color: #fff; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Yayıncı</span>
+                <span id="preview-live-badge" class="status-badge offline" style="font-size: 11px; padding: 2px 6px;">ÇEVRİMDIŞI</span>
               </div>
               <div id="preview-slug" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;"></div>
             </div>
@@ -96,7 +96,7 @@
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 8px;">
             <div>
               <span style="font-size: 12px; font-weight: 700; color: #fff;">Canlı Yayında Olarak Başlat</span>
-              <p style="font-size: 10px; color: var(--text-muted); margin: 2px 0 0 0;">Otomatik sistem tarafından periyodik olarak da güncellenir.</p>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;">Otomatik sistem tarafından periyodik olarak da güncellenir.</p>
             </div>
             <input type="checkbox" id="admin-streamer-isLive" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
           </div>
@@ -111,7 +111,7 @@
       <div class="content-panel" style="grid-column: span 7; overflow-x: auto; padding: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin: 0; text-transform: uppercase;">
+            <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700; margin: 0; ">
               <i class="fa-solid fa-list-ol text-sky-400"></i> Kayıtlı Yayıncılar (<%= locals.streamers ? streamers.length : 0 %>)
             </h3>
             <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">Sunucuda listelenen tüm yayıncı profilleri ve canlı durumları.</span>
@@ -147,8 +147,8 @@
                       <div style="font-size: 11px; color: var(--primary-light);">IC: <%= st.characterName %></div>
                     <% } %>
                     <% if (st.streamTitle && st.isLive) { %>
-                      <div style="font-size: 10px; color: var(--text-muted); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<%= st.streamTitle %>">
-                        <i class="fa-solid fa-play" style="font-size: 8px; color: #ef4444;"></i> <%= st.streamTitle %>
+                      <div style="font-size: 11px; color: var(--text-muted); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<%= st.streamTitle %>">
+                        <i class="fa-solid fa-play" style="font-size: 11px; color: #ef4444;"></i> <%= st.streamTitle %>
                       </div>
                     <% } %>
                   </td>
@@ -166,11 +166,11 @@
                     </div>
                   </td>
                   <td>
-                    <button onclick="adminToggleStreamerLive('<%= st._id %>', <%= !st.isLive %>)" class="btn" style="padding: 4px 10px; font-size: 10px; font-weight: 700; border-radius: 6px; background: <%= st.isLive ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)' %>; color: <%= st.isLive ? 'var(--danger)' : 'var(--text-muted)' %>; border: 1px solid <%= st.isLive ? 'rgba(239, 68, 68, 0.3)' : 'var(--border-color)' %>; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                    <button onclick="adminToggleStreamerLive('<%= st._id %>', <%= !st.isLive %>)" class="btn" style="padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; background: <%= st.isLive ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)' %>; color: <%= st.isLive ? 'var(--danger)' : 'var(--text-muted)' %>; border: 1px solid <%= st.isLive ? 'rgba(239, 68, 68, 0.3)' : 'var(--border-color)' %>; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
                       <span style="width: 6px; height: 6px; border-radius: 50%; background: <%= st.isLive ? '#ef4444' : '#64748b' %>;"></span>
                       <%= st.isLive ? 'CANLI' : 'ÇEVRİMDIŞI' %>
                       <% if (st.isLive && st.viewerCount) { %>
-                        <span style="font-size: 9px; opacity: 0.8;">(<%= st.viewerCount %>)</span>
+                        <span style="font-size: 11px; opacity: 0.8;">(<%= st.viewerCount %>)</span>
                       <% } %>
                     </button>
                   </td>
@@ -199,10 +199,10 @@
     </div>
 
     <!-- Edit Modal for Admin Panel -->
-    <div id="admin-streamer-edit-modal" class="streamer-modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div id="admin-streamer-edit-modal" class="streamer-modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);  z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
       <div style="background: #10121a; border: 1px solid var(--border-color); border-radius: 18px; width: 100%; max-width: 580px; padding: 24px; max-height: 90vh; overflow-y: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
-          <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+          <h3 style="font-family: var(--font-display); font-size: 16px; font-weight: 600; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-pen-to-square text-sky-400"></i> Yayıncıyı Düzenle
           </h3>
           <button onclick="document.getElementById('admin-streamer-edit-modal').style.display = 'none'" style="background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer;">
