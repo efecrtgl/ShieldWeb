@@ -17,7 +17,9 @@ Object.assign(process.env, {
   SESSION_SECRET: "auth-test-session-secret-0123456789abcdef",
   SESSION_COOKIE_SAMESITE: "lax",
   SITE_URL: PUBLIC_ORIGIN,
-  LOG_DIR: path.join(os.tmpdir(), "shield-test-logs")
+  LOG_DIR: path.join(os.tmpdir(), "shield-test-logs"),
+  // These tests log in many times from one address.
+  AUTH_RATE_LIMIT_PER_MINUTE: "1000"
 });
 
 const axios = require("axios");

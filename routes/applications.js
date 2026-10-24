@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const { Application, ApplicationSubmission } = require("../models/ServerInfo");
 const { checkModule } = require("../middleware/siteContext");
 const { renderRichText } = require("../utils/markdown");
+const { rateLimit } = require("../middleware/rateLimit");
 
 const router = express.Router();
 
@@ -57,7 +58,7 @@ router.get("/applications/:id", checkModule("applications"), async (req, res) =>
 });
 
 // User: Submit application
-router.post("/applications/:id/apply", checkModule("applications"), async (req, res) => {
+router.post("/applications/:id/apply", checkModule("applications"), rateLimit({ name: "apply", windowMs: 10 * 60 * 1000, max: 5 }), async (req, res) => {
   if (!req.session.user) {
     return res.status(403).send("Forbidden");
   }

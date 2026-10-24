@@ -191,3 +191,23 @@ test("health endpoints: liveness always ok, readiness follows the database", asy
     server.close();
   }
 });
+
+test("rate limiter blocks after the limit and resets after the window", async () => {
+  const express = require("express");
+  const { rateLimit } = require("../middleware/rateLimit");
+  const app = express();
+  app.get("/x", rateLimit({ name: "t", windowMs: 200, max: 2, key: () => "same" }), (req, res) => res.send("ok"));
+  const server = await new Promise(resolve => { const s = app.listen(0, "127.0.0.1", () => resolve(s)); });
+  try {
+    const url = `http://127.0.0.1:${server.address().port}/x`;
+    assert.strictEqual((await fetch(url)).status, 200);
+    assert.strictEqual((await fetch(url)).status, 200);
+    const blocked = await fetch(url);
+    assert.strictEqual(blocked.status, 429);
+    assert.ok(Number(blocked.headers.get("retry-after")) >= 1);
+    await new Promise(r => setTimeout(r, 250));
+    assert.strictEqual((await fetch(url)).status, 200);
+  } finally {
+    server.close();
+  }
+});

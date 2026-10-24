@@ -3,7 +3,8 @@ const config = require("../config");
 const { UserRank } = require("../models/ServerInfo");
 const { logAction } = require("../services/auditLog");
 const { OAuthError, createState, statesMatch, buildAuthorizeUrl, exchangeCode, fetchCurrentUser } = require("../services/discordOAuth");
-const { safeRedirectPath } = require("../utils/http");
+const { safeRedirectPath, clientIp } = require("../utils/http");
+const { rateLimit } = require("../middleware/rateLimit");
 
 const router = express.Router();
 
@@ -58,7 +59,10 @@ router.get("/login", (req, res) => {
   });
 });
 
-router.get("/auth/login", (req, res) => {
+// Login and callback are rate limited per IP: each callback spends a Discord token exchange.
+const authLimiter = rateLimit({ name: "auth", windowMs: 60 * 1000, max: config.rateLimits.authPerMinute, key: req => clientIp(req) });
+
+router.get("/auth/login", authLimiter, (req, res) => {
   const next = safeRedirectPath(req.query.next);
   if (req.session.user) {
     return res.redirect(next);
@@ -87,7 +91,7 @@ router.get("/auth/login", (req, res) => {
   });
 });
 
-router.get("/auth/callback", async (req, res) => {
+router.get("/auth/callback", authLimiter, async (req, res) => {
   const { code, state, error } = req.query;
 
   if (error) {

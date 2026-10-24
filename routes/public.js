@@ -11,6 +11,7 @@ const streamerFetcher = require("../utils/streamerFetcher");
 const { searchRegex } = require("../utils/http");
 const { bridgeStatus } = require("../services/fivemState");
 const { renderMarkdown } = require("../utils/markdown");
+const { rateLimit } = require("../middleware/rateLimit");
 
 const router = express.Router();
 
@@ -239,7 +240,7 @@ router.get("/donate", checkModule("donate"), async (req, res) => {
   }
 });
 
-router.post("/donate/buy/:id", checkModule("donate"), async (req, res) => {
+router.post("/donate/buy/:id", checkModule("donate"), rateLimit({ name: "donate", windowMs: 60 * 1000, max: 10 }), async (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({ success: false, message: "Lütfen önce giriş yapın." });
   }

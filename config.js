@@ -138,6 +138,11 @@ const config = {
     allowedIp: str("FIVEM_BRIDGE_ALLOWED_IP", "localhost")
   },
 
+  rateLimits: {
+    // Discord login + callback attempts per IP per minute.
+    authPerMinute: int("AUTH_RATE_LIMIT_PER_MINUTE", 20)
+  },
+
   site: {
     // Public Discord invite shown on the site (home, FAQ, footer, error pages).
     discordInviteUrl: str("DISCORD_INVITE_URL", "https://discord.gg/starv")

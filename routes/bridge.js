@@ -14,6 +14,7 @@ const {
 } = require("../services/fivemState");
 const { dispatchCommand, sendDispatchResult } = require("../services/fivemCommands");
 const { clientIp } = require("../utils/http");
+const { rateLimit } = require("../middleware/rateLimit");
 
 const router = express.Router();
 
@@ -457,7 +458,7 @@ async function recordFivemBan(req, { discordId, playerName, reason }, ban) {
   }).save();
 }
 
-router.post("/api/fivem/bridge/command", requireStaff(["fivemBridgeCommands"]), async (req, res) => {
+router.post("/api/fivem/bridge/command", requireStaff(["fivemBridgeCommands"]), rateLimit({ name: "bridge-command", windowMs: 60 * 1000, max: 60 }), async (req, res) => {
   const b = req.body || {};
   const action = typeof b.action === "string" ? b.action.trim() : "";
   const invalid = validateCommandBody(action, b);
