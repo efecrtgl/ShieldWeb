@@ -129,6 +129,7 @@ function websiteFilesBackup() {
   zip.addLocalFolder(PROJECT_ROOT, "", filepath => {
     const parts = path.relative(PROJECT_ROOT, filepath).split(path.sep);
     if (parts.some(part => BACKUP_EXCLUDED_DIRS.has(part))) return false;
+    if (BACKUP_EXCLUDED_PATHS.has(parts.join("/"))) return false;
     return !BACKUP_EXCLUDED_FILE.test(parts[parts.length - 1]);
   });
   return zip.toBuffer();
