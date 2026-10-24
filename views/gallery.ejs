@@ -16,7 +16,7 @@
     cursor: pointer;
     background: rgba(13, 16, 26, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    
     aspect-ratio: 16/10;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -31,7 +31,7 @@
   .gallery-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
     align-items: flex-end;
     padding: 20px;
@@ -46,20 +46,20 @@
     font-family: var(--font-sans);
     transform: translateY(10px);
     transition: transform 0.4s ease;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    
   }
 
   .gallery-item::after {
     content: '\f00e';
     font-family: 'Font Awesome 6 Free';
-    font-weight: 900;
+    font-weight: 600;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.5);
-    background: rgba(224, 169, 139, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(var(--accent-rgb), 0.85);
+    
+    
     color: #fff;
     width: 48px;
     height: 48px;
@@ -72,14 +72,14 @@
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
     z-index: 5;
-    box-shadow: 0 0 20px rgba(224, 169, 139, 0.5);
+    
   }
 
   /* Hover States */
   .gallery-item:hover {
     transform: translateY(-6px);
-    border-color: rgba(224, 169, 139, 0.4);
-    box-shadow: 0 16px 40px rgba(224, 169, 139, 0.2);
+    border-color: rgba(var(--accent-rgb), 0.4);
+    
   }
   .gallery-item:hover .gallery-img {
     transform: scale(1.08);
@@ -101,8 +101,8 @@
     inset: 0;
     z-index: 99999;
     background: rgba(4, 6, 12, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    
+    
     display: flex;
     align-items: center;
     justify-content: center;
@@ -130,7 +130,7 @@
     max-height: 75vh;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    
     background: #000;
   }
   .lightbox-img-wrapper img {
@@ -147,7 +147,7 @@
     font-size: 15px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.95);
-    letter-spacing: 0.04em;
+    
     text-align: center;
   }
   .lightbox-counter {
@@ -155,7 +155,7 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--primary-light);
-    letter-spacing: 0.1em;
+    
   }
   .lightbox-close {
     position: absolute;
@@ -203,7 +203,7 @@
     background: var(--primary-glow);
     border-color: var(--primary-light);
     transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 0 20px rgba(224, 169, 139, 0.3);
+    
   }
   .lightbox-prev {
     left: -70px;
@@ -222,10 +222,10 @@
 <main class="container">
   <!-- Hero Section -->
   <div style="text-align: center; margin-bottom: 56px; position: relative;">
-    <div style="display: inline-flex; justify-content: center; align-items: center; width: 64px; height: 64px; background: rgba(224, 169, 139, 0.15); border-radius: 20px; border: 1px solid rgba(224, 169, 139, 0.3); margin-bottom: 20px; box-shadow: 0 0 25px rgba(224, 169, 139, 0.2);">
+    <div style="display: inline-flex; justify-content: center; align-items: center; width: 64px; height: 64px; background: rgba(var(--accent-rgb), 0.15); border-radius: 20px; border: 1px solid rgba(var(--accent-rgb), 0.3); margin-bottom: 20px; ">
       <i class="fa-solid fa-images" style="font-size: 26px; color: var(--primary-light);"></i>
     </div>
-    <h1 style="font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 900; margin-bottom: 12px; color: #fff; letter-spacing: -0.02em;">
+    <h1 style="font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 600; margin-bottom: 12px; color: #fff; ">
       Sunucu Galerisi
     </h1>
     <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 650px; margin: 0 auto; line-height: 1.7;">
@@ -251,7 +251,7 @@
       <% } else { %>
         <div class="glass-card" style="text-align: center; padding: 60px 20px; grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center;">
           <i class="fa-regular fa-images" style="font-size: 48px; color: var(--text-muted); opacity: 0.3; margin-bottom: 20px;"></i>
-          <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 8px;">Galeri Boş</h3>
+          <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px;">Galeri Boş</h3>
           <p style="color: var(--text-muted); font-size: 14px; margin: 0;">Henüz sisteme yüklenmiş bir görsel bulunmuyor.</p>
         </div>
       <% } %>
@@ -275,7 +275,7 @@
 
 <script>
   let currentGalleryIndex = 0;
-  const galleryData = <%- JSON.stringify(gallery || []) %>;
+  const galleryData = <%- JSON.stringify(gallery || []).replace(/</g, "\\u003c") %>;
 
   function openGalleryLightbox(index) {
     if (!galleryData || galleryData.length === 0) return;

@@ -1,3 +1,4 @@
+const config = require("../config");
 const { getCachedSiteModules, getCachedServerStats, getCachedUserCredits } = require("../services/siteCache");
 const { getUserPermissions } = require("../services/permissions");
 const { hexToRgb } = require("../utils/format");
@@ -12,6 +13,7 @@ async function siteContext(req, res, next) {
   try {
     const { modules, moduleDetails } = await getCachedSiteModules();
     res.locals.currentPath = req.originalUrl;
+    res.locals.discordInviteUrl = config.site.discordInviteUrl;
     res.locals.modules = modules;
     res.locals.moduleDetails = moduleDetails;
 

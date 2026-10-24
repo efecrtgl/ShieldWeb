@@ -45,3 +45,23 @@ test("Discord avatar URLs", () => {
   assert.match(defaultAvatarUrl("444578261494661122"), /embed\/avatars\/[0-5]\.png$/);
   assert.strictEqual(defaultAvatarUrl("not-a-number"), "https://cdn.discordapp.com/embed/avatars/0.png");
 });
+
+test("update-note markdown shows raw HTML as text and drops unsafe link targets", () => {
+  const { renderMarkdown } = require("../utils/markdown");
+  assert.ok(!renderMarkdown("<img src=x onerror=alert(1)>").includes("<img"));
+  assert.ok(!renderMarkdown("a <script>alert(1)</script>").includes("<script"));
+  assert.ok(renderMarkdown("[x](javascript:alert(1))").includes('href="#"'));
+  assert.ok(renderMarkdown("**ok** [l](https://example.com)").includes('<a href="https://example.com">'));
+});
+
+test("rich-text sanitizer keeps formatting and removes everything executable", () => {
+  const { sanitizeRichText } = require("../utils/html");
+  assert.strictEqual(sanitizeRichText("<b>a</b><i>b</i><br><ul><li>c</li></ul>"), "<b>a</b><i>b</i><br><ul><li>c</li></ul>");
+  assert.strictEqual(sanitizeRichText("<img src=x onerror=alert(1)>"), "");
+  assert.strictEqual(sanitizeRichText('<div onclick="x" style="y">d</div>'), "<div>d</div>");
+  assert.strictEqual(sanitizeRichText('<a href="javascript:alert(1)">x</a>'), "<a>x</a>");
+  assert.ok(sanitizeRichText('<a href="https://x.com">x</a>').startsWith('<a href="https://x.com" rel='));
+  assert.strictEqual(sanitizeRichText("tail <img src=x onerror=alert(1)"), "tail &lt;img src=x onerror=alert(1)");
+  // Nested tag tricks leave text only: no "<" survives.
+  assert.ok(!sanitizeRichText("<scr<script>ipt>alert(1)</script>").includes("<"));
+});

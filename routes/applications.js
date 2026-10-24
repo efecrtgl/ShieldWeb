@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const { Application, ApplicationSubmission } = require("../models/ServerInfo");
 const { checkModule } = require("../middleware/siteContext");
-const { renderMarkdown } = require("../utils/markdown");
+const { renderRichText } = require("../utils/markdown");
 
 const router = express.Router();
 
@@ -43,9 +43,9 @@ router.get("/applications/:id", checkModule("applications"), async (req, res) =>
     if (!appItem) {
       return res.status(404).send("Application not found");
     }
-    // Parse description markdown to HTML
+    // The description mixes markdown and the admin editor's HTML; only formatting tags survive.
     const parsedApp = appItem.toObject();
-    parsedApp.description = renderMarkdown(parsedApp.description);
+    parsedApp.description = renderRichText(parsedApp.description);
 
     res.render("apply", {
       application: parsedApp,

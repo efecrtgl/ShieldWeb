@@ -141,7 +141,7 @@
   <script>
     const canEditUsers = <%= userPermissions.editUsers || false %>;
     const canDeleteUsers = <%= userPermissions.deleteUsers || false %>;
-    const userPerms = <%- JSON.stringify(userPermissions) %>;
+    const userPerms = <%- JSON.stringify(userPermissions).replace(/</g, "\\u003c") %>;
     
     let currentUsersPage = 1;
     let totalUsersPages = 1;

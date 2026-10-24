@@ -278,12 +278,12 @@
             });
             tbody.innerHTML = html;
           } else {
-            if (countSpan) countSpan.innerText = "0";
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 16px;">${data.message || 'Ban listesi yüklenemedi.'}</td></tr>`;
+            if (countSpan) countSpan.innerText = "—";
+            tbody.innerHTML = `<tr><td colspan="5"><div class="state-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><div><strong>Discord ban listesi alınamadı.</strong> ${escapeHtml(data.message || "")}</div></div></td></tr>`;
           }
         } catch (err) {
-          if (countSpan) countSpan.innerText = "0";
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 16px;">Yükleme hatası: ${err.message}</td></tr>`;
+          if (countSpan) countSpan.innerText = "—";
+          tbody.innerHTML = `<tr><td colspan="5"><div class="state-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><div><strong>Panel sunucusuna ulaşılamadı.</strong> ${escapeHtml(err.message)}</div></div></td></tr>`;
         }
       }
 

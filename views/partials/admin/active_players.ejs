@@ -850,11 +850,11 @@
     if (!discordId) {
       document.getElementById("modal-discord-loading").style.display = "none";
       document.getElementById("modal-discord-content").style.display = "block";
-      document.getElementById("modal-discord-username").innerText = "Yok";
-      document.getElementById("modal-discord-id").innerText = "Bulunamadı";
+      document.getElementById("modal-discord-username").innerText = "Discord hesabı bağlı değil";
+      document.getElementById("modal-discord-id").innerText = "—";
       document.getElementById("modal-discord-avatar").src = "";
-      document.getElementById("modal-discord-whitelist").innerHTML = `<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> Whitelist Yok</span>`;
-      document.getElementById("modal-discord-warnings").innerText = "0";
+      document.getElementById("modal-discord-whitelist").innerText = "Bilinmiyor";
+      document.getElementById("modal-discord-warnings").innerText = "—";
       
       document.getElementById("modal-characters-loading").style.display = "none";
       charContent.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-style: italic; padding: 16px;">Bu oyuncuya bağlı Discord hesabı bulunmadığı için karakter bilgisi çekilemedi.</div>`;
@@ -884,12 +884,12 @@
           document.getElementById("modal-discord-whitelist").innerHTML = du.isWhitelist 
             ? `<span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> Whitelist Var</span>`
             : `<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> Whitelist Yok</span>`;
-          document.getElementById("modal-discord-warnings").innerText = du.warnings || "0";
+          document.getElementById("modal-discord-warnings").innerText = Number.isFinite(Number(du.warnings)) ? String(du.warnings) : "—";
         } else {
           document.getElementById("modal-discord-username").innerText = "Bilinmeyen Discord Kullanıcısı";
           document.getElementById("modal-discord-id").innerText = discordId;
-          document.getElementById("modal-discord-whitelist").innerHTML = `<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> Whitelist Yok (Kayıtsız)</span>`;
-          document.getElementById("modal-discord-warnings").innerText = "0";
+          document.getElementById("modal-discord-whitelist").innerText = "Panelde kaydı yok";
+          document.getElementById("modal-discord-warnings").innerText = "—";
         }
 
         // Characters Info

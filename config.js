@@ -138,6 +138,11 @@ const config = {
     allowedIp: str("FIVEM_BRIDGE_ALLOWED_IP", "localhost")
   },
 
+  site: {
+    // Public Discord invite shown on the site (home, FAQ, footer, error pages).
+    discordInviteUrl: str("DISCORD_INVITE_URL", "https://discord.gg/starv")
+  },
+
   gemini: {
     apiKey: str("GEMINI_API_KEY"),
     model: str("GEMINI_MODEL", "gemini-2.0-flash")

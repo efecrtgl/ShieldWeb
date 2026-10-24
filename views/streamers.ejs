@@ -5,14 +5,13 @@
     <!-- Hero Section -->
     <div style="text-align: center; margin-bottom: 50px; position: relative;">
       <div
-        style="display: inline-flex; justify-content: center; align-items: center; width: 68px; height: 68px; background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(34, 197, 94, 0.2)); border-radius: 22px; border: 1px solid rgba(255, 255, 255, 0.15); margin-bottom: 20px; box-shadow: 0 0 35px rgba(168, 85, 247, 0.3);">
+        style="display: inline-flex; justify-content: center; align-items: center; width: 68px; height: 68px; background: rgba(var(--accent-rgb); border-radius: 22px; border: 1px solid rgba(255, 255, 255, 0.15); margin-bottom: 20px; ">
         <i class="fa-solid fa-headset"
-          style="font-size: 30px; background: linear-gradient(135deg, #a855f7, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+          style="font-size: 30px; color: var(--faint);" aria-hidden="true"></i>
       </div>
       <h1
-        style="font-family: var(--font-display); font-size: clamp(2.4rem, 5vw, 3.5rem); font-weight: 900; margin-bottom: 14px; color: #fff; letter-spacing: -0.02em;">
-        EmpireV <span
-          style="background: linear-gradient(135deg, #a855f7, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Streamer's</span>
+        style="font-family: var(--font-display); font-size: clamp(2.4rem, 5vw, 3.5rem); font-weight: 600; margin-bottom: 14px; color: #fff; ">
+        EmpireV yayıncıları
       </h1>
       <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 700px; margin: 0 auto; line-height: 1.7;">
         EmpireV evrenindeki maceralarını canlı yayınlarla topluluğumuzla paylaşan tüm resmi yayıncılarımız. Kick
@@ -22,7 +21,7 @@
 
     <!-- Filter & Search Toolbar -->
     <div
-      style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px 24px; margin-bottom: 40px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; backdrop-filter: blur(12px);">
+      style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px 24px; margin-bottom: 40px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; ">
       <!-- Platform Filters -->
       <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
         <button class="streamer-filter-btn active" data-filter="all">
@@ -86,7 +85,7 @@
               <!-- Titles -->
               <div style="margin-top: 14px; text-align: center; width: 100%;">
                 <h3
-                  style="font-family: var(--font-display); font-size: 19px; font-weight: 800; color: #fff; margin: 0 0 4px 0; letter-spacing: -0.01em;">
+                  style="font-family: var(--font-display); font-size: 19px; font-weight: 600; color: #fff; margin: 0 0 4px 0; ">
                   <%= s.name %>
                 </h3>
                 <% if (s.characterName) { %>
@@ -104,7 +103,7 @@
                   <div
                     style="font-size: 11px; color: #fca5a5; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                     title="<%= s.streamTitle %>">
-                    <i class="fa-solid fa-play" style="font-size: 9px; margin-right: 4px;"></i>
+                    <i class="fa-solid fa-play" style="font-size: 11px; margin-right: 4px;"></i>
                     <%= s.streamTitle %>
                   </div>
                 </div>
@@ -122,7 +121,7 @@
                       style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 20px;">
                       <% s.tags.forEach(t=> { %>
                         <span
-                          style="font-size: 10px; font-weight: 700; background: rgba(255, 255, 255, 0.04); color: var(--text-muted); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                          style="font-size: 11px; font-weight: 700; background: rgba(255, 255, 255, 0.04); color: var(--text-muted); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);">
                           #<%= t.replace('#', '' ) %>
                         </span>
                         <% }) %>
@@ -169,11 +168,11 @@
               <div id="no-streamers-msg"
                 style="grid-column: 1 / -1; text-align: center; padding: 80px 20px; background: rgba(255, 255, 255, 0.01); border: 1px dashed var(--border-color); border-radius: 20px;">
                 <div
-                  style="width: 70px; height: 70px; border-radius: 50%; background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-                  <i class="fa-solid fa-video" style="font-size: 28px; color: #a855f7;"></i>
+                  style="width: 70px; height: 70px; border-radius: 50%; background: rgba(var(--accent-rgb), 0.1); border: 1px solid rgba(var(--accent-rgb), 0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+                  <i class="fa-solid fa-video" style="font-size: 28px; color: var(--accent);"></i>
                 </div>
                 <h3
-                  style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px;">
+                  style="font-family: var(--font-display); font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 8px;">
                   Henüz Yayıncı Eklenmemiş</h3>
                 <p style="color: var(--text-muted); font-size: 14px; max-width: 480px; margin: 0 auto 24px auto;">
                   Sunucumuzda canlı yayın yapan içerik üreticileri ve yayıncılar çok yakında bu sayfada listelenecektir.
@@ -211,7 +210,7 @@
       background: var(--btn-color, var(--primary));
       color: #fff;
       border-color: var(--btn-color, var(--primary));
-      box-shadow: 0 4px 15px rgba(0, 113, 227, 0.3);
+      
     }
 
     .streamer-filter-btn.active span {
@@ -225,13 +224,13 @@
       border-radius: 50%;
       background: #ef4444;
       display: inline-block;
-      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      
       animation: livePulse 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
     }
 
     @keyframes livePulse {
       to {
-        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+        
       }
     }
 
@@ -250,19 +249,19 @@
     .streamer-card:hover {
       transform: translateY(-8px);
       border-color: rgba(255, 255, 255, 0.18);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      
     }
 
     .streamer-card.is-live {
       border-color: rgba(239, 68, 68, 0.45);
-      box-shadow: 0 0 30px rgba(239, 68, 68, 0.18);
+      
     }
 
     /* Banner */
     .streamer-banner {
       height: 105px;
       width: 100%;
-      background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(0, 113, 227, 0.3)), #131622;
+      background: rgba(var(--accent-rgb), #131622;
       background-size: cover;
       background-position: center;
       position: relative;
@@ -274,16 +273,16 @@
       left: 12px;
       background: rgba(239, 68, 68, 0.92);
       color: #fff;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
+      font-size: 11px;
+      font-weight: 600;
+      
       padding: 4px 10px;
       border-radius: 6px;
       display: flex;
       align-items: center;
       gap: 6px;
-      box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
-      backdrop-filter: blur(8px);
+      
+      
     }
 
     .live-dot {
@@ -317,7 +316,7 @@
       object-fit: cover;
       border: 3px solid #12141d;
       background: #0d101a;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      
       transition: transform 0.3s ease;
     }
 
@@ -373,7 +372,7 @@
     .kick-btn:hover {
       background: #53FC18;
       color: #000;
-      box-shadow: 0 0 20px rgba(83, 252, 24, 0.4);
+      
       transform: translateY(-2px);
     }
 
@@ -386,23 +385,23 @@
     .twitch-btn:hover {
       background: #9146FF;
       color: #fff;
-      box-shadow: 0 0 20px rgba(145, 70, 255, 0.4);
+      
       transform: translateY(-2px);
     }
 
     .live-tag {
-      font-size: 9px;
-      font-weight: 800;
+      font-size: 11px;
+      font-weight: 600;
       background: #ef4444;
       color: #fff;
       padding: 2px 6px;
       border-radius: 4px;
-      letter-spacing: 0.04em;
+      
       animation: livePulse 2s infinite;
     }
 
     .active-live-btn {
-      box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+      
       border-color: #ef4444 !important;
     }
   </style>

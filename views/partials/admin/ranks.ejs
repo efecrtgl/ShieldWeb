@@ -2789,8 +2789,8 @@
 <% } %>
 
 <script>
-  const userRankAssignments = <%- JSON.stringify(users || []) %>;
-  const ranksList = <%- JSON.stringify(ranks || []) %>;
+  const userRankAssignments = <%- JSON.stringify(users || []).replace(/</g, "\\u003c") %>;
+  const ranksList = <%- JSON.stringify(ranks || []).replace(/</g, "\\u003c") %>;
 
   let currentAssignPage = 1;
   const itemsPerAssignPage = 10;
