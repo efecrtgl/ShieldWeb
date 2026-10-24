@@ -25,40 +25,43 @@
   }
 </style>
 
+<%
+  const playersKnown = stats.serverOnline && stats.activePlayers !== null;
+  const fillPercent = playersKnown && stats.maxPlayers ? Math.min(100, Math.max(0, (stats.activePlayers / stats.maxPlayers) * 100)) : 0;
+%>
 <main class="container">
-  <section id="stats" class="section">
-    <h2 class="panel-title"><i class="fa-solid fa-chart-simple"></i> Oyun İstatistikleri</h2>
+  <section id="stats" class="section" aria-live="polite">
+    <h2 class="panel-title"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i> Oyun İstatistikleri</h2>
     <div class="main-layout" style="margin-bottom: 30px;">
-      <div class="content-panel stat-card">
+      <div class="content-panel stat-card" id="stat-players">
         <div class="stat-icon">
-          <i class="fa-solid fa-users"></i>
+          <i class="fa-solid fa-users" aria-hidden="true"></i>
         </div>
         <div class="stat-info">
           <div class="stat-header">
-            <span class="stat-value"><%= stats.activePlayers %> / <%= stats.maxPlayers %></span>
+            <span class="stat-value" data-stat="players"><%= playersKnown ? `${stats.activePlayers}${stats.maxPlayers ? ' / ' + stats.maxPlayers : ''}` : 'Çevrimdışı' %></span>
             <span class="stat-label" style="display: flex; align-items: center; gap: 6px;">
               Aktif Oyuncular
-              <span class="live-indicator" title="Canlı Güncelleniyor"></span>
+              <span class="live-indicator" data-stat="indicator" title="<%= stats.serverOnline ? 'Canlı' : 'Sunucuya ulaşılamıyor' %>" style="<%= stats.serverOnline ? '' : 'background:#6b7280;animation:none;box-shadow:none;' %>"></span>
             </span>
           </div>
-          <% let fillPercent = Math.min(100, Math.max(0, (stats.activePlayers / stats.maxPlayers) * 100)) || 0; %>
           <div class="progress-track">
-            <div class="progress-fill" style="width: <%= fillPercent %>%;"></div>
+            <div class="progress-fill" data-stat="fill" style="width: <%= fillPercent %>%;"></div>
           </div>
+          <small class="stat-note" data-stat="note" style="display:block;margin-top:8px;color:var(--text-muted,#9ca3af);font-size:12px;">
+            <%= stats.serverOnline ? (stats.maxPlayers ? '' : 'Maksimum oyuncu sayısı sunucu tarafından bildirilmedi.') : 'FiveM sunucusundan şu anda veri alınamıyor.' %>
+          </small>
         </div>
       </div>
 
-      <div class="content-panel stat-card">
+      <div class="content-panel stat-card" id="stat-whitelist">
         <div class="stat-icon" style="color: #5865F2;">
-          <i class="fa-brands fa-discord"></i>
+          <i class="fa-brands fa-discord" aria-hidden="true"></i>
         </div>
         <div class="stat-info">
           <div class="stat-header">
-            <span class="stat-value"><%= stats.totalWhitelist.toLocaleString() %></span>
-            <span class="stat-label" style="display: flex; align-items: center; gap: 6px;">
-              Discord Whitelist Sayısı
-              <span class="live-indicator" title="Canlı Güncelleniyor"></span>
-            </span>
+            <span class="stat-value" data-stat="whitelist"><%= stats.totalWhitelist !== null ? stats.totalWhitelist.toLocaleString('tr-TR') : 'Bilinmiyor' %></span>
+            <span class="stat-label">Discord Whitelist Sayısı</span>
           </div>
           <div class="progress-track">
             <div class="progress-fill" style="width: 100%; background-color: #5865F2;"></div>
@@ -71,37 +74,32 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const el = name => document.querySelector(`[data-stat="${name}"]`);
+
+    function render(data) {
+      const playersKnown = data.serverOnline && data.activePlayers !== null;
+      el("players").textContent = playersKnown ? `${data.activePlayers}${data.maxPlayers ? " / " + data.maxPlayers : ""}` : "Çevrimdışı";
+      el("fill").style.width = playersKnown && data.maxPlayers ? `${Math.min(100, Math.max(0, (data.activePlayers / data.maxPlayers) * 100))}%` : "0%";
+      el("note").textContent = data.serverOnline ? (data.maxPlayers ? "" : "Maksimum oyuncu sayısı sunucu tarafından bildirilmedi.") : "FiveM sunucusundan şu anda veri alınamıyor.";
+      const indicator = el("indicator");
+      indicator.title = data.serverOnline ? "Canlı" : "Sunucuya ulaşılamıyor";
+      indicator.style.cssText = data.serverOnline ? "" : "background:#6b7280;animation:none;box-shadow:none;";
+      el("whitelist").textContent = data.totalWhitelist !== null ? data.totalWhitelist.toLocaleString("tr-TR") : "Bilinmiyor";
+    }
+
     async function updateLiveStats() {
+      if (document.hidden) return;
       try {
         const response = await fetch("/api/stats");
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        if (data && data.success) {
-          // Update player count text
-          const valueSpan = document.querySelector(".stat-card:first-child .stat-value");
-          if (valueSpan) {
-            valueSpan.innerHTML = `${data.activePlayers} / ${data.maxPlayers}`;
-          }
-
-          // Update progress bar
-          const fillPercent = Math.min(100, Math.max(0, (data.activePlayers / data.maxPlayers) * 100)) || 0;
-          const progressFill = document.querySelector(".stat-card:first-child .progress-fill");
-          if (progressFill) {
-            progressFill.style.width = `${fillPercent}%`;
-          }
-
-          // Update whitelist count
-          const wlSpan = document.querySelector(".stat-card:nth-child(2) .stat-value");
-          if (wlSpan) {
-            wlSpan.innerHTML = data.totalWhitelist.toLocaleString();
-          }
-        }
+        if (data && data.success) render(data);
       } catch (err) {
-        console.error("Live stats sync error:", err);
+        el("note").textContent = "İstatistikler güncellenemedi; gösterilen değerler son başarılı okumaya aittir.";
       }
     }
 
-    // Poll live statistics every 3 seconds
-    setInterval(updateLiveStats, 3000);
+    setInterval(updateLiveStats, 10000);
   });
 </script>
 

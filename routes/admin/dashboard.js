@@ -7,13 +7,12 @@ const {
 const { getUserPermissions, hasAnyPermission } = require("../../services/permissions");
 const { getCachedServerStats } = require("../../services/siteCache");
 const { fetchDiscordLiveStats } = require("../../services/discordStats");
-const { onlineDiscordIds } = require("../../services/fivemState");
+const { onlineDiscordIds, bridgeStatus } = require("../../services/fivemState");
 const { systems } = require("../../services/systemLog");
 const { isSnowflake } = require("../../utils/http");
 
 const router = express.Router();
 
-const DEFAULT_STATS = { activePlayers: 0, maxPlayers: 64, totalWhitelist: 0 };
 const RECENT_LIST_LIMIT = 100;
 const RECENT_PUNISHMENTS_LIMIT = 50;
 
@@ -113,7 +112,8 @@ router.get("/admin/dashboard", async (req, res) => {
     const legalTeams = teams.filter(t => t.type === "legal");
 
     res.render("admin", {
-      stats: statsRaw || DEFAULT_STATS,
+      stats: statsRaw || {},
+      bridge: bridgeStatus(),
       updates,
       systems,
       user: req.session.user,

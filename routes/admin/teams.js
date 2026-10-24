@@ -7,7 +7,8 @@ const { actorFrom, logAction } = require("../../services/auditLog");
 const { activeProcesses, pending, getConnectedBot, isConnected } = require("../../services/botRegistry");
 const { verifyDiscordGuildMember } = require("../../services/discordApi");
 const { sortByRank, describeGroupMembers } = require("../../services/groupMembers");
-const { fivem, queueCommand, queueCharacterDeletion } = require("../../services/fivemState");
+const { livePlayers, queueCommand, isBridgeOnline } = require("../../services/fivemState");
+const { dispatchCommand, OFFLINE_MESSAGE } = require("../../services/fivemCommands");
 const { newRequestId, isSnowflake } = require("../../utils/http");
 
 const router = express.Router();
@@ -567,12 +568,25 @@ router.post("/admin/teams/ck/:id", allow("teamRemoveMember"), async (req, res) =
       return res.status(400).json({ success: false, message: "Bu ekipte CK atılacak üye veya karakter bulunamadı." });
     }
 
+    if (!isBridgeOnline()) {
+      return res.status(503).json({ success: false, message: `${OFFLINE_MESSAGE} Karakterler oyun veritabanından silinemeyeceği için CK yapılmadı.` });
+    }
+
     const executorName = req.session.user.username;
     let totalDeletedCount = 0;
+    const failures = [];
     for (const discId of targetDiscordIds) {
       const query = { discordId: { $in: [String(discId), `discord:${discId}`] } };
-      for (const c of await FivemCharacter.find(query)) {
-        if (!c.citizenid) continue;
+      const characters = (await FivemCharacter.find(query)).filter(c => c.citizenid);
+      // The game server deletes the rows first; only accepted deletions are mirrored in the panel.
+      const results = await Promise.all(characters.map(c => dispatchCommand("delete_character", {
+        citizenid: c.citizenid, reason: "Ekip CK Wipe", admin: executorName
+      })));
+      for (const [i, c] of characters.entries()) {
+        if (!results[i].ok) {
+          failures.push(`${c.citizenid}: ${results[i].message}`);
+          continue;
+        }
         await DeletedCharacter.updateOne(
           { citizenid: c.citizenid },
           {
@@ -584,13 +598,9 @@ router.post("/admin/teams/ck/:id", allow("teamRemoveMember"), async (req, res) =
           },
           { upsert: true }
         );
-        queueCharacterDeletion(
-          { citizenid: c.citizenid, identifier: c.citizenid, reason: "Ekip CK Wipe", admin: executorName, timestamp: Date.now() },
-          { actions: ["delete_character", "deletecharacter", "delchar"], sqlActions: ["execute_sql"] }
-        );
+        const result = await FivemCharacter.deleteOne({ citizenid: c.citizenid });
+        totalDeletedCount += result ? result.deletedCount || 0 : 0;
       }
-      const result = await FivemCharacter.deleteMany(query);
-      totalDeletedCount += result ? result.deletedCount || 0 : 0;
     }
 
     const botProcess = activeProcesses.moderation;
@@ -608,12 +618,17 @@ router.post("/admin/teams/ck/:id", allow("teamRemoveMember"), async (req, res) =
     logAction("teamMembersCK", {
       executor: actorFrom(req),
       target: { id: team._id, username: team.name },
-      details: `Ekibe komple CK atıldı. Toplam ${totalDeletedCount} karakter veritabanından kalıcı olarak silindi.`,
+      details: `Ekibe komple CK atıldı. Toplam ${totalDeletedCount} karakter silindi${failures.length ? `, ${failures.length} karakter silinemedi` : ""}.`,
       context: "Web Panel"
     });
-    res.json({
-      success: true,
-      message: `Ekip CK işlemi tamamlandı! ${targetDiscordIds.size} üyenin toplam ${totalDeletedCount} karakteri veritabanından kalıcı olarak silindi.`
+    res.status(failures.length && !totalDeletedCount ? 502 : 200).json({
+      success: failures.length === 0 || totalDeletedCount > 0,
+      partial: failures.length > 0,
+      deleted: totalDeletedCount,
+      failures,
+      message: failures.length
+        ? `${totalDeletedCount} karakter silindi, ${failures.length} karakter silinemedi (oyun sunucusu reddetti veya yanıt vermedi).`
+        : `Ekip CK işlemi tamamlandı: ${targetDiscordIds.size} üyenin toplam ${totalDeletedCount} karakteri silindi.`
     });
   } catch (err) {
     console.error("CK team error:", err);
@@ -691,9 +706,9 @@ router.post("/admin/teams/discord-kick/:id", ...bulkDiscordAction({
   // Also drop members who are currently in game.
   extra: (members, reason) => {
     const memberIds = new Set(members.map(m => m.discordId));
-    for (const player of fivem.activePlayers) {
+    for (const player of livePlayers()) {
       if (player.identifiers && player.identifiers.some(id => memberIds.has(id.replace("discord:", "")))) {
-        queueCommand("cmd_team_kick", { command: `drop ${player.id} Sunucudan Kicklendiniz: ${reason}` });
+        queueCommand("cmd_team_kick", { action: "kick", targetPlayer: String(player.id), reason, admin: "Web Panel (Ekip Kick)", timestamp: Date.now() });
       }
     }
   }
@@ -770,15 +785,21 @@ router.post("/admin/teams/revive/:id", allow("editTeams"), async (req, res) => {
     const team = await findTeamOrBusiness(req.params.id);
     if (!team) return res.status(404).json({ success: false, message: "Ekip/İşletme bulunamadı." });
 
-    const memberIds = new Set((await DiscordUser.find(groupMembersQuery(team))).map(m => m.discordId));
-    let reviveCount = 0;
-    for (const player of fivem.activePlayers) {
-      if (player.identifiers && player.identifiers.some(id => memberIds.has(id.replace("discord:", "")))) {
-        queueCommand("cmd_team_revive", { command: `revive ${player.id}` });
-        reviveCount++;
-      }
+    if (!isBridgeOnline()) {
+      return res.status(503).json({ success: false, message: OFFLINE_MESSAGE });
     }
-    res.json({ success: true, message: `Oyunda aktif olan ${reviveCount} ekip üyesine Revive gönderildi.` });
+    const memberIds = new Set((await DiscordUser.find(groupMembersQuery(team))).map(m => m.discordId));
+    const targets = livePlayers().filter(player => player.identifiers && player.identifiers.some(id => memberIds.has(id.replace("discord:", ""))));
+    if (targets.length === 0) {
+      return res.json({ success: true, message: "Oyunda aktif ekip üyesi yok; revive gönderilmedi." });
+    }
+    const results = await Promise.all(targets.map(player => dispatchCommand("revive", { targetPlayer: String(player.id), admin: req.session.user.username })));
+    const okCount = results.filter(r => r.ok).length;
+    const confirmed = results.filter(r => r.confirmed).length;
+    res.status(okCount ? 200 : 502).json({
+      success: okCount > 0,
+      message: `${targets.length} aktif üyeden ${okCount} tanesine revive iletildi${confirmed !== okCount ? ` (${confirmed} onaylandı)` : ""}.${okCount < targets.length ? ` ${targets.length - okCount} başarısız.` : ""}`
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: "Revive komutu gönderilirken hata oluştu." });
   }
